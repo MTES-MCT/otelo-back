@@ -33,4 +33,7 @@ fileignoreconfig:
   checksum: 73bdcdbf2e51f0c526a1b5844da0e56ecc3236ad0a38e8612e615894f6133eac
 - filename: src/common/decorators/public.decorator.ts
   checksum: dc467177fddb649a8ba7e78d64cd8c470d934ff2c0d4959cd9a5f8621104d282
+  fileignoreconfig:
+- filename: package-lock.json
+  checksum: 5e0f4253656fbc4811ac02afd0a00ec4731a393cdc7a89860991d86fabe1b644
 version: ""
