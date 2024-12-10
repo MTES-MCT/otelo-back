@@ -1,0 +1,36 @@
+fileignoreconfig:
+- filename: prisma/migrations/20241210195640_init/migration.sql
+  checksum: f0aca6794ceea277c5a198c0d587d67a159f91f7a7b725958aecfb60e56cc76c
+- filename: src/config/env.validation.ts
+  checksum: 6b5557fa5d278c44298f0d787cf6468fbf6dd86c0e14540c007f19468716629d
+- filename: src/config/environment.ts
+  checksum: 537331f56a6e2799e23787c49b7d20f80ac31d3b419880bb1792e1118fb62d89
+- filename: src/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service.ts
+  checksum: 86b330bcea6d42164e8fa93ba80af579cfaf30299b29e2b9a3a1f6081ba20337
+- filename: src/schemas/demographic-evolution/demographic-evolution.ts
+  checksum: af6d7dc9c77202721a985e4ec4662345afde16bf953f606900f65fc45d145038
+- filename: .eslintrc.js
+  checksum: 89ccf21e5e5c060b0354577699c0d2c2545db1e516bbef10bdbd620d4b93bfc6
+- filename: package.json
+  checksum: 454e8642583ce53ea00872dc6963fc11900d08d936022bbc860d2dc9f82b97f0
+- filename: src/calculation/needs-calculation/besoins-flux/occupation-renouvellement-parc-logements-b22/renewal-housing-stock.service.ts
+  checksum: a771abec614a8cac0680569d578655e4951689cdde821db72ecb3c8e2738dfaf
+- filename: src/sessions/sessions.service.ts
+  checksum: d986d0c2e60bb32897bd22f931d861c7af3696e6ab9d3851d6a54741e4a05a7b
+- filename: src/common/guards/authentication.guard.spec.ts
+  checksum: 73fee512edf5566bf4e6edc9ca7860e8a31db3e25aca80788bd5dc662e28d76b
+- filename: src/schemas/json.ts
+  checksum: f6a26e62b890e8bf2788f2945cd1604c6c81f6f0f97665dc93dbe32222a96a89
+- filename: src/common/guards/authorization.guard.ts
+  checksum: 9385565d6ac741a4b20495d3446b793c9889f01270b4876c8d8351a0906539ab
+- filename: src/common/guards/authentication.guard.ts
+  checksum: b8f02a9b1199d39fe6acd5a53fc519ae4baa30822849b14369b41390ccb4b4f8
+- filename: src/common/guards/authorization.guard.spec.ts
+  checksum: 1fc3444bb8f58b332922efc4bba4f690b6692141c4028a692fcd107e05708f32
+- filename: src/demographic-evolution/demographic-evolution.service.ts
+  checksum: 0ad697a6b02c399f8e66584ec78ef261aa3b6e273a41acf3223bd270a3d3d80b
+- filename: src/common/decorators/control-access.decorator.ts
+  checksum: 73bdcdbf2e51f0c526a1b5844da0e56ecc3236ad0a38e8612e615894f6133eac
+- filename: src/common/decorators/public.decorator.ts
+  checksum: dc467177fddb649a8ba7e78d64cd8c470d934ff2c0d4959cd9a5f8621104d282
+version: ""

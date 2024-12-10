@@ -1,0 +1,26 @@
+import { Test, TestingModule } from '@nestjs/testing'
+import { ScenariosController } from './scenarios.controller'
+import { ScenariosService } from '~/scenarios/scenarios.service'
+import { createMock } from '@golevelup/ts-jest'
+
+describe('ScenariosController', () => {
+  let controller: ScenariosController
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [ScenariosController],
+      providers: [
+        {
+          provide: ScenariosService,
+          useValue: createMock<ScenariosService>(),
+        },
+      ],
+    }).compile()
+
+    controller = module.get<ScenariosController>(ScenariosController)
+  })
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined()
+  })
+})

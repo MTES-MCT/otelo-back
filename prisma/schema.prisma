@@ -1,0 +1,522 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  firstname     String
+  lastname      String
+  emailVerified DateTime?
+  sub           String?
+  provider      String?
+  role          Role      @default(USER)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  lastLoginAt DateTime @default(now()) @map("last_login_at")
+
+  accounts    Account[]
+  scenarios   Scenario[]
+  simulations Simulation[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String @id @default(uuid())
+  accessToken  String
+  refreshToken String
+
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  @@map("sessions")
+}
+
+enum SourceB11 {
+  RP
+  SNE
+}
+
+enum SourceB14 {
+  RP
+  Filo
+  FF
+}
+
+enum SourceB15 {
+  RP
+  Filo
+}
+
+enum MotifB17 {
+  Tout
+  Env
+  Assis
+  Rappr
+  Trois
+}
+
+model Scenario {
+  id                     String    @id @default(uuid())
+  isConfidential         Boolean   @default(true)
+  projection             Int
+  b1_horizon_resorption  Int     @default(20)
+  b11_sa                 Boolean?
+  b11_fortune            Boolean?
+  b11_hotel              Boolean?
+  source_b11             SourceB11?
+  b11_etablissement      String[]
+  b11_part_etablissement Int?
+  b12_cohab_interg_subie Int?
+  b12_heberg_particulier Boolean?
+  b12_heberg_gratuit     Boolean?
+  b12_heberg_temporaire  Boolean?
+  b13_acc                Boolean?
+  b13_plp                Boolean?
+  b13_taux_effort        Int?
+  b13_taux_reallocation  Int?
+  b14_confort            String?
+  b14_occupation         String?
+  b14_qualite            String?
+  source_b14             SourceB14?
+  b14_taux_reallocation  Int?
+  b15_surocc             String?
+  b15_proprietaire       Boolean?
+  b15_loc_hors_hlm       Boolean?
+  source_b15             SourceB15?
+  b15_taux_reallocation  Int?
+  b17_motif              MotifB17?
+  b2_scenario_omphale    String?
+  b2_tx_restructuration  Int?
+  b2_tx_disparition      Int?
+  b2_tx_vacance          Int?
+  b2_tx_rs               Int?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  simulations Simulation[]
+
+  @@map("scenarios")
+}
+
+model Epci {
+  code   String @id
+  name   String
+  region String
+
+  simulations                  Simulation[]
+  demographicEvolutionsOmphale DemographicEvolutionOmphale[]
+  demographicEvolutionPopulation DemographicEvolutionPopulation[]
+  financialInadequations       FinancialInadequation[]
+  physicalInadequations_RP     PhysicalInadequation_RP[]
+  physicalInadequations_Filo   PhysicalInadequation_Filo[]
+  hostedFilocom                HostedFilocom[]
+  hostedSne                    HostedSne[]
+  hostedFiness                 HostedFiness[]
+  socialParc                   SocialParc[]
+  homeless                     Homeless[]
+  makeshiftHousingRP           MakeShiftHousing_RP[]
+  makeshiftHousingSNE          MakeShiftHousing_SNE[]
+  hotel                        Hotel[]
+  badQualityFilocom            BadQuality_Filocom[]
+  badQualityRP                 BadQuality_RP[]
+  BadQuality_Fonciers          BadQuality_Fonciers[]
+  filocomFlux                  FilocomFlux[]
+
+  @@map("epcis")
+}
+
+model Simulation {
+  id   String @id @default(uuid())
+  name String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  scenario   Scenario @relation(fields: [scenarioId], references: [id])
+  scenarioId String   @map("scenario_id")
+
+  @@map("simulations")
+}
+
+model DemographicEvolutionOmphale {
+  year Int
+
+  centralB Float @map("central_b")
+  centralC Float @map("central_c")
+  centralH Float @map("central_h")
+  phB      Float @map("ph_b")
+  phC      Float @map("ph_c")
+  phH      Float @map("ph_h")
+  pbB      Float @map("pb_b")
+  pbC      Float @map("pb_c")
+  pbH      Float @map("pb_h")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("demographic_evolution_omphale")
+}
+
+model DemographicEvolutionPopulation {
+  year Int
+
+  central Float @map("central")
+  haute Float @map("haute")
+  basse Float @map("basse")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("demographic_evolution_population")
+}
+
+model PhysicalInadequation_Filo {
+  suroccLeg      Int @map("surocc_leg")
+  suroccLegPo    Int @map("surocc_leg_po")
+  suroccLegLp    Int @map("surocc_leg_lp")
+  suroccLegLh    Int @map("surocc_leg_lh")
+  suroccLegAu    Int @map("surocc_leg_au")
+  suroccLourde   Int @map("surocc_lourde")
+  suroccLourdePo Int @map("surocc_lourde_po")
+  suroccLourdeLp Int @map("surocc_lourde_lp")
+  suroccLourdeLh Int @map("surocc_lourde_lh")
+  suroccLourdeAu Int @map("surocc_lourde_au")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("physical_inadequation_filo")
+}
+
+model PhysicalInadequation_RP {
+  nbMenAccLocHlm         Float @map("nb_men_acc_loc_hlm")
+  nbMenAccLocMeuble      Float @map("nb_men_acc_loc_meuble")
+  nbMenAccLocNonHLM      Float @map("nb_men_acc_loc_non_hlm")
+  nbMenAccLogeGratuit    Float @map("nb_men_acc_loge_gratuit")
+  nbMenAccPpt            Float @map("nb_men_acc_ppt")
+  nbMenModLocHlm         Float @map("nb_men_mod_loc_hlm")
+  nbMenModLocMeuble      Float @map("nb_men_mod_loc_meuble")
+  nbMenModLocNonHLM      Float @map("nb_men_mod_loc_non_hlm")
+  nbMenModLogeGratuit    Float @map("nb_men_mod_loge_gratuit")
+  nbMenModPpt            Float @map("nb_men_mod_ppt")
+  nbMenNormLocHlm        Float @map("nb_men_norm_loc_hlm")
+  nbMenNormLocMeuble     Float @map("nb_men_norm_loc_meuble")
+  nbMenNormLocNonHLM     Float @map("nb_men_norm_loc_non_hlm")
+  nbMenNormLogeGratuit   Float @map("nb_men_norm_loge_gratuit")
+  nbMenNormPpt           Float @map("nb_men_norm_ppt")
+  nbMenStudioLocHlm      Float @map("nb_men_studio_loc_hlm")
+  nbMenStudioLocMeuble   Float @map("nb_men_studio_loc_meuble")
+  nbMenStudioLocNonHLM   Float @map("nb_men_studio_loc_non_hlm")
+  nbMenStudioLogeGratuit Float @map("nb_men_studio_loge_gratuit")
+  nbMenStudioPpt         Float @map("nb_men_studio_ppt")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("physical_inadequation_rp")
+}
+
+model FinancialInadequation {
+  nbAllPlus20ParcLocatifPrive   Float  @map("nb_all_plus20_parc_locatif_prive")
+  nbAllPlus21ParcLocatifPrive   Float  @map("nb_all_plus21_parc_locatif_prive")
+  nbAllPlus22ParcLocatifPrive   Float  @map("nb_all_plus22_parc_locatif_prive")
+  nbAllPlus23ParcLocatifPrive   Float  @map("nb_all_plus23_parc_locatif_prive")
+  nbAllPlus24ParcLocatifPrive   Float  @map("nb_all_plus24_parc_locatif_prive")
+  nbAllPlus25ParcLocatifPrive   Float  @map("nb_all_plus25_parc_locatif_prive")
+  nbAllPlus26ParcLocatifPrive   Float  @map("nb_all_plus26_parc_locatif_prive")
+  nbAllPlus27ParcLocatifPrive   Float  @map("nb_all_plus27_parc_locatif_prive")
+  nbAllPlus28ParcLocatifPrive   Float  @map("nb_all_plus28_parc_locatif_prive")
+  nbAllPlus29ParcLocatifPrive   Float  @map("nb_all_plus29_parc_locatif_prive")
+  nbAllPlus30ParcLocatifPrive   Float  @map("nb_all_plus30_parc_locatif_prive")
+  nbAllPlus31ParcLocatifPrive   Float  @map("nb_all_plus31_parc_locatif_prive")
+  nbAllPlus32ParcLocatifPrive   Float  @map("nb_all_plus32_parc_locatif_prive")
+  nbAllPlus33ParcLocatifPrive   Float  @map("nb_all_plus33_parc_locatif_prive")
+  nbAllPlus34ParcLocatifPrive   Float  @map("nb_all_plus34_parc_locatif_prive")
+  nbAllPlus35ParcLocatifPrive   Float  @map("nb_all_plus35_parc_locatif_prive")
+  nbAllPlus36ParcLocatifPrive   Float  @map("nb_all_plus36_parc_locatif_prive")
+  nbAllPlus37ParcLocatifPrive   Float  @map("nb_all_plus37_parc_locatif_prive")
+  nbAllPlus38ParcLocatifPrive   Float  @map("nb_all_plus38_parc_locatif_prive")
+  nbAllPlus39ParcLocatifPrive   Float  @map("nb_all_plus39_parc_locatif_prive")
+  nbAllPlus40ParcLocatifPrive   Float  @map("nb_all_plus40_parc_locatif_prive")
+  nbAllPlus20AccessionPropriete Float  @map("nb_all_plus20_accession_propriete")
+  nbAllPlus21AccessionPropriete Float  @map("nb_all_plus21_accession_propriete")
+  nbAllPlus22AccessionPropriete Float  @map("nb_all_plus22_accession_propriete")
+  nbAllPlus23AccessionPropriete Float  @map("nb_all_plus23_accession_propriete")
+  nbAllPlus24AccessionPropriete Float  @map("nb_all_plus24_accession_propriete")
+  nbAllPlus25AccessionPropriete Float  @map("nb_all_plus25_accession_propriete")
+  nbAllPlus26AccessionPropriete Float  @map("nb_all_plus26_accession_propriete")
+  nbAllPlus27AccessionPropriete Float  @map("nb_all_plus27_accession_propriete")
+  nbAllPlus28AccessionPropriete Float  @map("nb_all_plus28_accession_propriete")
+  nbAllPlus29AccessionPropriete Float  @map("nb_all_plus29_accession_propriete")
+  nbAllPlus30AccessionPropriete Float  @map("nb_all_plus30_accession_propriete")
+  nbAllPlus31AccessionPropriete Float  @map("nb_all_plus31_accession_propriete")
+  nbAllPlus32AccessionPropriete Float  @map("nb_all_plus32_accession_propriete")
+  nbAllPlus33AccessionPropriete Float  @map("nb_all_plus33_accession_propriete")
+  nbAllPlus34AccessionPropriete Float  @map("nb_all_plus34_accession_propriete")
+  nbAllPlus35AccessionPropriete Float  @map("nb_all_plus35_accession_propriete")
+  nbAllPlus36AccessionPropriete Float  @map("nb_all_plus36_accession_propriete")
+  nbAllPlus37AccessionPropriete Float  @map("nb_all_plus37_accession_propriete")
+  nbAllPlus38AccessionPropriete Float  @map("nb_all_plus38_accession_propriete")
+  nbAllPlus39AccessionPropriete Float  @map("nb_all_plus39_accession_propriete")
+  nbAllPlus40AccessionPropriete Float  @map("nb_all_plus40_accession_propriete")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("financial_inadequation")
+}
+
+model HostedFilocom {
+  value Int
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode])
+  @@map("hosted_filocom")
+}
+
+model HostedFiness {
+  autreCentre      Int @map("autre_centre")
+  demandeAsile     Int @map("demande_asile")
+  reinsertion      Int @map("reinsertion")
+  centreProvisoire Int @map("centre_provisoire")
+  jeuneTravailleur Int @map("jeune_travailleur")
+  foyerMigrants    Int @map("foyer_migrants")
+  malade           Int @map("malade")
+  maisonRelai      Int @map("maison_relai")
+  horsMaisonRelai  Int @map("hors_maison_relai")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("hosted_finess")
+}
+
+model HostedSne {
+  particular Int
+  free       Int
+  temporary  Int
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("hosted_sne")
+}
+
+model SocialParc {
+  crea     Int
+  voisin   Int
+  mater    Int
+  services Int
+  motifs   Int
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("social_parc")
+}
+
+model Hotel {
+  rp  Int
+  sne Int
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("hotel")
+}
+
+model MakeShiftHousing_RP {
+  value Float
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("makeshift_housing_rp")
+}
+
+model MakeShiftHousing_SNE {
+  camping Int
+  squat   Int
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("makeshift_housing_sne")
+}
+
+model Homeless {
+  rp  Float
+  sne Float
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("homeless")
+}
+
+model BadQuality_Filocom {
+  pppiLp Int @map("pppi_lp")
+  pppiPo Int @map("pppi_po")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("bad_quality_filocom")
+}
+
+model BadQuality_RP {
+  saniLocNonhlm     Int @map("sani_loc_nonhlm")
+  saniPpT           Int @map("sani_ppt")
+  saniChflLocNonhlm Int @map("sani_chfl_loc_nonhlm")
+  saniChflPpT       Int @map("sani_chfl_ppt")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("bad_quality_rp")
+}
+
+model BadQuality_Fonciers {
+  ppSsWcLoc                Int @map("pp_ss_wc_loc")
+  ppSsWcPpt                Int @map("pp_ss_wc_ppt")
+  ppSsWcAu                 Int @map("pp_ss_wc_au")
+  ppSsChauffLoc            Int @map("pp_ss_chauff_loc")
+  ppSsChauffPpt            Int @map("pp_ss_chauff_ppt")
+  ppSsChauffAu             Int @map("pp_ss_chauff_au")
+  ppSsSdbLoc               Int @map("pp_ss_sdb_loc")
+  ppSsSdbPpt               Int @map("pp_ss_sdb_ppt")
+  ppSsSdbAu                Int @map("pp_ss_sdb_au")
+  ppSsWcChauffLoc          Int @map("pp_ss_wc_chauff_loc")
+  ppSsWcChauffPpt          Int @map("pp_ss_wc_chauff_ppt")
+  ppSsWcChauffAu           Int @map("pp_ss_wc_chauff_au")
+  ppSsWcSdbLoc             Int @map("pp_ss_wc_sdb_loc")
+  ppSsWcSdbPpt             Int @map("pp_ss_wc_sdb_ppt")
+  ppSsWcSdbAu              Int @map("pp_ss_wc_sdb_au")
+  ppSsSdbChauffLoc         Int @map("pp_ss_sdb_chauff_loc")
+  ppSsSdbChauffPpt         Int @map("pp_ss_sdb_chauff_ppt")
+  ppSsSdbChauffAu          Int @map("pp_ss_sdb_chauff_au")
+  ppSs3eltsLoc             Int @map("pp_ss_3elts_loc")
+  ppSs3eltsPpt             Int @map("pp_ss_3elts_ppt")
+  ppSs3eltsAu              Int @map("pp_ss_3elts_au")
+  ppSsEntWcLoc             Int @map("pp_ss_ent_wc_loc")
+  ppSsEntWcPpt             Int @map("pp_ss_ent_wc_ppt")
+  ppSsEntWcAu              Int @map("pp_ss_ent_wc_au")
+  ppSsEntChauffLoc         Int @map("pp_ss_ent_chauff_loc")
+  ppSsEntChauffPpt         Int @map("pp_ss_ent_chauff_ppt")
+  ppSsEntChauffAu          Int @map("pp_ss_ent_chauff_au")
+  ppSsEntSdbLoc            Int @map("pp_ss_ent_sdb_loc")
+  ppSsEntSdbPpt            Int @map("pp_ss_ent_sdb_ppt")
+  ppSsEntSdbAu             Int @map("pp_ss_ent_sdb_au")
+  ppSsEntWcChauffLoc       Int @map("pp_ss_ent_wc_chauff_loc")
+  ppSsEntWcChauffPpt       Int @map("pp_ss_ent_wc_chauff_ppt")
+  ppSsEntWcChauffAu        Int @map("pp_ss_ent_wc_chauff_au")
+  ppSsEntWcSdbLoc          Int @map("pp_ss_ent_wc_sdb_loc")
+  ppSsEntWcSdbPpt          Int @map("pp_ss_ent_wc_sdb_ppt")
+  ppSsEntWcSdbAu           Int @map("pp_ss_ent_wc_sdb_au")
+  ppSsEntSdbChauffLoc      Int @map("pp_ss_ent_sdb_chauff_loc")
+  ppSsEntSdbChauffPpt      Int @map("pp_ss_ent_sdb_chauff_ppt")
+  ppSsEntSdbChauffAu       Int @map("pp_ss_ent_sdb_chauff_au")
+  ppSsEnt3eltsLoc          Int @map("pp_ss_ent_3elts_loc")
+  ppSsEnt3eltsPpt          Int @map("pp_ss_ent_3elts_ppt")
+  ppSsEnt3eltsAu           Int @map("pp_ss_ent_3elts_au")
+  ppSsQualiEntWcLoc        Int @map("pp_ss_quali_ent_wc_loc")
+  ppSsQualiEntWcPpt        Int @map("pp_ss_quali_ent_wc_ppt")
+  ppSsQualiEntWcAu         Int @map("pp_ss_quali_ent_wc_au")
+  ppSsQualiEntChauffLoc    Int @map("pp_ss_quali_ent_chauff_loc")
+  ppSsQualiEntChauffPpt    Int @map("pp_ss_quali_ent_chauff_ppt")
+  ppSsQualiEntChauffAu     Int @map("pp_ss_quali_ent_chauff_au")
+  ppSsQualiEntSdbLoc       Int @map("pp_ss_quali_ent_sdb_loc")
+  ppSsQualiEntSdbPpt       Int @map("pp_ss_quali_ent_sdb_ppt")
+  ppSsQualiEntSdbAu        Int @map("pp_ss_quali_ent_sdb_au")
+  ppSsQualiEntWcChauffLoc  Int @map("pp_ss_quali_ent_wc_chauff_loc")
+  ppSsQualiEntWcChauffPpt  Int @map("pp_ss_quali_ent_wc_chauff_ppt")
+  ppSsQualiEntWcChauffAu   Int @map("pp_ss_quali_ent_wc_chauff_au")
+  ppSsQualiEntWcSdbLoc     Int @map("pp_ss_quali_ent_wc_sdb_loc")
+  ppSsQualiEntWcSdbPpt     Int @map("pp_ss_quali_ent_wc_sdb_ppt")
+  ppSsQualiEntWcSdbAu      Int @map("pp_ss_quali_ent_wc_sdb_au")
+  ppSsQualiEntSdbChauffLoc Int @map("pp_ss_quali_ent_sdb_chauff_loc")
+  ppSsQualiEntSdbChauffPpt Int @map("pp_ss_quali_ent_sdb_chauff_ppt")
+  ppSsQualiEntSdbChauffAu  Int @map("pp_ss_quali_ent_sdb_chauff_au")
+  ppSsQualiEnt3eltsLoc     Int @map("pp_ss_quali_ent_3elts_loc")
+  ppSsQualiEnt3eltsPpt     Int @map("pp_ss_quali_ent_3elts_ppt")
+  ppSsQualiEnt3eltsAu      Int @map("pp_ss_quali_ent_3elts_au")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("bad_quality_fonciers")
+}
+
+model FilocomFlux {
+  parctot       Float @map("parctot")
+  txRpParctot   Float @map("tx_rp_parctot")
+  txRsParctot   Float @map("tx_rs_parctot")
+  txLvParctot   Float @map("tx_lv_parctot")
+  txRestParctot Float @map("tx_rest_parctot")
+  txDispParctot Float @map("tx_disp_parctot")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("filocom_flux")
+}
