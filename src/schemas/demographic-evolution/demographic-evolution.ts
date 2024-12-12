@@ -53,7 +53,7 @@ export const ZGetDemographicEvolution = z.object({
 
 export type TGetDemographicEvolution = z.infer<typeof ZGetDemographicEvolution>
 
-export const ZDemographicEvolutionOmphale = z.object({
+export const ZDemographicEvolution = z.object({
   data: z.array(
     z.object({
       value: z.number(),
@@ -72,7 +72,7 @@ export const ZDemographicEvolutionOmphale = z.object({
   }),
 })
 
-export type TDemographicEvolutionOmphale = z.infer<typeof ZDemographicEvolutionOmphale>
+export type TDemographicEvolution = z.infer<typeof ZDemographicEvolution>
 
 export const ZGetDemographicEvolutionByEpciQuery = z.object({
   epciCode: z.string(),

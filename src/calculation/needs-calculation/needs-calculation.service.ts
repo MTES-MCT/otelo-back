@@ -29,13 +29,21 @@ export class NeedsCalculationService {
 
   async calculate(): Promise<TResults> {
     const currentDemographicEvolution = await this.demographicEvolutionService.calculate()
-    const futureDemographicProjections = await this.demographicEvolutionService.calculateProjectionsByYear()
+    const futureDemographicProjections = await this.demographicEvolutionService.calculateOmphaleProjectionsByYear()
+
+    // todo
+    const totalStock = 0
+    const totalFlux = currentDemographicEvolution
+    const total = totalFlux + totalStock
 
     return {
       demographicEvolution: {
         currentProjection: currentDemographicEvolution,
         futureProjections: futureDemographicProjections,
       },
+      total,
+      totalFlux: currentDemographicEvolution,
+      totalStock,
     }
   }
 }

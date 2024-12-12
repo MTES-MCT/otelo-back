@@ -7,8 +7,6 @@ import { PrismaService } from '~/db/prisma.service'
 
 @Injectable()
 export class RenewalHousingStockService extends BaseCalculator {
-  private readonly DEFAULT_PROJECTION_PERIOD = 6
-
   constructor(
     @Inject('CalculationContext')
     protected readonly context: CalculationContext,
@@ -47,7 +45,6 @@ export class RenewalHousingStockService extends BaseCalculator {
 
     const totalActualParc = flux.parctot
     const rpActualParc = calculateParcRpActuel()
-
     return Math.round(
       (rpActualParc + demographicEvolution) / calculateTauxRp() -
         (totalActualParc - (await this.calculateBesoinRenouvellement(totalActualParc))),
@@ -76,18 +73,18 @@ export class RenewalHousingStockService extends BaseCalculator {
   }
 
   private async calculateTauxRestructuration(): Promise<number> {
-    const { simulation } = this.context
+    const { periodProjection, simulation } = this.context
     const { scenario } = simulation
-    const periodProjection = this.DEFAULT_PROJECTION_PERIOD
+
     const annualRate = (await this.getTauxRestructurationAnnuel()) + scenario.b2_tx_restructuration / 100.0
 
     return Math.round((1.0 + annualRate) ** periodProjection - 1.0)
   }
 
   private async calculateTauxDisparition(): Promise<number> {
-    const { simulation } = this.context
+    const { periodProjection, simulation } = this.context
     const { scenario } = simulation
-    const periodProjection = this.DEFAULT_PROJECTION_PERIOD
+
     const annualRate = (await this.getTauxDisparitionAnnuel()) + scenario.b2_tx_disparition / 100.0
 
     return Math.round((1.0 + annualRate) ** periodProjection - 1.0)

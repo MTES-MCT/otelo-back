@@ -3,7 +3,7 @@ import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculat
 import { PrismaService } from '~/db/prisma.service'
 import {
   EOmphale,
-  TDemographicEvolutionOmphale,
+  TDemographicEvolution,
   TGetDemographicEvolution,
   TGetDemographicEvolutionByOmphaleQuery,
   TGetDemographicEvolutionByYearAndOmphaleQuery,
@@ -29,14 +29,6 @@ export class DemographicEvolutionService extends BaseCalculator {
     private readonly prismaService: PrismaService,
   ) {
     super(context)
-  }
-
-  async getPopulationProjectionsByYear(epciCode: string) {
-    return this.prismaService.demographicEvolutionPopulation.findMany({
-      where: {
-        epciCode,
-      },
-    })
   }
 
   async getProjectionByYearAndOmphale(query: TGetDemographicEvolutionByYearAndOmphaleQuery): Promise<TGetDemographicEvolution> {
@@ -94,7 +86,7 @@ export class DemographicEvolutionService extends BaseCalculator {
     const { code: epciCode } = epci
     const baseYear = 2018
 
-    const omphale = omphaleMap[scenario.b2_scenario_omphale.toLowerCase()]
+    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
       epciCode,
       omphale,
@@ -109,13 +101,13 @@ export class DemographicEvolutionService extends BaseCalculator {
     return this.applyCoefficient(futureProjection[omphale] - baseProjection[omphale])
   }
 
-  async calculateProjectionsByYear(): Promise<TDemographicEvolutionOmphale> {
+  async calculateOmphaleProjectionsByYear(): Promise<TDemographicEvolution> {
     const { simulation } = this.context
     const { epci, scenario } = simulation
     const { code: epciCode } = epci
     const baseYear = 2018
 
-    const omphale = omphaleMap[scenario.b2_scenario_omphale.toLowerCase()]
+    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
       epciCode,
       omphale,
@@ -128,7 +120,6 @@ export class DemographicEvolutionService extends BaseCalculator {
     })
 
     const { max, min, periodMax, periodMin, yearlyData } = futureProjections
-      // we dont want the base year data in the yearly data
       .filter(({ year }) => year !== baseYear)
       .reduce(
         (acc, projection) => {
