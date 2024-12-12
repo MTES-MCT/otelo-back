@@ -30,7 +30,7 @@ export const ZScenario = ZCommonDateFields.extend({
   b15_taux_reallocation: z.number(),
   b17_motif: z.union([z.literal('Tout'), z.literal('Env'), z.literal('Assis'), z.literal('Rappr'), z.literal('Trois')]),
   b1_horizon_resorption: z.number(),
-  b2_scenario_omphale: z.string(),
+  b2_scenario: z.string(),
   b2_tx_disparition: z.number(),
   b2_tx_restructuration: z.number(),
   b2_tx_rs: z.number(),

@@ -45,4 +45,39 @@ export class DemographicEvolutionService {
       },
     }
   }
+
+  async getDemographicEvolutionPopulation(epciCode: string) {
+    const projections = await this.prismaService.$queryRaw<any[]>`
+      SELECT 
+        year,
+        ROUND(central) as "central",
+        ROUND(haute) as "haute",
+        ROUND(basse) as "basse"
+      FROM demographic_evolution_population
+      WHERE epci_code = ${epciCode}
+      ORDER BY year ASC
+    `
+
+    const { max, min } = projections.reduce(
+      (acc, projection) => {
+        Object.entries(projection).forEach(([key, value]) => {
+          if (key !== 'year') {
+            const numValue = Number(value)
+            acc.min = Math.min(acc.min, numValue)
+            acc.max = Math.max(acc.max, numValue)
+          }
+        })
+        return acc
+      },
+      { max: -Infinity, min: Infinity },
+    )
+
+    return {
+      data: projections,
+      metadata: {
+        max,
+        min,
+      },
+    }
+  }
 }

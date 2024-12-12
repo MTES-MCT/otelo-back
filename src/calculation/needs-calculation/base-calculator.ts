@@ -2,6 +2,7 @@ import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation
 
 export interface CalculationContext {
   coefficient: number
+  periodProjection: number
   simulation: TSimulationWithEpciAndScenario
 }
 

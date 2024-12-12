@@ -49,7 +49,6 @@ export class SimulationsService {
       id: simulation.id,
       //todo - remove cast (null value from db)
       scenario: simulation.scenario as any,
-
       updatedAt: simulation.updatedAt,
     }
   }

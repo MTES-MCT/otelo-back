@@ -38,13 +38,15 @@ interface AuthenticatedRequest extends Request {
       ) => {
         const simulationId = request.params.simulationId
         const simulation = await simulationService.get(simulationId)
+        const periodProjection = simulation.scenario.projection - new Date().getFullYear()
         const coefficient = await coefficientCalculationService.calculateCoefficient(
           simulation.scenario.b1_horizon_resorption,
-          simulation.scenario.projection,
+          periodProjection,
         )
 
         return {
           coefficient,
+          periodProjection,
           simulation,
         }
       },
