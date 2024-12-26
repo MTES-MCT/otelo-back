@@ -19,7 +19,7 @@ export class NeedsCalculationService {
     private readonly prismaService: PrismaService,
     private readonly noAccomodationService: NoAccomodationService,
     private readonly hostedService: HostedService,
-    private readonly inadFinanciereService: FinancialInadequationService,
+    private readonly financialInadequationService: FinancialInadequationService,
     private readonly badQualityService: BadQualityService,
     private readonly physicalInadequationService: PhysicalInadequationService,
     private readonly socialParcService: SocialParcService,
@@ -30,20 +30,37 @@ export class NeedsCalculationService {
   async calculate(): Promise<TResults> {
     const currentDemographicEvolution = await this.demographicEvolutionService.calculate()
     const futureDemographicProjections = await this.demographicEvolutionService.calculateOmphaleProjectionsByYear()
+    const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolution()
+    const renewalNeeds = await this.renewalHousingStock.calculateRenewalNeeds()
+    const secondaryResidenceAccomodationEvolution = await this.renewalHousingStock.getSecondaryResidenceAccomodationEvolution()
 
-    // todo
-    const totalStock = 0
-    const totalFlux = currentDemographicEvolution
+    const noAccomodation = await this.noAccomodationService.calculate()
+    const hosted = await this.hostedService.calculate()
+    const financialInadequation = await this.financialInadequationService.calculate()
+    const physicalInadequation = await this.physicalInadequationService.calculate()
+    const badQuality = await this.badQualityService.calculate()
+    const socialParc = await this.socialParcService.calculate()
+    const totalStock = noAccomodation + hosted + financialInadequation + physicalInadequation + badQuality + socialParc
+    const totalFlux = currentDemographicEvolution + secondaryResidenceAccomodationEvolution + vacantAccomodationEvolution + renewalNeeds
     const total = totalFlux + totalStock
 
     return {
+      badQuality,
       demographicEvolution: {
         currentProjection: currentDemographicEvolution,
         futureProjections: futureDemographicProjections,
       },
+      financialInadequation,
+      hosted,
+      noAccomodation,
+      physicalInadequation,
+      renewalNeeds,
+      secondaryResidenceAccomodationEvolution,
+      socialParc,
       total,
-      totalFlux: currentDemographicEvolution,
+      totalFlux,
       totalStock,
+      vacantAccomodationEvolution,
     }
   }
 }

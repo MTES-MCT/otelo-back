@@ -158,7 +158,6 @@ export class SessionsService {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(oldRefreshToken, {
         secret: this.JWT_SECRET,
       })
-      console.log('Old token payload', payload)
 
       const session = await this.prisma.session.findFirst({
         include: {

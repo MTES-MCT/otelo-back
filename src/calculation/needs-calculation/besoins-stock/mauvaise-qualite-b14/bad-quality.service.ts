@@ -30,7 +30,7 @@ export class BadQualityService extends BaseCalculator {
   }
 
   async calculate(): Promise<number> {
-    const { coefficient, simulation } = this.context
+    const { simulation } = this.context
     const { epci, scenario } = simulation
     const { code: epciCode } = epci
 
@@ -38,21 +38,20 @@ export class BadQualityService extends BaseCalculator {
       FF: async () => {
         const getColumnPrefix = () => {
           const qualityMap = {
-            FF_Ind: 'pp_ss_',
-            FF_ss_ent: 'pp_ss_ent_',
-            FF_ss_ent_mvq: 'pp_ss_quali_ent_',
+            FF_Ind: 'ppSs',
+            FF_ss_ent: 'ppSsEnt',
+            FF_ss_ent_mvq: 'ppSsQualiEnt',
           }
 
           const comfortMap = {
-            FF_abs_chauf: 'chauff',
-            FF_abs_sani: 'sdb',
-            FF_abs_sani_chauf: 'sdb_chauff',
-            FF_abs_wc: 'wc',
-            FF_abs_wc_chauf: 'wc_chauff',
-            FF_abs_wc_sani: 'wc_sdb',
+            FF_abs_chauf: 'Chauff',
+            FF_abs_sani: 'Sdb',
+            FF_abs_sani_chauf: 'SdbChauff',
+            FF_abs_wc: 'Wc',
+            FF_abs_wc_chauf: 'WcChauff',
+            FF_abs_wc_sani: 'WcSdb',
             FF_abs_wc_sani_chauf: '3elts',
           }
-
           const prefix = qualityMap[scenario.b14_qualite]
           const comfort = comfortMap[scenario.b14_confort]
           return `${prefix}${comfort}`
@@ -63,11 +62,11 @@ export class BadQualityService extends BaseCalculator {
 
         let sum = 0
         if (scenario.b14_occupation.includes('loc')) {
-          const locColumn = `${columnPrefix}_loc` as keyof typeof foncierData
+          const locColumn = `${columnPrefix}Loc`
           sum += (foncierData[locColumn] as number) || 0
         }
         if (scenario.b14_occupation.includes('prop')) {
-          const pptColumn = `${columnPrefix}_ppt` as keyof typeof foncierData
+          const pptColumn = `${columnPrefix}Ppt`
           sum += (foncierData[pptColumn] as number) || 0
         }
         return sum
@@ -76,23 +75,24 @@ export class BadQualityService extends BaseCalculator {
         let sum = 0
         let type: string = ''
         if (scenario.b14_occupation.includes('loc')) {
-          type = 'pppi_lp'
+          type = 'pppiLp'
         }
         if (scenario.b14_occupation.includes('prop')) {
-          type = 'pppi_po'
+          type = 'pppiPo'
         }
         sum += (await this.getFilocomBadQuality(epciCode))[type]
         return sum
       },
       RP: async () => {
+        const badQuality = await this.getRPBadQuality(epciCode)
         const comfortMap = {
           RP_abs_sani: {
-            loc: (await this.getRPBadQuality('epciCode')).saniLocNonhlm,
-            prop: (await this.getRPBadQuality('epciCode')).saniPpT,
+            loc: badQuality.saniLocNonhlm,
+            prop: badQuality.saniPpT,
           },
           RP_abs_sani_chfl: {
-            loc: (await this.getRPBadQuality('epciCode')).saniChflLocNonhlm,
-            prop: (await this.getRPBadQuality('epciCode')).saniChflPpT,
+            loc: badQuality.saniChflLocNonhlm,
+            prop: badQuality.saniChflPpT,
           },
         }
 
@@ -108,6 +108,6 @@ export class BadQualityService extends BaseCalculator {
     }
 
     const result = (await sourceCalculators[scenario.source_b14]?.()) || 0
-    return Math.round(result * (1 - scenario.b14_taux_reallocation / 100.0) * coefficient)
+    return this.applyCoefficient(result * (1 - scenario.b14_taux_reallocation / 100.0))
   }
 }

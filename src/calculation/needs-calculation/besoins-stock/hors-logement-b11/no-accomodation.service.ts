@@ -70,20 +70,22 @@ export class NoAccomodationService extends BaseCalculator {
   }
 
   async calculate(): Promise<number> {
-    const { coefficient, simulation } = this.context
+    const { simulation } = this.context
     const { scenario } = simulation
     const { b11_fortune, b11_hotel, b11_sa, source_b11 } = scenario
+    const homeless = await this.getHomeless()
+    const hotel = await this.getHotel()
 
     const sourceMap = {
       [ESourceB11.RP]: {
         habitat_fortune: (await this.getRPMakeShiftHousing()).value,
-        hotel: (await this.getHotel()).rp,
-        sans_abri: (await this.getHomeless()).rp,
+        hotel: hotel.rp,
+        sans_abri: homeless.rp,
       },
       [ESourceB11.SNE]: {
         habitat_fortune: (await this.getSNEMakeShiftHousing()).camping + (await this.getSNEMakeShiftHousing()).squat,
-        hotel: (await this.getHotel()).sne,
-        sans_abri: (await this.getHomeless()).sne,
+        hotel: hotel.sne,
+        sans_abri: homeless.sne,
       },
     }
     const selectedSource = sourceMap[source_b11]
@@ -98,6 +100,6 @@ export class NoAccomodationService extends BaseCalculator {
 
     const totalResult = result + Math.round(establishmentResult * (scenario.b11_part_etablissement / 100.0))
 
-    return Math.round(totalResult * coefficient)
+    return this.applyCoefficient(totalResult)
   }
 }

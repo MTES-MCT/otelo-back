@@ -57,7 +57,6 @@ export class DemographicEvolutionService {
       WHERE epci_code = ${epciCode}
       ORDER BY year ASC
     `
-
     const { max, min } = projections.reduce(
       (acc, projection) => {
         Object.entries(projection).forEach(([key, value]) => {

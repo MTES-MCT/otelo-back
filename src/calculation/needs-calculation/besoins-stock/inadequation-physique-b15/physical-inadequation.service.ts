@@ -36,20 +36,21 @@ export class PhysicalInadequationService extends BaseCalculator {
     const { simulation } = this.context
     const { epci, scenario } = simulation
     const { code: epciCode, region } = epci
-
     const sourceCalculators = {
       Filo: async (): Promise<number> => {
-        const surocc = scenario.b15_surocc === 'Mod' ? 'leg' : 'lourde'
+        const physicalInadequation = await this.getPhysicalInadequationFilo(epciCode)
+        const surocc = scenario.b15_surocc === 'Mod' ? 'Leg' : 'Lourde'
         return [
-          (scenario.b15_proprietaire && (await this.getPhysicalInadequationFilo('epciCode'))[`surocc_${surocc}_po`]) || 0,
-          (scenario.b15_loc_hors_hlm && (await this.getPhysicalInadequationFilo('epciCode'))[`surocc_${surocc}_lp`]) || 0,
+          (scenario.b15_proprietaire && physicalInadequation[`surocc${surocc}Po`]) || 0,
+          (scenario.b15_loc_hors_hlm && physicalInadequation[`surocc${surocc}Lp`]) || 0,
         ].reduce((sum, value) => sum + (value || 0), 0)
       },
       RP: async (): Promise<number> => {
-        const surocc = scenario.b15_surocc.toLowerCase()
+        const surocc = scenario.b15_surocc
+        const physicalInadequation = await this.getPhysicalInadequationRP(epciCode)
         return [
-          scenario.b15_proprietaire && (await this.getPhysicalInadequationRP(epciCode))[`nb_men_${surocc}_ppT`],
-          scenario.b15_loc_hors_hlm && (await this.getPhysicalInadequationRP(epciCode))[`nb_men_${surocc}_loc_nonHLM`],
+          scenario.b15_proprietaire && physicalInadequation[`nbMen${surocc}PpT`],
+          scenario.b15_loc_hors_hlm && physicalInadequation[`nbMen${surocc}LocNonHLM`],
         ].reduce((sum, value) => sum + (value || 0), 0)
       },
     }
