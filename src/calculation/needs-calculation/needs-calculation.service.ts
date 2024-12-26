@@ -28,18 +28,32 @@ export class NeedsCalculationService {
   ) {}
 
   async calculate(): Promise<TResults> {
-    const currentDemographicEvolution = await this.demographicEvolutionService.calculate()
-    const futureDemographicProjections = await this.demographicEvolutionService.calculateOmphaleProjectionsByYear()
-    const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolution()
-    const renewalNeeds = await this.renewalHousingStock.calculateRenewalNeeds()
-    const secondaryResidenceAccomodationEvolution = await this.renewalHousingStock.getSecondaryResidenceAccomodationEvolution()
+    const [
+      currentDemographicEvolution,
+      futureDemographicProjections,
+      vacantAccomodationEvolution,
+      renewalNeeds,
+      secondaryResidenceAccomodationEvolution,
+      noAccomodation,
+      hosted,
+      financialInadequation,
+      physicalInadequation,
+      badQuality,
+      socialParc,
+    ] = await Promise.all([
+      this.demographicEvolutionService.calculate(),
+      this.demographicEvolutionService.calculateOmphaleProjectionsByYear(),
+      this.renewalHousingStock.getVacantAccomodationEvolution(),
+      this.renewalHousingStock.calculateRenewalNeeds(),
+      this.renewalHousingStock.getSecondaryResidenceAccomodationEvolution(),
+      this.noAccomodationService.calculate(),
+      this.hostedService.calculate(),
+      this.financialInadequationService.calculate(),
+      this.physicalInadequationService.calculate(),
+      this.badQualityService.calculate(),
+      this.socialParcService.calculate(),
+    ])
 
-    const noAccomodation = await this.noAccomodationService.calculate()
-    const hosted = await this.hostedService.calculate()
-    const financialInadequation = await this.financialInadequationService.calculate()
-    const physicalInadequation = await this.physicalInadequationService.calculate()
-    const badQuality = await this.badQualityService.calculate()
-    const socialParc = await this.socialParcService.calculate()
     const totalStock = noAccomodation + hosted + financialInadequation + physicalInadequation + badQuality + socialParc
     const totalFlux = currentDemographicEvolution + secondaryResidenceAccomodationEvolution + vacantAccomodationEvolution + renewalNeeds
     const total = totalFlux + totalStock
