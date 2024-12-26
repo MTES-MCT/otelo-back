@@ -1,3 +1,4 @@
+import { B11Etablissement } from '@prisma/client'
 import { z } from 'zod'
 import { ZCommonDateFields } from '~/schemas/common-date-fields'
 
@@ -7,7 +8,7 @@ export enum ESourceB11 {
 }
 
 export const ZScenario = ZCommonDateFields.extend({
-  b11_etablissement: z.array(z.string()),
+  b11_etablissement: z.array(z.nativeEnum(B11Etablissement)),
   b11_fortune: z.boolean(),
   b11_hotel: z.boolean(),
   b11_part_etablissement: z.number(),

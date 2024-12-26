@@ -84,7 +84,7 @@ export class DemographicEvolutionService extends BaseCalculator {
     const { simulation } = this.context
     const { epci, scenario } = simulation
     const { code: epciCode } = epci
-    const baseYear = 2018
+    const baseYear = 2021
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
@@ -98,14 +98,14 @@ export class DemographicEvolutionService extends BaseCalculator {
       omphale,
       year: scenario.projection,
     })
-    return this.applyCoefficient(futureProjection[omphale] - baseProjection[omphale])
+    return Math.round(futureProjection[omphale] - baseProjection[omphale])
   }
 
   async calculateOmphaleProjectionsByYear(): Promise<TDemographicEvolution> {
     const { simulation } = this.context
     const { epci, scenario } = simulation
     const { code: epciCode } = epci
-    const baseYear = 2018
+    const baseYear = 2021
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
@@ -120,7 +120,7 @@ export class DemographicEvolutionService extends BaseCalculator {
     })
 
     const { max, min, periodMax, periodMin, yearlyData } = futureProjections
-      .filter(({ year }) => year !== baseYear)
+      .filter(({ year }) => year >= baseYear)
       .reduce(
         (acc, projection) => {
           const value = this.applyCoefficient(projection[omphale] - baseProjection[omphale])

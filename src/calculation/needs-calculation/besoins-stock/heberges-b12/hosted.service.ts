@@ -35,7 +35,6 @@ export class HostedService extends BaseCalculator {
     const { code: epciCode } = epci
 
     const hostedFilocom = await this.getHostedFilocom(epciCode)
-
     let result = (scenario.b12_cohab_interg_subie / 100) * hostedFilocom.value
 
     const { free, particular, temporary } = await this.getHostedSne(epciCode)
@@ -50,7 +49,6 @@ export class HostedService extends BaseCalculator {
     if (scenario.b12_heberg_temporaire) {
       result += temporary
     }
-
     return this.applyCoefficient(result)
   }
 }

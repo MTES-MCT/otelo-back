@@ -29,21 +29,16 @@ export class FinancialInadequationService extends BaseCalculator {
     const { code: epciCode, region } = epci
     let result = 0
 
-    let column: string = ''
-
-    if (scenario.b13_acc) {
-      column = `nbAllPlus${scenario.b13_taux_effort}AccessionPropriete`
-    }
-
-    if (scenario.b13_plp) {
-      column = `nbAllPlus${scenario.b13_taux_effort}ParcLocatifPrive`
-    }
-
     const financialInadequation = await this.getFinancialInadequation(epciCode)
 
     const badQuality = await this.badQualityService.calculate()
 
-    result += financialInadequation[column]
+    if (scenario.b13_acc) {
+      result += financialInadequation[`nbAllPlus${scenario.b13_taux_effort}AccessionPropriete`]
+    }
+    if (scenario.b13_plp) {
+      result += financialInadequation[`nbAllPlus${scenario.b13_taux_effort}ParcLocatifPrive`]
+    }
     result += this.ratioCalculationService.getRatio43(scenario, region) * badQuality * -1
     result = (1 - scenario.b13_taux_reallocation / 100.0) * result
 
