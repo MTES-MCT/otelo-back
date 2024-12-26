@@ -8,7 +8,6 @@ import { NoAccomodationService } from '~/calculation/needs-calculation/besoins-s
 import { FinancialInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-financiere-b13/financial-inadequation.service'
 import { PhysicalInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-physique-b15/physical-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
-import { PrismaService } from '~/db/prisma.service'
 import { TResults } from '~/schemas/results/results'
 
 @Injectable()
@@ -16,7 +15,6 @@ export class NeedsCalculationService {
   constructor(
     @Inject('CalculationContext')
     protected readonly context: CalculationContext,
-    private readonly prismaService: PrismaService,
     private readonly noAccomodationService: NoAccomodationService,
     private readonly hostedService: HostedService,
     private readonly financialInadequationService: FinancialInadequationService,

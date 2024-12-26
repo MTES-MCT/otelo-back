@@ -102,7 +102,6 @@ export class RenewalHousingStockService extends BaseCalculator {
     const { scenario } = simulation
     const annualRate = (1.0 + data.txDispParctot) ** (1.0 / 6.0) - 1.0
     const txDistAnnual = annualRate + scenario.b2_tx_disparition / 100.0
-
     return (1.0 + txDistAnnual) ** periodProjection - 1.0
   }
 

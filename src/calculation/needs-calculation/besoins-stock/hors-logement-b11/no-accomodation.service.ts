@@ -95,11 +95,15 @@ export class NoAccomodationService extends BaseCalculator {
       (b11_hotel && selectedSource.hotel) || 0,
     ].reduce((sum, value) => sum + value, 0)
 
-    const hostedFiness = await this.getHostedFiness()
-    const establishmentResult = scenario.b11_etablissement.reduce((sum, etab) => sum + hostedFiness[etab], 0)
+    try {
+      const hostedFiness = await this.getHostedFiness()
+      const establishmentResult = scenario.b11_etablissement.reduce((sum, etab) => sum + hostedFiness[etab], 0)
 
-    const totalResult = result + Math.round(establishmentResult * (scenario.b11_part_etablissement / 100.0))
+      const totalResult = result + Math.round(establishmentResult * (scenario.b11_part_etablissement / 100.0))
 
-    return this.applyCoefficient(totalResult)
+      return this.applyCoefficient(totalResult)
+    } catch {
+      return 0
+    }
   }
 }
