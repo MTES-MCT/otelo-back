@@ -1,4 +1,4 @@
-import { B11Etablissement } from '@prisma/client'
+import { B11Etablissement, B15Surocc } from '@prisma/client'
 import { z } from 'zod'
 import { ZCommonDateFields } from '~/schemas/common-date-fields'
 
@@ -27,7 +27,7 @@ export const ZScenario = ZCommonDateFields.extend({
   b14_taux_reallocation: z.number(),
   b15_loc_hors_hlm: z.boolean(),
   b15_proprietaire: z.boolean(),
-  b15_surocc: z.string(),
+  b15_surocc: z.nativeEnum(B15Surocc),
   b15_taux_reallocation: z.number(),
   b17_motif: z.union([z.literal('Tout'), z.literal('Env'), z.literal('Assis'), z.literal('Rappr'), z.literal('Trois')]),
   b1_horizon_resorption: z.number(),
