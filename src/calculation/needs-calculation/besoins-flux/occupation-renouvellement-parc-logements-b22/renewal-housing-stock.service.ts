@@ -29,16 +29,32 @@ export class RenewalHousingStockService extends BaseCalculator {
     return Math.round(potentialNeeds - demographicEvolution)
   }
 
-  async getVacantAccomodationEvolution(): Promise<number> {
+  private getVacantAccommodationRate(txLvParctot: number): number {
     const { simulation } = this.context
     const { scenario } = simulation
+    if (scenario.b2_tx_vacance !== 0) {
+      return scenario.b2_tx_vacance / 100
+    }
+    return txLvParctot / 100
+  }
+
+  private getSecondaryResidenceRate(txRsParctot: number): number {
+    const { simulation } = this.context
+    const { scenario } = simulation
+    if (scenario.b2_tx_rs !== 0) {
+      return scenario.b2_tx_rs / 100
+    }
+    return txRsParctot / 100
+  }
+
+  async getVacantAccomodationEvolution(): Promise<number> {
+    const { simulation } = this.context
     const { epci } = simulation
     const { code: epciCode } = epci
     const data = await this.getFilocomFlux(epciCode)
 
     const currentVacancyRate = data.txLvParctot
-    const newVacancyRate = currentVacancyRate + scenario.b2_tx_vacance / 100
-
+    const newVacancyRate = this.getVacantAccommodationRate(data.txLvParctot)
     const totalActualParc = data.parctot
     const demographicEvolution = await this.demographicEvolutionService.calculate()
     const potentialNeeds = await this.getPotentialNeeds(demographicEvolution)
@@ -50,13 +66,11 @@ export class RenewalHousingStockService extends BaseCalculator {
 
   async getSecondaryResidenceAccomodationEvolution(): Promise<number> {
     const { simulation } = this.context
-    const { scenario } = simulation
     const { epci } = simulation
+
     const data = await this.getFilocomFlux(epci.code)
-
     const currentSecondaryResidenceRate = data.txRsParctot
-    const newSecondaryResidenceRate = currentSecondaryResidenceRate + scenario.b2_tx_rs / 100
-
+    const newSecondaryResidenceRate = this.getSecondaryResidenceRate(data.txRsParctot)
     const totalActualParc = data.parctot
     const demographicEvolution = await this.demographicEvolutionService.calculate()
     const potentialNeeds = await this.getPotentialNeeds(demographicEvolution)
@@ -72,13 +86,12 @@ export class RenewalHousingStockService extends BaseCalculator {
     const { simulation } = this.context
     const { epci } = simulation
     const { code: epciCode } = epci
-    const { scenario } = simulation
     const data = await this.getFilocomFlux(epciCode)
 
     const totalActualParc = data.parctot
     const actualParcRp = Math.round(totalActualParc * data.txRpParctot)
-    const txLv = data.txLvParctot + scenario.b2_tx_vacance / 100
-    const txRs = data.txRsParctot + scenario.b2_tx_rs / 100
+    const txLv = this.getVacantAccommodationRate(data.txLvParctot)
+    const txRs = this.getSecondaryResidenceRate(data.txRsParctot)
     const txRp = 1 - txLv - txRs
 
     const renewalNeeds = await this.calculateRenewalNeeds()

@@ -135,7 +135,6 @@ model Scenario {
   b15_taux_reallocation  Int                @default(80)
   b17_motif              MotifB17           @default(Tout)
   b2_scenario            String?
-  b2_evol_demographique  Int?
   b2_tx_restructuration  Float              @default(0.0)
   b2_tx_disparition      Float              @default(0.0)
   b2_tx_vacance          Float              @default(0.0)
