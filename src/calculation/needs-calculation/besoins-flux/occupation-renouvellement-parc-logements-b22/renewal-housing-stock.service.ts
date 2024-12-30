@@ -35,7 +35,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     if (scenario.b2_tx_vacance !== 0) {
       return scenario.b2_tx_vacance / 100
     }
-    return txLvParctot / 100
+    return txLvParctot
   }
 
   private getSecondaryResidenceRate(txRsParctot: number): number {
@@ -44,7 +44,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     if (scenario.b2_tx_rs !== 0) {
       return scenario.b2_tx_rs / 100
     }
-    return txRsParctot / 100
+    return txRsParctot
   }
 
   async getVacantAccomodationEvolution(): Promise<number> {
