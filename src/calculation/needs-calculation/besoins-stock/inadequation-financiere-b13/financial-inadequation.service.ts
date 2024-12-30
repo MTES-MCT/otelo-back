@@ -4,6 +4,8 @@ import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculat
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
+import { TEpci } from '~/schemas/epcis/epci'
 
 @Injectable()
 export class FinancialInadequationService extends BaseCalculator {
@@ -23,15 +25,17 @@ export class FinancialInadequationService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
+  async calculateByEpci(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode, region } = epci
+    const { epcis, scenario } = simulation
+    const epci = epcis.find((epci) => epci.code === epciCode) as TEpci
+    const region = epci.region
+
     let result = 0
 
     const financialInadequation = await this.getFinancialInadequation(epciCode)
 
-    const badQuality = await this.badQualityService.calculate()
+    const badQuality = await this.badQualityService.calculateByEpci(epciCode)
 
     if (scenario.b13_acc) {
       result += financialInadequation[`nbAllPlus${scenario.b13_taux_effort}AccessionPropriete`]
@@ -43,5 +47,22 @@ export class FinancialInadequationService extends BaseCalculator {
     result = (1 - scenario.b13_taux_reallocation / 100.0) * result
 
     return this.applyCoefficient(result)
+  }
+
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation } = this.context
+    const { epcis } = simulation
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.calculateByEpci(epci.code),
+      })),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
   }
 }

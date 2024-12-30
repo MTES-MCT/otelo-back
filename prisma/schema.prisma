@@ -135,11 +135,6 @@ model Scenario {
   b15_taux_reallocation  Int                @default(80)
   b17_motif              MotifB17           @default(Tout)
   b2_scenario            String?
-  b2_tx_restructuration  Float              @default(0.0)
-  b2_tx_disparition      Float              @default(0.0)
-  b2_tx_vacance          Float              @default(0.0)
-  b2_tx_vacance_longue   Float              @default(0.0)
-  b2_tx_rs               Float              @default(0.0)
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
@@ -147,9 +142,34 @@ model Scenario {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  simulations Simulation[]
+  simulations   Simulation[]
+  epciScenarios EPCIScenario[]
 
   @@map("scenarios")
+}
+
+model Bassin {
+  name String @id @unique
+
+  epcis Epci[]
+
+  @@map("bassin")
+}
+
+model EPCIScenario {
+  b2_tx_restructuration Float @default(0.0)
+  b2_tx_disparition     Float @default(0.0)
+  b2_tx_vacance         Float @default(0.0)
+  b2_tx_rs              Float @default(0.0)
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  scenario   Scenario @relation(fields: [scenarioId], references: [id])
+  scenarioId String   @map("scenario_id")
+
+  @@map("epci_scenarios")
+  @@id([epciCode, scenarioId])
 }
 
 model Epci {
@@ -173,9 +193,13 @@ model Epci {
   hotel                          Hotel[]
   badQualityFilocom              BadQuality_Filocom[]
   badQualityRP                   BadQuality_RP[]
-  BadQuality_Fonciers            BadQuality_Fonciers[]
+  badQualityFonciers             BadQuality_Fonciers[]
   filocomFlux                    FilocomFlux[]
   vacancyAccommodation           VacancyAccommodation[]
+  epciScenario                   EPCIScenario[]
+
+  Bassin     Bassin? @relation(fields: [bassinName], references: [name])
+  bassinName String? @map("bassin_name")
 
   @@map("epcis")
 }
@@ -190,8 +214,7 @@ model Simulation {
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
 
-  epci     Epci   @relation(fields: [epciCode], references: [code])
-  epciCode String @map("epci_code")
+  epcis Epci[]
 
   scenario   Scenario @relation(fields: [scenarioId], references: [id])
   scenarioId String   @map("scenario_id")

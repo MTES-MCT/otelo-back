@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 
 @Injectable()
 export class BadQualityService extends BaseCalculator {
@@ -29,11 +30,10 @@ export class BadQualityService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
+  async calculateByEpci(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
-
+    const { scenario } = simulation
+    const { b14_confort, b14_occupation, b14_qualite, b14_taux_reallocation, source_b14 } = scenario
     const sourceCalculators = {
       FF: async () => {
         const getColumnPrefix = () => {
@@ -52,8 +52,8 @@ export class BadQualityService extends BaseCalculator {
             FF_abs_wc_sani: 'WcSdb',
             FF_abs_wc_sani_chauf: '3elts',
           }
-          const prefix = qualityMap[scenario.b14_qualite]
-          const comfort = comfortMap[scenario.b14_confort]
+          const prefix = qualityMap[b14_qualite]
+          const comfort = comfortMap[b14_confort]
           return `${prefix}${comfort}`
         }
 
@@ -65,7 +65,7 @@ export class BadQualityService extends BaseCalculator {
           const locColumn = `${columnPrefix}Loc`
           sum += (foncierData[locColumn] as number) || 0
         }
-        if (scenario.b14_occupation.includes('prop')) {
+        if (b14_occupation.includes('prop')) {
           const pptColumn = `${columnPrefix}Ppt`
           sum += (foncierData[pptColumn] as number) || 0
         }
@@ -74,10 +74,10 @@ export class BadQualityService extends BaseCalculator {
       Filo: async () => {
         let sum = 0
         let type: string = ''
-        if (scenario.b14_occupation.includes('loc')) {
+        if (b14_occupation.includes('loc')) {
           type = 'pppiLp'
         }
-        if (scenario.b14_occupation.includes('prop')) {
+        if (b14_occupation.includes('prop')) {
           type = 'pppiPo'
         }
         sum += (await this.getFilocomBadQuality(epciCode))[type]
@@ -97,17 +97,34 @@ export class BadQualityService extends BaseCalculator {
         }
 
         let sum = 0
-        if (scenario.b14_occupation.includes('loc')) {
-          sum += comfortMap[scenario.b14_confort]?.loc || 0
+        if (b14_occupation.includes('loc')) {
+          sum += comfortMap[b14_confort]?.loc || 0
         }
-        if (scenario.b14_occupation.includes('prop')) {
-          sum += comfortMap[scenario.b14_confort]?.prop || 0
+        if (b14_occupation.includes('prop')) {
+          sum += comfortMap[b14_confort]?.prop || 0
         }
         return sum
       },
     }
+    const result = (await sourceCalculators[source_b14]?.()) || 0
+    return this.applyCoefficient(result * (1 - b14_taux_reallocation / 100.0))
+  }
 
-    const result = (await sourceCalculators[scenario.source_b14]?.()) || 0
-    return this.applyCoefficient(result * (1 - scenario.b14_taux_reallocation / 100.0))
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation } = this.context
+    const { epcis } = simulation
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.calculateByEpci(epci.code),
+      })),
+    )
+
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
   }
 }

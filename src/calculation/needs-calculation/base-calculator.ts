@@ -1,3 +1,4 @@
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 export interface CalculationContext {
@@ -9,7 +10,8 @@ export interface CalculationContext {
 export abstract class BaseCalculator {
   constructor(protected readonly context: CalculationContext) {}
 
-  abstract calculate(): Promise<unknown> | number
+  abstract calculate(): Promise<TCalculationResult>
+  abstract calculateByEpci(epciCode: string): Promise<number>
 
   protected applyCoefficient(value: number): number {
     return Math.round(value * this.context.coefficient)

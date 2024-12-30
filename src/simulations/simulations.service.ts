@@ -22,7 +22,7 @@ export class SimulationsService {
     const simulations = await this.prismaService.simulation.findMany({
       select: {
         createdAt: true,
-        epci: { select: { code: true, name: true, region: true } },
+        epcis: { select: { code: true, name: true, region: true } },
         id: true,
         updatedAt: true,
       },
@@ -31,7 +31,7 @@ export class SimulationsService {
 
     return simulations.map((simulation) => ({
       createdAt: simulation.createdAt,
-      epci: simulation.epci,
+      epcis: simulation.epcis,
       id: simulation.id,
       updatedAt: simulation.updatedAt,
     }))
@@ -39,13 +39,13 @@ export class SimulationsService {
 
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
-      include: { epci: true, scenario: true },
+      include: { epcis: { select: { code: true, name: true } }, scenario: { include: { epciScenarios: true } } },
       where: { id },
     })
 
     return {
       createdAt: simulation.createdAt,
-      epci: simulation.epci,
+      epcis: simulation.epcis,
       id: simulation.id,
       //todo - remove cast (null value from db)
       scenario: simulation.scenario as any,
@@ -58,11 +58,8 @@ export class SimulationsService {
 
     return this.prismaService.simulation.create({
       data: {
-        epci: {
-          connectOrCreate: {
-            create: data.epci,
-            where: { code: data.epci.code },
-          },
+        epcis: {
+          connect: data.epci.map((epci) => ({ code: epci.code })),
         },
         name: 'Simulation',
         scenario: { connect: { id: scenario.id } },

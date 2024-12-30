@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_GUARD } from '@nestjs/core'
-import { AuthenticationGuard } from '~/common/guards/authentication.guard'
-import { AuthorizationGuard } from '~/common/guards/authorization.guard'
+import { BassinModule } from '~/bassin/bassin.module'
 import envRessources from '~/config/environment'
 import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
@@ -15,7 +13,10 @@ import { ScenariosModule } from './scenarios/scenarios.module'
 import { SessionsModule } from './sessions/sessions.module'
 import { SimulationsModule } from './simulations/simulations.module'
 import { UsersModule } from './users/users.module'
-import { VacancyModule } from './vacancy/vacancy.module';
+import { VacancyModule } from './vacancy/vacancy.module'
+import { APP_GUARD } from '@nestjs/core'
+import { AuthenticationGuard } from '~/common/guards/authentication.guard'
+import { AuthorizationGuard } from '~/common/guards/authorization.guard'
 
 @Module({
   controllers: [HealthController],
@@ -35,6 +36,7 @@ import { VacancyModule } from './vacancy/vacancy.module';
     DemographicEvolutionModule,
     AccommodationRatesModule,
     VacancyModule,
+    BassinModule,
   ],
   providers: [
     AuthenticationGuard,

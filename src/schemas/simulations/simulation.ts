@@ -20,7 +20,7 @@ export const ZSimulationWithEpci = ZSimulation.pick({
   id: true,
   updatedAt: true,
 }).extend({
-  epci: ZEpci,
+  epcis: z.array(ZEpci.omit({ region: true })),
 })
 
 export type TSimulationWithEpci = z.infer<typeof ZSimulationWithEpci>
