@@ -41,7 +41,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     if (scenario.b2_tx_vacance !== 0) {
       return (scenario.b2_tx_vacance - newLongTermVacancyRate) / 100
     }
-    return txLvParctot - newLongTermVacancyRate
+    return txLvParctot - (newLongTermVacancyRate / 100)
   }
 
   private getSecondaryResidenceRate(txRsParctot: number): number {
