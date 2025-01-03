@@ -38,10 +38,10 @@ export class RenewalHousingStockService extends BaseCalculator {
     const vacancy = await this.vacancyService.getVacancy(epci.code)
     const currentLongTermVacancyRate = vacancy.propLocVacPPLong
     const newLongTermVacancyRate = currentLongTermVacancyRate - scenario.b2_tx_vacance_longue
-    if (scenario.b2_tx_vacance !== 0) {
+    if (scenario.b2_tx_vacance > 0) {
       return (scenario.b2_tx_vacance - newLongTermVacancyRate) / 100
     }
-    return txLvParctot - (newLongTermVacancyRate / 100)
+    return txLvParctot - newLongTermVacancyRate / 100
   }
 
   private getSecondaryResidenceRate(txRsParctot: number): number {
