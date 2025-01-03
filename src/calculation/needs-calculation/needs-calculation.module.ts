@@ -16,6 +16,7 @@ import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-ca
 import { PrismaService } from '~/db/prisma.service'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { SimulationsService } from '~/simulations/simulations.service'
+import { VacancyModule } from '~/vacancy/vacancy.module'
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -25,7 +26,7 @@ interface AuthenticatedRequest extends Request {
 
 @Module({
   exports: [NeedsCalculationService],
-  imports: [CoefficientCalculationModule, RatioCalculationModule, SimulationsModule],
+  imports: [CoefficientCalculationModule, RatioCalculationModule, SimulationsModule, VacancyModule],
   providers: [
     {
       inject: [CoefficientCalculationService, SimulationsService, REQUEST],

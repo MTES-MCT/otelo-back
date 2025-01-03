@@ -138,6 +138,7 @@ model Scenario {
   b2_tx_restructuration  Float              @default(0.0)
   b2_tx_disparition      Float              @default(0.0)
   b2_tx_vacance          Float              @default(0.0)
+  b2_tx_vacance_longue   Float              @default(0.0)
   b2_tx_rs               Float              @default(0.0)
 
   user   User   @relation(fields: [userId], references: [id])
@@ -174,6 +175,7 @@ model Epci {
   badQualityRP                   BadQuality_RP[]
   BadQuality_Fonciers            BadQuality_Fonciers[]
   filocomFlux                    FilocomFlux[]
+  vacancyAccommodation           VacancyAccommodation[]
 
   @@map("epcis")
 }
@@ -536,4 +538,20 @@ model FilocomFlux {
 
   @@id(epciCode)
   @@map("filocom_flux")
+}
+
+model VacancyAccommodation {
+  nbTotalPP Int @map("nb_total_pp")
+  nbLocVacPP Int @map("nb_loc_vac_pp")
+  nbLocVacPPShort Int @map("nb_loc_vac_pp_short")
+  nbLocVacPPLong Int @map("nb_loc_vac_pp_long")
+  propLocVacPP Float @map("prop_loc_vac_pp")
+  propLocVacPPShort Float @map("prop_loc_vac_pp_short")
+  propLocVacPPLong Float @map("prop_loc_vac_pp_long")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id(epciCode)
+  @@map("vacancy_accommodation")
 }

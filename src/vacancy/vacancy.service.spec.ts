@@ -1,30 +1,24 @@
 import { createMock } from '@golevelup/ts-jest'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '~/db/prisma.service'
-import { VacancyService } from '~/vacancy/vacancy.service'
-import { AccommodationRatesService } from './accommodation-rates.service'
+import { VacancyService } from './vacancy.service'
 
-describe('AccommodationRatesService', () => {
-  let service: AccommodationRatesService
+describe('VacancyService', () => {
+  let service: VacancyService
   const mockPrismaService = createMock<PrismaService>()
-  const mockVacancyService = createMock<VacancyService>()
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AccommodationRatesService,
+        VacancyService,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
-        {
-          provide: VacancyService,
-          useValue: mockVacancyService,
-        },
       ],
     }).compile()
 
-    service = module.get<AccommodationRatesService>(AccommodationRatesService)
+    service = module.get<VacancyService>(VacancyService)
   })
 
   it('should be defined', () => {

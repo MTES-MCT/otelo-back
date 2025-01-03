@@ -36,6 +36,7 @@ export const ZScenario = ZCommonDateFields.extend({
   b2_tx_restructuration: z.number(),
   b2_tx_rs: z.number(),
   b2_tx_vacance: z.number(),
+  b2_tx_vacance_longue: z.number(),
   id: z.string(),
   isConfidential: z.boolean(),
   projection: z.number(),

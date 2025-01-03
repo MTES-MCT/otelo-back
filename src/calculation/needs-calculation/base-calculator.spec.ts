@@ -55,6 +55,7 @@ describe('BaseCalculator', () => {
         b2_tx_restructuration: 0,
         b2_tx_rs: 0.02,
         b2_tx_vacance: 0,
+        b2_tx_vacance_longue: 0,
         createdAt: new Date('2024-01-01'),
         id: 'scenario-1',
         isConfidential: false,

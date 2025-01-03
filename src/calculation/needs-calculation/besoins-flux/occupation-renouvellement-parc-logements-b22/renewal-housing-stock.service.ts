@@ -3,6 +3,7 @@ import { FilocomFlux } from '@prisma/client'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { DemographicEvolutionService } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
 import { PrismaService } from '~/db/prisma.service'
+import { VacancyService } from '~/vacancy/vacancy.service'
 
 @Injectable()
 export class RenewalHousingStockService extends BaseCalculator {
@@ -11,6 +12,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     protected readonly context: CalculationContext,
     private readonly prismaService: PrismaService,
     private readonly demographicEvolutionService: DemographicEvolutionService,
+    private readonly vacancyService: VacancyService,
   ) {
     super(context)
   }
@@ -29,13 +31,17 @@ export class RenewalHousingStockService extends BaseCalculator {
     return Math.round(potentialNeeds - demographicEvolution)
   }
 
-  private getVacantAccommodationRate(txLvParctot: number): number {
+  private async getVacantAccommodationRate(txLvParctot: number): Promise<number> {
     const { simulation } = this.context
-    const { scenario } = simulation
+    const { epci, scenario } = simulation
+
+    const vacancy = await this.vacancyService.getVacancy(epci.code)
+    const currentLongTermVacancyRate = vacancy.propLocVacPPLong
+    const newLongTermVacancyRate = currentLongTermVacancyRate - scenario.b2_tx_vacance_longue
     if (scenario.b2_tx_vacance !== 0) {
-      return scenario.b2_tx_vacance / 100
+      return (scenario.b2_tx_vacance - newLongTermVacancyRate) / 100
     }
-    return txLvParctot
+    return txLvParctot - newLongTermVacancyRate
   }
 
   private getSecondaryResidenceRate(txRsParctot: number): number {
@@ -54,7 +60,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     const data = await this.getFilocomFlux(epciCode)
 
     const currentVacancyRate = data.txLvParctot
-    const newVacancyRate = this.getVacantAccommodationRate(data.txLvParctot)
+    const newVacancyRate = await this.getVacantAccommodationRate(data.txLvParctot)
     const totalActualParc = data.parctot
     const demographicEvolution = await this.demographicEvolutionService.calculate()
     const potentialNeeds = await this.getPotentialNeeds(demographicEvolution)
@@ -90,7 +96,7 @@ export class RenewalHousingStockService extends BaseCalculator {
 
     const totalActualParc = data.parctot
     const actualParcRp = Math.round(totalActualParc * data.txRpParctot)
-    const txLv = this.getVacantAccommodationRate(data.txLvParctot)
+    const txLv = await this.getVacantAccommodationRate(data.txLvParctot)
     const txRs = this.getSecondaryResidenceRate(data.txRsParctot)
     const txRp = 1 - txLv - txRs
 

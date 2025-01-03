@@ -15,6 +15,7 @@ import { ScenariosModule } from './scenarios/scenarios.module'
 import { SessionsModule } from './sessions/sessions.module'
 import { SimulationsModule } from './simulations/simulations.module'
 import { UsersModule } from './users/users.module'
+import { VacancyModule } from './vacancy/vacancy.module';
 
 @Module({
   controllers: [HealthController],
@@ -33,6 +34,7 @@ import { UsersModule } from './users/users.module'
     ResultsModule,
     DemographicEvolutionModule,
     AccommodationRatesModule,
+    VacancyModule,
   ],
   providers: [
     AuthenticationGuard,
