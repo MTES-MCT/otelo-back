@@ -13,7 +13,7 @@ import { PhysicalInadequationService } from '~/calculation/needs-calculation/bes
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-calculation.service'
 import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-calculation.module'
-import { PrismaService } from '~/db/prisma.service'
+import { PrismaModule } from '~/db/prisma.module'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { SimulationsService } from '~/simulations/simulations.service'
 import { VacancyModule } from '~/vacancy/vacancy.module'
@@ -26,7 +26,7 @@ interface AuthenticatedRequest extends Request {
 
 @Module({
   exports: [NeedsCalculationService],
-  imports: [CoefficientCalculationModule, RatioCalculationModule, SimulationsModule, VacancyModule],
+  imports: [PrismaModule, CoefficientCalculationModule, RatioCalculationModule, SimulationsModule, VacancyModule],
   providers: [
     {
       inject: [CoefficientCalculationService, SimulationsService, REQUEST],
@@ -52,7 +52,6 @@ interface AuthenticatedRequest extends Request {
         }
       },
     },
-    PrismaService,
     NeedsCalculationService,
     NoAccomodationService,
     HostedService,

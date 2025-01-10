@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
-import { PrismaService } from '~/db/prisma.service'
+import { PrismaModule } from '~/db/prisma.module'
 import { UsersModule } from '~/users/users.module'
 import { SessionsService } from './sessions.service'
 
@@ -12,7 +12,8 @@ import { SessionsService } from './sessions.service'
       signOptions: { algorithm: 'HS256' },
     }),
     UsersModule,
+    PrismaModule,
   ],
-  providers: [SessionsService, PrismaService],
+  providers: [SessionsService],
 })
 export class SessionsModule {}
