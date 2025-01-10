@@ -31,17 +31,11 @@ export class RenewalHousingStockService extends BaseCalculator {
     return Math.round(potentialNeeds - demographicEvolution)
   }
 
-  private async getVacantAccommodationRate(txLvParctot: number): Promise<number> {
+  private async getVacantAccommodationRate(): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
+    const { scenario } = simulation
 
-    const vacancy = await this.vacancyService.getVacancy(epci.code)
-    const currentLongTermVacancyRate = vacancy.propLocVacPPLong
-    const newLongTermVacancyRate = currentLongTermVacancyRate - scenario.b2_tx_vacance_longue
-    if (scenario.b2_tx_vacance > 0) {
-      return (scenario.b2_tx_vacance - newLongTermVacancyRate) / 100
-    }
-    return txLvParctot - newLongTermVacancyRate / 100
+    return scenario.b2_tx_vacance
   }
 
   private getSecondaryResidenceRate(txRsParctot: number): number {
@@ -60,7 +54,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     const data = await this.getFilocomFlux(epciCode)
 
     const currentVacancyRate = data.txLvParctot
-    const newVacancyRate = await this.getVacantAccommodationRate(data.txLvParctot)
+    const newVacancyRate = await this.getVacantAccommodationRate()
     const totalActualParc = data.parctot
     const demographicEvolution = await this.demographicEvolutionService.calculate()
     const potentialNeeds = await this.getPotentialNeeds(demographicEvolution)
@@ -96,7 +90,7 @@ export class RenewalHousingStockService extends BaseCalculator {
 
     const totalActualParc = data.parctot
     const actualParcRp = Math.round(totalActualParc * data.txRpParctot)
-    const txLv = await this.getVacantAccommodationRate(data.txLvParctot)
+    const txLv = await this.getVacantAccommodationRate()
     const txRs = this.getSecondaryResidenceRate(data.txRsParctot)
     const txRp = 1 - txLv - txRs
 

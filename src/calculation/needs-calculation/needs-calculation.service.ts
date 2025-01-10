@@ -56,6 +56,7 @@ export class NeedsCalculationService {
     const totalFlux = currentDemographicEvolution + secondaryResidenceAccomodationEvolution + vacantAccomodationEvolution + renewalNeeds
     const total = totalFlux + totalStock
 
+
     return {
       badQuality,
       demographicEvolution: {
