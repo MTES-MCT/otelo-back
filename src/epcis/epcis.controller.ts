@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put } from '@nestjs/common'
-import { Epci, Prisma, Role } from '@prisma/client'
+import { Epci, Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { EpcisService } from '~/epcis/epcis.service'
 import { TEpci } from '~/schemas/epcis/epci'
@@ -9,7 +9,6 @@ export class EpcisController {
   constructor(private readonly epcisService: EpcisService) {}
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     roles: [Role.ADMIN, Role.USER],
   })
   @Get(':code')
@@ -23,7 +22,6 @@ export class EpcisController {
   }
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     roles: [Role.ADMIN],
   })
   @Post()
@@ -33,7 +31,6 @@ export class EpcisController {
   }
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     paramName: 'code',
     roles: [Role.ADMIN],
   })
@@ -48,7 +45,6 @@ export class EpcisController {
   }
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     paramName: 'code',
     roles: [Role.ADMIN],
   })
