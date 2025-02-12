@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import {
   EOmphale,
   TDemographicEvolution,
@@ -32,9 +33,7 @@ export class DemographicEvolutionService extends BaseCalculator {
   }
 
   async getProjectionByYearAndOmphale(query: TGetDemographicEvolutionByYearAndOmphaleQuery): Promise<TGetDemographicEvolution> {
-    const { simulation } = this.context
-    const { epci } = simulation
-    const { code: epciCode } = epci
+    const { epciCode } = query
     const { omphale, year } = query
 
     const demographicEvolution = await this.prismaService.demographicEvolutionOmphale.findFirstOrThrow({
@@ -61,10 +60,7 @@ export class DemographicEvolutionService extends BaseCalculator {
   }
 
   async getProjectionsByOmphale(query: TGetDemographicEvolutionByOmphaleQuery): Promise<TGetDemographicEvolution[]> {
-    const { simulation } = this.context
-    const { epci } = simulation
-    const { code: epciCode } = epci
-    const { omphale } = query
+    const { epciCode, omphale } = query
 
     const demographicEvolutions = await this.prismaService.demographicEvolutionOmphale.findMany({
       select: { epciCode: true, [omphale]: true, year: true },
@@ -80,10 +76,24 @@ export class DemographicEvolutionService extends BaseCalculator {
     }))
   }
 
-  async calculate(): Promise<number> {
+  async calculate(): Promise<TCalculationResult> {
+    const { epcis } = this.context.simulation
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.calculateByEpci(epci.code),
+      })),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
+  }
+
+  async calculateByEpci(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
+    const { scenario } = simulation
     const baseYear = 2021
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
@@ -101,10 +111,22 @@ export class DemographicEvolutionService extends BaseCalculator {
     return Math.round(futureProjection[omphale] - baseProjection[omphale])
   }
 
-  async calculateOmphaleProjectionsByYear(): Promise<TDemographicEvolution> {
+  async calculateOmphaleProjectionsByYear(): Promise<Array<{ data: TDemographicEvolution; epciCode: string }>> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
+    const { epcis } = simulation
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        data: await this.calculateOmphaleProjectionsByYearAndEpci(epci.code),
+        epciCode: epci.code,
+      })),
+    )
+    return results
+  }
+
+  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string): Promise<TDemographicEvolution> {
+    const { simulation } = this.context
+    const { scenario } = simulation
     const baseYear = 2021
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]

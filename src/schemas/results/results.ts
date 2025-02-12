@@ -1,23 +1,26 @@
 import { z } from 'zod'
-import { ZDemographicEvolution } from '~/schemas/demographic-evolution/demographic-evolution'
+import { ZCalculationResult, ZChartDataResult } from '~/schemas/calculator/calculation-result'
 
 export const ZResults = z.object({
-  badQuality: z.number(),
-  demographicEvolution: z.object({
-    currentProjection: z.number(),
-    futureProjections: ZDemographicEvolution,
-  }),
-  financialInadequation: z.number(),
-  hosted: z.number(),
-  noAccomodation: z.number(),
-  physicalInadequation: z.number(),
-  renewalNeeds: z.number(),
-  secondaryResidenceAccomodationEvolution: z.number(),
-  socialParc: z.number(),
+  badQuality: ZCalculationResult,
+  // demographicEvolution: z.object({
+  //   currentProjection: z.number(),
+  //   futureProjections: ZDemographicEvolution,
+  // }),
+  demographicEvolution: ZCalculationResult,
+  epcisTotals: z.array(z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number() })),
+  financialInadequation: ZCalculationResult,
+  hosted: ZCalculationResult,
+  noAccomodation: ZCalculationResult,
+  physicalInadequation: ZCalculationResult,
+  renewalNeeds: ZCalculationResult,
+  secondaryResidenceAccomodationEvolution: ZCalculationResult,
+  sitadel: ZChartDataResult,
+  socialParc: ZCalculationResult,
   total: z.number(),
   totalFlux: z.number(),
   totalStock: z.number(),
-  vacantAccomodationEvolution: z.number(),
+  vacantAccomodationEvolution: ZCalculationResult,
 })
 
 export type TResults = z.infer<typeof ZResults>

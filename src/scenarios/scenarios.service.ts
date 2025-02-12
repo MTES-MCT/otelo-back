@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { TCreateScenario } from '~/schemas/scenarios/create-scenario'
-import { TScenario, ZScenario } from '~/schemas/scenarios/scenario'
+import { TInitScenario, TScenario, ZScenario } from '~/schemas/scenarios/scenario'
 import { PrismaService } from '../db/prisma.service'
 
 @Injectable()
@@ -25,10 +24,19 @@ export class ScenariosService {
     return this.prisma.scenario.findMany({ where: { userId } })
   }
 
-  async create(userId: string, data: TCreateScenario) {
+  async create(userId: string, data: TInitScenario) {
+    const { epcis, ...scenario } = data
     return this.prisma.scenario.create({
       data: {
-        ...data,
+        ...scenario,
+        epciScenarios: {
+          createMany: {
+            data: Object.entries(epcis).map(([code, epciScenario]) => ({
+              epciCode: code,
+              ...epciScenario,
+            })),
+          },
+        },
         user: { connect: { id: userId } },
       },
     })
@@ -38,6 +46,8 @@ export class ScenariosService {
     return this.prisma.scenario.update({
       data: {
         ...data,
+        // todo
+        epciScenarios: {},
       },
       where: { id, userId },
     })

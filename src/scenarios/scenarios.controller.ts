@@ -1,9 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Put } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { ScenariosService } from '~/scenarios/scenarios.service'
-import { TCreateScenario } from '~/schemas/scenarios/create-scenario'
 import { TScenario } from '~/schemas/scenarios/scenario'
 import { TUser } from '~/schemas/users/user'
 
@@ -30,16 +29,6 @@ export class ScenariosController {
   @HttpCode(HttpStatus.OK)
   async getScenario(@Param('id') id: string, @User() { id: userId }: TUser) {
     return this.scenariosService.get(userId, id)
-  }
-
-  @AccessControl({
-    entity: Prisma.ModelName.Scenario,
-    roles: [Role.ADMIN, Role.USER],
-  })
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async create(@Body() data: TCreateScenario, @User() { id: userId }: TUser) {
-    return this.scenariosService.create(userId, data)
   }
 
   @AccessControl({

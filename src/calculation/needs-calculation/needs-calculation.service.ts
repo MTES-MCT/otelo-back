@@ -8,7 +8,9 @@ import { NoAccomodationService } from '~/calculation/needs-calculation/besoins-s
 import { FinancialInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-financiere-b13/financial-inadequation.service'
 import { PhysicalInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-physique-b15/physical-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
+import { TEpciCalculationResult } from '~/schemas/calculator/calculation-result'
 import { TResults } from '~/schemas/results/results'
+import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 
 @Injectable()
 export class NeedsCalculationService {
@@ -23,12 +25,12 @@ export class NeedsCalculationService {
     private readonly socialParcService: SocialParcService,
     private readonly demographicEvolutionService: DemographicEvolutionService,
     private readonly renewalHousingStock: RenewalHousingStockService,
+    private readonly sitadelService: SitadelService,
   ) {}
 
   async calculate(): Promise<TResults> {
     const [
-      currentDemographicEvolution,
-      futureDemographicProjections,
+      demographicEvolution,
       vacantAccomodationEvolution,
       renewalNeeds,
       secondaryResidenceAccomodationEvolution,
@@ -38,11 +40,11 @@ export class NeedsCalculationService {
       physicalInadequation,
       badQuality,
       socialParc,
+      sitadel,
     ] = await Promise.all([
       this.demographicEvolutionService.calculate(),
-      this.demographicEvolutionService.calculateOmphaleProjectionsByYear(),
       this.renewalHousingStock.getVacantAccomodationEvolution(),
-      this.renewalHousingStock.calculateRenewalNeeds(),
+      this.renewalHousingStock.calculate(),
       this.renewalHousingStock.getSecondaryResidenceAccomodationEvolution(),
       this.noAccomodationService.calculate(),
       this.hostedService.calculate(),
@@ -50,25 +52,51 @@ export class NeedsCalculationService {
       this.physicalInadequationService.calculate(),
       this.badQualityService.calculate(),
       this.socialParcService.calculate(),
+      this.sitadelService.calculate(),
     ])
 
-    const totalStock = noAccomodation + hosted + financialInadequation + physicalInadequation + badQuality + socialParc
-    const totalFlux = currentDemographicEvolution + secondaryResidenceAccomodationEvolution + vacantAccomodationEvolution + renewalNeeds
-    const total = totalFlux + totalStock
+    let total = 0
+    let totalStock = 0
+    let totalFlux = 0
 
+    const epcisTotals = this.context.simulation.epcis.map((epci) => {
+      const epciTotalFlux =
+        (demographicEvolution.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (secondaryResidenceAccomodationEvolution.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (vacantAccomodationEvolution.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (renewalNeeds.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value
+
+      const epciTotalStock =
+        (noAccomodation.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (hosted.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (financialInadequation.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (physicalInadequation.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (badQuality.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value +
+        (socialParc.epcis.find((e) => e.epciCode === epci.code) as TEpciCalculationResult).value
+
+      total += epciTotalFlux + epciTotalStock
+      totalFlux += epciTotalFlux
+      totalStock += epciTotalStock
+
+      return {
+        epciCode: epci.code,
+        total: epciTotalFlux + epciTotalStock,
+        totalFlux: epciTotalFlux,
+        totalStock: epciTotalStock,
+      }
+    })
 
     return {
       badQuality,
-      demographicEvolution: {
-        currentProjection: currentDemographicEvolution,
-        futureProjections: futureDemographicProjections,
-      },
+      demographicEvolution,
+      epcisTotals,
       financialInadequation,
       hosted,
       noAccomodation,
       physicalInadequation,
       renewalNeeds,
       secondaryResidenceAccomodationEvolution,
+      sitadel,
       socialParc,
       total,
       totalFlux,

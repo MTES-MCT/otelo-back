@@ -57,4 +57,12 @@ export class EpcisController {
       throw new NotFoundException(`EPCI with code ${code} not found`, { cause: error })
     }
   }
+
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get(':epciCode/bassin')
+  async getEpcisByBassin(@Param('epciCode') epciCode: string): Promise<Epci[]> {
+    return this.epcisService.getBassinEpcisByEpciCode(epciCode)
+  }
 }

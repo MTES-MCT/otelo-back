@@ -28,6 +28,30 @@ export class EpcisService {
     })
   }
 
+  async getByBassin(bassinName: string): Promise<Epci[]> {
+    return this.prisma.epci.findMany({
+      where: {
+        bassinName,
+      },
+    })
+  }
+
+  async getBassinEpcisByEpciCode(epciCode: string): Promise<Epci[]> {
+    const epci = await this.get(epciCode)
+
+    if (!epci.bassinName) {
+      return []
+    }
+
+    const epcis = await this.prisma.epci.findMany({
+      where: {
+        bassinName: epci.bassinName,
+      },
+    })
+
+    return [...epcis.filter((e) => e.code === epciCode), ...epcis.filter((e) => e.code !== epciCode)]
+  }
+
   async delete(code: string): Promise<void> {
     await this.prisma.epci.delete({
       where: { code },

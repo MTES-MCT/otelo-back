@@ -7,6 +7,14 @@ export enum ESourceB11 {
   SNE = 'SNE',
 }
 
+export const ZEpciScenario = z.object({
+  b2_tx_disparition: z.number(),
+  b2_tx_restructuration: z.number(),
+  b2_tx_rs: z.number(),
+  b2_tx_vacance: z.number(),
+  epciCode: z.string(),
+})
+
 export const ZScenario = ZCommonDateFields.extend({
   b11_etablissement: z.array(z.nativeEnum(B11Etablissement)),
   b11_fortune: z.boolean(),
@@ -32,11 +40,7 @@ export const ZScenario = ZCommonDateFields.extend({
   b17_motif: z.union([z.literal('Tout'), z.literal('Env'), z.literal('Assis'), z.literal('Rappr'), z.literal('Trois')]),
   b1_horizon_resorption: z.number(),
   b2_scenario: z.string(),
-  b2_tx_disparition: z.number(),
-  b2_tx_restructuration: z.number(),
-  b2_tx_rs: z.number(),
-  b2_tx_vacance: z.number(),
-  b2_tx_vacance_longue: z.number(),
+  epciScenarios: z.array(ZEpciScenario),
   id: z.string(),
   isConfidential: z.boolean(),
   projection: z.number(),
@@ -46,3 +50,17 @@ export const ZScenario = ZCommonDateFields.extend({
 })
 
 export type TScenario = z.infer<typeof ZScenario>
+
+export const ZInitScenario = ZCommonDateFields.extend({
+  b2_scenario: z.string(),
+  epcis: z.record(
+    z.string(),
+    z.object({
+      b2_tx_rs: z.number().optional(),
+      b2_tx_vacance: z.number().optional(),
+    }),
+  ),
+  projection: z.number(),
+})
+
+export type TInitScenario = z.infer<typeof ZInitScenario>

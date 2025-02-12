@@ -15,7 +15,6 @@ export class AuthorizationGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): Promise<boolean> {
-    this.logger.log('AuthorizationGuard')
     if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()])) {
       return Promise.resolve(true)
     }

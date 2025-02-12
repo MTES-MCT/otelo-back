@@ -12,6 +12,7 @@ import { FinancialInadequationService } from '~/calculation/needs-calculation/be
 import { PhysicalInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-physique-b15/physical-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-calculation.service'
+import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-calculation.module'
 import { PrismaModule } from '~/db/prisma.module'
 import { SimulationsModule } from '~/simulations/simulations.module'
@@ -61,6 +62,7 @@ interface AuthenticatedRequest extends Request {
     SocialParcService,
     DemographicEvolutionService,
     RenewalHousingStockService,
+    SitadelService,
   ],
 })
 export class NeedsCalculationModule {}
