@@ -10,6 +10,7 @@ import { PhysicalInadequationService } from '~/calculation/needs-calculation/bes
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { TEpciCalculationResult } from '~/schemas/calculator/calculation-result'
 import { TResults } from '~/schemas/results/results'
+import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 
 @Injectable()
 export class NeedsCalculationService {
@@ -24,6 +25,7 @@ export class NeedsCalculationService {
     private readonly socialParcService: SocialParcService,
     private readonly demographicEvolutionService: DemographicEvolutionService,
     private readonly renewalHousingStock: RenewalHousingStockService,
+    private readonly sitadelService: SitadelService,
   ) {}
 
   async calculate(): Promise<TResults> {
@@ -38,6 +40,7 @@ export class NeedsCalculationService {
       physicalInadequation,
       badQuality,
       socialParc,
+      sitadel,
     ] = await Promise.all([
       this.demographicEvolutionService.calculate(),
       this.renewalHousingStock.getVacantAccomodationEvolution(),
@@ -49,6 +52,7 @@ export class NeedsCalculationService {
       this.physicalInadequationService.calculate(),
       this.badQualityService.calculate(),
       this.socialParcService.calculate(),
+      this.sitadelService.calculate(),
     ])
 
     let total = 0
@@ -92,6 +96,7 @@ export class NeedsCalculationService {
       physicalInadequation,
       renewalNeeds,
       secondaryResidenceAccomodationEvolution,
+      sitadel,
       socialParc,
       total,
       totalFlux,

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ZCalculationResult } from '~/schemas/calculator/calculation-result'
+import { ZCalculationResult, ZChartDataResult } from '~/schemas/calculator/calculation-result'
 
 export const ZResults = z.object({
   badQuality: ZCalculationResult,
@@ -15,6 +15,7 @@ export const ZResults = z.object({
   physicalInadequation: ZCalculationResult,
   renewalNeeds: ZCalculationResult,
   secondaryResidenceAccomodationEvolution: ZCalculationResult,
+  sitadel: ZChartDataResult,
   socialParc: ZCalculationResult,
   total: z.number(),
   totalFlux: z.number(),
