@@ -1,0 +1,29 @@
+import { Injectable } from '@nestjs/common'
+import { DemographicEvolutionService } from '~/demographic-evolution/demographic-evolution.service'
+import { EpcisService } from '~/epcis/epcis.service'
+import { RpInseeService } from '~/rp-insee/rp-insee.service'
+import { TDataVisualisation } from '~/schemas/data-visualisation/data-visualisation'
+
+@Injectable()
+export class DataVisualisationService {
+  constructor(
+    private readonly epcisService: EpcisService,
+    private readonly demographicEvolutionService: DemographicEvolutionService,
+    private readonly rpInseeService: RpInseeService,
+  ) {}
+  async getDataByType(type: TDataVisualisation, epci: string) {
+    const epcis = await this.epcisService.getBassinEpcisByEpciCode(epci)
+    const epcisCodes = epcis.map((epci) => epci.code)
+
+    switch (type) {
+      case 'projection-population-evolution':
+        return this.demographicEvolutionService.getDemographicEvolutionPopulation(epcisCodes)
+      case 'menage-evolution':
+        return this.rpInseeService.getRP(epcisCodes, 'menage')
+      case 'population-evolution':
+        return this.rpInseeService.getRP(epcisCodes, 'population')
+      default:
+        throw new Error('Invalid data visualisation type')
+    }
+  }
+}

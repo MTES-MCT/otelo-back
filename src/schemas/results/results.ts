@@ -3,14 +3,11 @@ import { ZCalculationResult, ZChartDataResult } from '~/schemas/calculator/calcu
 
 export const ZResults = z.object({
   badQuality: ZCalculationResult,
-  // demographicEvolution: z.object({
-  //   currentProjection: z.number(),
-  //   futureProjections: ZDemographicEvolution,
-  // }),
   demographicEvolution: ZCalculationResult,
   epcisTotals: z.array(z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number() })),
   financialInadequation: ZCalculationResult,
   hosted: ZCalculationResult,
+  newConstructions: ZChartDataResult,
   noAccomodation: ZCalculationResult,
   physicalInadequation: ZCalculationResult,
   renewalNeeds: ZCalculationResult,

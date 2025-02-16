@@ -201,6 +201,7 @@ model Epci {
 
   Bassin     Bassin? @relation(fields: [bassinName], references: [name])
   bassinName String? @map("bassin_name")
+  RP         RP[]
 
   @@map("epcis")
 }
@@ -589,4 +590,20 @@ model Sitadel {
 
   @@id([epciCode, year])
   @@map("sitadel")
+}
+
+model RP {
+  year                   Int
+  menage                 Float
+  population             Float
+  vacant                 Float
+  principalAccommodation Float @map("principal_accommodation")
+  secondaryAccommodation Float @map("secondary_accommodation")
+  totalAccommodation     Float @map("total_accommodation")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("rp")
 }

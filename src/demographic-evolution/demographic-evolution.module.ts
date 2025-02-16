@@ -5,6 +5,7 @@ import { DemographicEvolutionService } from './demographic-evolution.service'
 
 @Module({
   controllers: [DemographicEvolutionController],
+  exports: [DemographicEvolutionService],
   imports: [PrismaModule],
   providers: [DemographicEvolutionService],
 })

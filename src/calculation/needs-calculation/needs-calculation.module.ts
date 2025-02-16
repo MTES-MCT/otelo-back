@@ -15,6 +15,7 @@ import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-c
 import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-calculation.module'
 import { PrismaModule } from '~/db/prisma.module'
+import { NewConstructionsService } from '~/calculation/needs-calculation/new-constructions/new-constructions.service'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { SimulationsService } from '~/simulations/simulations.service'
 import { VacancyModule } from '~/vacancy/vacancy.module'
@@ -63,6 +64,7 @@ interface AuthenticatedRequest extends Request {
     DemographicEvolutionService,
     RenewalHousingStockService,
     SitadelService,
+    NewConstructionsService,
   ],
 })
 export class NeedsCalculationModule {}

@@ -46,7 +46,7 @@ export class DemographicEvolutionService {
     }
   }
 
-  async getDemographicEvolutionPopulation(epciCode: string) {
+  async getDemographicEvolutionPopulationByEpci(epciCode: string) {
     const projections = await this.prismaService.$queryRaw<any[]>`
       SELECT 
         year,
@@ -78,5 +78,22 @@ export class DemographicEvolutionService {
         min,
       },
     }
+  }
+
+  async getDemographicEvolutionPopulation(epcis: string[]) {
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        data: await this.getDemographicEvolutionPopulationByEpci(epci),
+        epci,
+      })),
+    )
+
+    return results.reduce(
+      (acc, { data, epci }) => ({
+        ...acc,
+        [epci]: data,
+      }),
+      {},
+    )
   }
 }

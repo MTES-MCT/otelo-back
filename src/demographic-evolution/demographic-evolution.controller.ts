@@ -21,6 +21,6 @@ export class DemographicEvolutionController {
   })
   @Get('/population')
   async getPopulationDemographicEvolution(@Query() { epciCode }: TGetDemographicEvolutionByEpciQuery) {
-    return this.demographicEvolutionService.getDemographicEvolutionPopulation(epciCode)
+    return this.demographicEvolutionService.getDemographicEvolutionPopulationByEpci(epciCode)
   }
 }

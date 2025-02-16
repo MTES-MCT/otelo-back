@@ -117,14 +117,65 @@ export class DemographicEvolutionService extends BaseCalculator {
 
     const results = await Promise.all(
       epcis.map(async (epci) => ({
-        data: await this.calculateOmphaleProjectionsByYearAndEpci(epci.code),
+        data: await this.calculateOmphaleProjectionsByYearFromBaseAndEpci(epci.code),
         epciCode: epci.code,
       })),
     )
     return results
   }
 
-  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string): Promise<TDemographicEvolution> {
+  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear: number | undefined = 2021): Promise<TDemographicEvolution> {
+    const { simulation } = this.context
+    const { scenario } = simulation
+
+    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
+
+    const futureProjections = await this.getProjectionsByOmphale({
+      epciCode,
+      omphale,
+    })
+
+    const sortedProjections = futureProjections.sort((a, b) => a.year - b.year).filter(({ year }) => year >= baseYear)
+
+    const { max, min, periodMax, periodMin, yearlyData } = sortedProjections.reduce(
+      (acc, projection, index) => {
+        const currentValue = projection[omphale]
+        const previousValue = index > 0 ? sortedProjections[index - 1][omphale] : projection[omphale]
+        const value = this.applyCoefficient(currentValue - previousValue)
+
+        return {
+          max: Math.max(acc.max, value),
+          min: Math.min(acc.min, value),
+          periodMax: Math.max(acc.periodMax, projection.year),
+          periodMin: Math.min(acc.periodMin, projection.year),
+          yearlyData: [...acc.yearlyData, { value: value > 0 ? value : 0, year: projection.year }],
+        }
+      },
+      {
+        max: -Infinity,
+        min: Infinity,
+        periodMax: -Infinity,
+        periodMin: Infinity,
+        yearlyData: [] as { value: number; year: number }[],
+      },
+    )
+
+    return {
+      data: yearlyData,
+      metadata: {
+        data: {
+          max,
+          min,
+        },
+        period: {
+          endYear: periodMax,
+          startYear: periodMin,
+        },
+      },
+    }
+  }
+
+  async calculateOmphaleProjectionsByYearFromBaseAndEpci(epciCode: string): Promise<TDemographicEvolution> {
     const { simulation } = this.context
     const { scenario } = simulation
     const baseYear = 2021
