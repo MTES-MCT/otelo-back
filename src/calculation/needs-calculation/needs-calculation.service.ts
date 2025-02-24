@@ -8,9 +8,10 @@ import { NoAccomodationService } from '~/calculation/needs-calculation/besoins-s
 import { FinancialInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-financiere-b13/financial-inadequation.service'
 import { PhysicalInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-physique-b15/physical-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
+import { NewConstructionsService } from '~/calculation/needs-calculation/new-constructions/new-constructions.service'
+import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { TEpciCalculationResult } from '~/schemas/calculator/calculation-result'
 import { TResults } from '~/schemas/results/results'
-import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 
 @Injectable()
 export class NeedsCalculationService {
@@ -26,6 +27,7 @@ export class NeedsCalculationService {
     private readonly demographicEvolutionService: DemographicEvolutionService,
     private readonly renewalHousingStock: RenewalHousingStockService,
     private readonly sitadelService: SitadelService,
+    private readonly newConstructionsService: NewConstructionsService,
   ) {}
 
   async calculate(): Promise<TResults> {
@@ -41,6 +43,7 @@ export class NeedsCalculationService {
       badQuality,
       socialParc,
       sitadel,
+      newConstructions,
     ] = await Promise.all([
       this.demographicEvolutionService.calculate(),
       this.renewalHousingStock.getVacantAccomodationEvolution(),
@@ -53,8 +56,8 @@ export class NeedsCalculationService {
       this.badQualityService.calculate(),
       this.socialParcService.calculate(),
       this.sitadelService.calculate(),
+      this.newConstructionsService.calculate(),
     ])
-
     let total = 0
     let totalStock = 0
     let totalFlux = 0
@@ -92,6 +95,7 @@ export class NeedsCalculationService {
       epcisTotals,
       financialInadequation,
       hosted,
+      newConstructions,
       noAccomodation,
       physicalInadequation,
       renewalNeeds,

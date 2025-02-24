@@ -9,9 +9,11 @@ import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
 import { AuthModule } from './auth/auth.module'
 import { CalculationModule } from './calculation/calculation.module'
+import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
 import { EpcisModule } from './epcis/epcis.module'
 import { HealthController } from './health/health.controller'
+import { RpInseeModule } from './rp-insee/rp-insee.module'
 import { ScenariosModule } from './scenarios/scenarios.module'
 import { SessionsModule } from './sessions/sessions.module'
 import { SimulationsModule } from './simulations/simulations.module'
@@ -37,6 +39,8 @@ import { VacancyModule } from './vacancy/vacancy.module'
     AccommodationRatesModule,
     VacancyModule,
     BassinModule,
+    DataVisualisationModule,
+    RpInseeModule,
   ],
   providers: [
     AuthenticationGuard,
