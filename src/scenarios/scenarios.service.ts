@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { TInitScenario, TScenario, ZScenario } from '~/schemas/scenarios/scenario'
+import { TInitScenario, TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { PrismaService } from '../db/prisma.service'
 
 @Injectable()
@@ -12,12 +12,10 @@ export class ScenariosService {
     }))
   }
 
-  async get(userId: string, id: string): Promise<TScenario> {
-    const scenario = await this.prisma.scenario.findUniqueOrThrow({
-      where: { id, userId },
+  async get(id: string) {
+    return this.prisma.scenario.findUniqueOrThrow({
+      where: { id },
     })
-
-    return ZScenario.parse(scenario)
   }
 
   async list(userId: string) {
@@ -42,14 +40,10 @@ export class ScenariosService {
     })
   }
 
-  async update(userId: string, id: string, data: Partial<TScenario>) {
+  async update(id: string, data: TUpdateSimulationDto) {
     return this.prisma.scenario.update({
-      data: {
-        ...data,
-        // todo
-        epciScenarios: {},
-      },
-      where: { id, userId },
+      data,
+      where: { id },
     })
   }
 

@@ -2,8 +2,8 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put }
 import { Prisma, Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
-import { TSimulation } from '~/schemas/simulations/simulation'
 import { TUser } from '~/schemas/users/user'
 import { SimulationsService } from '~/simulations/simulations.service'
 
@@ -18,6 +18,17 @@ export class SimulationsController {
   @Get()
   async list(@User() { id: userId }: TUser) {
     return this.simulationsService.list(userId)
+  }
+
+  @AccessControl({
+    entity: Prisma.ModelName.Simulation,
+    paramName: 'id',
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get(':id/scenario')
+  @HttpCode(HttpStatus.OK)
+  async getSimulationScenario(@Param('id') id: string) {
+    return this.simulationsService.getScenario(id)
   }
 
   @AccessControl({
@@ -45,10 +56,10 @@ export class SimulationsController {
     paramName: 'id',
     roles: [Role.ADMIN, Role.USER],
   })
-  @Put(':id')
+  @Put(':id/scenario')
   @HttpCode(HttpStatus.ACCEPTED)
-  async updateSimulation(@Param('id') id: string, @Body() data: Partial<TSimulation>, @User() { id: userId }: TUser) {
-    return this.simulationsService.update(userId, id, data)
+  async updateSimulation(@Param('id') id: string, @Body() data: TUpdateSimulationDto) {
+    return this.simulationsService.update(id, data)
   }
 
   @AccessControl({

@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { Simulation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
+import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
-import { TSimulation, TSimulationWithEpci, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
+import { TSimulationWithEpci, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class SimulationsService {
@@ -53,6 +54,15 @@ export class SimulationsService {
     }
   }
 
+  async getScenario(id: string) {
+    const simulation = await this.prismaService.simulation.findUniqueOrThrow({
+      include: { scenario: { select: { id: true } } },
+      where: { id },
+    })
+    const scenario = await this.scenariosService.get(simulation.scenario.id)
+    return { id, scenario }
+  }
+
   async create(userId: string, data: TInitSimulation): Promise<Simulation> {
     const scenario = await this.scenariosService.create(userId, data.scenario)
 
@@ -68,11 +78,9 @@ export class SimulationsService {
     })
   }
 
-  async update(userId: string, id: string, data: Partial<TSimulation>): Promise<Simulation> {
-    return this.prismaService.simulation.update({
-      data,
-      where: { id, userId },
-    })
+  async update(id: string, data: TUpdateSimulationDto): Promise<TSimulationWithEpciAndScenario> {
+    await this.scenariosService.update(data.id, data)
+    return this.get(id)
   }
 
   async delete(userId: string, id: string): Promise<Simulation> {
