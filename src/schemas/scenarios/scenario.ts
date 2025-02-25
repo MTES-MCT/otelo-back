@@ -64,3 +64,15 @@ export const ZInitScenario = ZCommonDateFields.extend({
 })
 
 export type TInitScenario = z.infer<typeof ZInitScenario>
+
+export const ZUpdateSimulationDto = ZScenario.omit({
+  b17_motif: true,
+  b2_scenario: true,
+  createdAt: true,
+  epciScenarios: true,
+  isConfidential: true,
+  projection: true,
+  updatedAt: true,
+})
+
+export type TUpdateSimulationDto = z.infer<typeof ZUpdateSimulationDto>
