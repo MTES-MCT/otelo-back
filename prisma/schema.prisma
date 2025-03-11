@@ -566,18 +566,20 @@ model FilocomFlux {
 }
 
 model VacancyAccommodation {
-  nbTotalPP         Int   @map("nb_total_pp")
-  nbLocVacPP        Int   @map("nb_loc_vac_pp")
-  nbLocVacPPShort   Int   @map("nb_loc_vac_pp_short")
-  nbLocVacPPLong    Int   @map("nb_loc_vac_pp_long")
-  propLocVacPP      Float @map("prop_loc_vac_pp")
-  propLocVacPPShort Float @map("prop_loc_vac_pp_short")
-  propLocVacPPLong  Float @map("prop_loc_vac_pp_long")
+  year  Int
+
+  nbTotal         Int   @map("nb_total")
+  nbLogVac2Less   Int   @map("nb_log_vac_2less")
+  nbLogVac2More   Int   @map("nb_log_vac_2more")
+  nbLogVac5More   Int   @map("nb_log_vac_5more")
+  propLogVac2Less Float @map("prop_log_vac_2less")
+  propLogVac2More Float @map("prop_log_vac_2more")
+  propLogVac5More Float @map("prop_log_vac_5more")
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
 
-  @@id(epciCode)
+  @@id([epciCode, year])
   @@map("vacancy_accommodation")
 }
 

@@ -10,6 +10,9 @@ interface AccommodationRatesByEpci {
     vacancy: {
       nbAccommodation: number
       txLvLongue: number
+      txLvLongue2Years: number
+      txLvLongue5Years: number
+      year?: number
     }
   }
 }
@@ -38,13 +41,15 @@ export class AccommodationRatesService {
     return epcisCodes.reduce<AccommodationRatesByEpci>((acc, epciCode) => {
       const epciVacancy = vacancyData.find((v) => v.epciCode === epciCode)
       const epciFilocom = filocomData.find((f) => f.epciCode === epciCode)
-
       acc[epciCode] = {
         txLv: epciFilocom?.txLvParctot ?? 0,
         txRs: epciFilocom?.txRsParctot ?? 0,
         vacancy: {
-          nbAccommodation: epciVacancy?.nbLocVacPPLong ?? 0,
-          txLvLongue: epciVacancy?.propLocVacPPLong ?? 0,
+          nbAccommodation: (epciVacancy?.nbLogVac2More ?? 0) + (epciVacancy?.nbLogVac5More ?? 0),
+          txLvLongue: ((epciVacancy?.propLogVac2More ?? 0) + (epciVacancy?.propLogVac5More ?? 0)) * 100,
+          txLvLongue2Years: (epciVacancy?.propLogVac2More ?? 0) * 100,
+          txLvLongue5Years: (epciVacancy?.propLogVac5More ?? 0) * 100,
+          year: epciVacancy?.year,
         },
       }
 
