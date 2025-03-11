@@ -12,7 +12,7 @@ export class VacancyService {
 
   async getVacancy(epcisCodes: string[]): Promise<VacancyAccommodation[]> {
     return this.prismaService.vacancyAccommodation.findMany({
-      where: { epciCode: { in: epcisCodes } },
+      where: { epciCode: { in: epcisCodes }, year: { equals: 2024 } },
     })
   }
 }
