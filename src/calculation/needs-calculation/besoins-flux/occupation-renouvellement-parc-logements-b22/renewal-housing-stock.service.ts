@@ -25,9 +25,7 @@ export class RenewalHousingStockService extends BaseCalculator {
   }
 
   async calculateByEpci(epciCode: string): Promise<number> {
-    const demographicEvolution = await this.demographicEvolutionService.calculateByEpci(epciCode)
-    const potentialNeeds = await this.getPotentialNeeds(demographicEvolution, epciCode)
-    return Math.round(potentialNeeds - demographicEvolution)
+    return this.calculateRenewalNeedsByEpci(epciCode)
   }
 
   private async getVacantAccommodationRate(epciCode: string): Promise<number> {
@@ -112,7 +110,6 @@ export class RenewalHousingStockService extends BaseCalculator {
 
   async getPotentialNeeds(demographicEvolution: number, epciCode: string): Promise<number> {
     const data = await this.getFilocomFlux(epciCode)
-
     const totalActualParc = data.parctot
     const actualParcRp = Math.round(totalActualParc * data.txRpParctot)
     const txLv = await this.getVacantAccommodationRate(epciCode)
@@ -130,9 +127,9 @@ export class RenewalHousingStockService extends BaseCalculator {
     const { periodProjection, simulation } = this.context
     const { scenario } = simulation
     const annualRate = (1.0 + data.txRestParctot) ** (1.0 / 6.0) - 1.0
-    // Todo
-    const txRestAnnual = annualRate + scenario.epciScenarios[0].b2_tx_restructuration / 100.0
 
+    // Todo: restructuration per epci scenario
+    const txRestAnnual = annualRate + scenario.epciScenarios[0].b2_tx_restructuration / 100.0
     return (1.0 + txRestAnnual) ** periodProjection - 1.0
   }
 
@@ -140,6 +137,8 @@ export class RenewalHousingStockService extends BaseCalculator {
     const { periodProjection, simulation } = this.context
     const { scenario } = simulation
     const annualRate = (1.0 + data.txDispParctot) ** (1.0 / 6.0) - 1.0
+
+    // Todo: disparition per epci scenario
     const txDistAnnual = annualRate + scenario.epciScenarios[0].b2_tx_disparition / 100.0
     return (1.0 + txDistAnnual) ** periodProjection - 1.0
   }
