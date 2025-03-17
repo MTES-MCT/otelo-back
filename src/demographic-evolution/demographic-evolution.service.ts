@@ -80,10 +80,10 @@ export class DemographicEvolutionService {
     }
   }
 
-  async getDemographicEvolutionPopulation(epcis: string[]) {
+  async getDemographicEvolutionPopulation(epcis: Array<{ code: string; name: string }>) {
     const results = await Promise.all(
       epcis.map(async (epci) => ({
-        data: await this.getDemographicEvolutionPopulationByEpci(epci),
+        data: await this.getDemographicEvolutionPopulationByEpci(epci.code),
         epci,
       })),
     )
@@ -91,7 +91,7 @@ export class DemographicEvolutionService {
     return results.reduce(
       (acc, { data, epci }) => ({
         ...acc,
-        [epci]: data,
+        [epci.code]: { ...data, name: epci.name },
       }),
       {},
     )

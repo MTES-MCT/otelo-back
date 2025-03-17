@@ -19,8 +19,6 @@ import { SessionsModule } from './sessions/sessions.module'
 import { SimulationsModule } from './simulations/simulations.module'
 import { UsersModule } from './users/users.module'
 import { VacancyModule } from './vacancy/vacancy.module'
-import { DataVisualisationModule } from './data-visualisation/data-visualisation.module';
-import { RpInseeModule } from './rp-insee/rp-insee.module';
 
 @Module({
   controllers: [HealthController],
