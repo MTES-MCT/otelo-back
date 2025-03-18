@@ -17,7 +17,7 @@ export class DataVisualisationService {
 
     switch (type) {
       case 'projection-population-evolution':
-        return this.demographicEvolutionService.getDemographicEvolutionPopulation(epcis)
+        return this.demographicEvolutionService.getDemographicEvolutionPopulationAndYear(epcis)
       case 'menage-evolution':
         return this.rpInseeService.getRP(epcis, 'menage')
       case 'population-evolution':
