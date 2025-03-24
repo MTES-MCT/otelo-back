@@ -12,16 +12,16 @@ export class DataVisualisationService {
     private readonly rpInseeService: RpInseeService,
   ) {}
   async getDataByType(type: TDataVisualisation, epci: string) {
-    const epcis = await this.epcisService.getBassinEpcisByEpciCode(epci)
-    const epcisCodes = epcis.map((epci) => epci.code)
+    const bassinEpcis = await this.epcisService.getBassinEpcisByEpciCode(epci)
+    const epcis = bassinEpcis.map((epci) => ({ code: epci.code, name: epci.name }))
 
     switch (type) {
       case 'projection-population-evolution':
-        return this.demographicEvolutionService.getDemographicEvolutionPopulation(epcisCodes)
+        return this.demographicEvolutionService.getDemographicEvolutionPopulationAndYear(epcis)
       case 'menage-evolution':
-        return this.rpInseeService.getRP(epcisCodes, 'menage')
+        return this.rpInseeService.getRP(epcis, 'menage')
       case 'population-evolution':
-        return this.rpInseeService.getRP(epcisCodes, 'population')
+        return this.rpInseeService.getRP(epcis, 'population')
       default:
         throw new Error('Invalid data visualisation type')
     }
