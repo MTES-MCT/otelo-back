@@ -117,10 +117,7 @@ export class RenewalHousingStockService extends BaseCalculator {
     const txRp = 1 - txLv - txRs
 
     const renewalNeeds = await this.calculateRenewalNeedsByEpci(epciCode)
-    return Math.round(
-      // eslint-disable-next-line prettier/prettier
-      (actualParcRp + demographicEvolution) / txRp - (totalActualParc - renewalNeeds),
-    )
+    return Math.round((actualParcRp + demographicEvolution) / txRp - (totalActualParc - renewalNeeds))
   }
 
   private async calculateTauxRestructuration(data: FilocomFlux): Promise<number> {

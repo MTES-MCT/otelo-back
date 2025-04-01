@@ -34,6 +34,7 @@ describe('SocialParcService', () => {
 
     service = module.get<SocialParcService>(SocialParcService)
 
+    // biome-ignore lint: TODO
     jest.spyOn(service as any, 'applyCoefficient').mockImplementation((value) => value)
   })
 

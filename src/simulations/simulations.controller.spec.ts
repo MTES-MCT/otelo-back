@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { SimulationsController } from './simulations.controller'
-import { SimulationsService } from '~/simulations/simulations.service'
 import { createMock } from '@golevelup/ts-jest'
+import { Test, TestingModule } from '@nestjs/testing'
+import { SimulationsService } from '~/simulations/simulations.service'
+import { SimulationsController } from './simulations.controller'
 
 describe('SimulationsController', () => {
   let controller: SimulationsController

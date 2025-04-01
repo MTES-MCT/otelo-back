@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const data = require('./r94.json')
 const schema = 'public'
 

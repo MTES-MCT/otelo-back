@@ -25,7 +25,6 @@ export class AuthController {
   @Public()
   @UseGuards(RefreshTokenGuard)
   async refresh(@Req() request: Request) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, token] = request.headers.authorization?.split(' ') ?? []
     const refreshedUserSession = await this.authService.refreshToken(token)
     request['user'] = refreshedUserSession.user as TUser

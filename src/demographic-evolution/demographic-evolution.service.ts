@@ -56,7 +56,20 @@ export class DemographicEvolutionService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getDemographicEvolution(epciCode: string) {
-    const projections = await this.prismaService.$queryRaw<any[]>`
+    const projections = await this.prismaService.$queryRaw<
+      Array<{
+        year: number
+        centralB: number
+        centralC: number
+        centralH: number
+        phB: number
+        phC: number
+        phH: number
+        pbB: number
+        pbC: number
+        pbH: number
+      }>
+    >`
       SELECT 
         year,
         ROUND(central_b) as "centralB",
@@ -99,7 +112,14 @@ export class DemographicEvolutionService {
   async getDemographicEvolutionPopulationByEpci(epciCode: string, years?: number[]) {
     const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code = ${epciCode}${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
 
-    const projections = await this.prismaService.$queryRaw<any[]>`
+    const projections = await this.prismaService.$queryRaw<
+      Array<{
+        year: number
+        central: number
+        haute: number
+        basse: number
+      }>
+    >`
         SELECT 
           year,
           ROUND(central) as "central",

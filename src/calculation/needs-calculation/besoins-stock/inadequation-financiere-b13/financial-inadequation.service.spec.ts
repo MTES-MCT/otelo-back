@@ -1,10 +1,10 @@
 import { createMock } from '@golevelup/ts-jest'
 import { Test, TestingModule } from '@nestjs/testing'
 import { CalculationContext } from '~/calculation/needs-calculation/base-calculator'
-import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
-import { FinancialInadequationService } from './financial-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
+import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
 import { PrismaService } from '~/db/prisma.service'
+import { FinancialInadequationService } from './financial-inadequation.service'
 
 describe('FinancialInadequationService', () => {
   let service: FinancialInadequationService

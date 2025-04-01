@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
+import { Request } from 'express'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TSignupCallback } from '~/schemas/auth/sign-in-callback'
 import { TSession } from '~/schemas/sessions/session'
@@ -48,7 +49,7 @@ export class AuthService {
     return roles.some((role) => role === userRole)
   }
 
-  async canAccessEntity(entity: any, paramName: string, user: TUser | undefined, request: any): Promise<boolean> {
+  async canAccessEntity(entity: unknown, paramName: string, user: TUser | undefined, request: Request): Promise<boolean> {
     const entityId: string = paramName && request.params[paramName]
     if (user) {
       switch (entity) {
