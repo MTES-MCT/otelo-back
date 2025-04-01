@@ -48,8 +48,7 @@ export class SimulationsService {
       createdAt: simulation.createdAt,
       epcis: simulation.epcis,
       id: simulation.id,
-      //todo - remove cast (null value from db)
-      scenario: simulation.scenario as any,
+      scenario: simulation.scenario as TSimulationWithEpciAndScenario['scenario'],
       updatedAt: simulation.updatedAt,
     }
   }

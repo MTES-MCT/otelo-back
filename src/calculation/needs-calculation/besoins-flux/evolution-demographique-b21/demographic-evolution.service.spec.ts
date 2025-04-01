@@ -36,6 +36,8 @@ describe('DemographicEvolutionService - Calculation', () => {
     }).compile()
 
     service = module.get<DemographicEvolutionService>(DemographicEvolutionService)
+
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     jest.spyOn(service as any, 'applyCoefficient').mockImplementation((value) => value)
   })
 

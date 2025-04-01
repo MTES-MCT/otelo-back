@@ -12,7 +12,7 @@ const createTableData = (results: TRPDataResults[], type: 'menage' | 'population
     }
 
     data.forEach((item) => {
-      if (!!item[type]) {
+      if (item[type]) {
         acc[epci.code][item.year] = {
           value: Math.round(item[type]),
         }

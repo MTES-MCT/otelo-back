@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { AuthService } from '~/auth/auth.service'
 import { RefreshTokenGuard } from '~/common/guards/refreshtoken.guard'
 import { TSignupCallback, ZSignupCallback } from '~/schemas/auth/sign-in-callback'
+import { TUser } from '~/schemas/users/user'
 import { SessionsService } from '~/sessions/sessions.service'
 import { AuthController } from './auth.controller'
 
@@ -21,6 +22,7 @@ describe('AuthController', () => {
     mockRefreshTokenGuard = {
       canActivate: jest.fn(),
       extractTokenFromHeader: jest.fn(),
+      // biome-ignore lint: TODO
     } as any
 
     const module: TestingModule = await Test.createTestingModule({
@@ -117,8 +119,8 @@ describe('AuthController', () => {
 
   describe('logout', () => {
     it('should call authService.logout with userId', async () => {
-      const mockUser = { id: 'user-123' }
-      await controller.logout(mockUser as any)
+      const mockUser = { id: 'user-123' } as TUser
+      await controller.logout(mockUser)
       expect(authService.logout).toHaveBeenCalledWith(mockUser.id)
     })
   })
