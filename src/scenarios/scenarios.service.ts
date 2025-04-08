@@ -41,8 +41,30 @@ export class ScenariosService {
   }
 
   async update(id: string, data: TUpdateSimulationDto) {
+    const { epciScenarios, ...scenario } = data
     return this.prisma.scenario.update({
-      data,
+      data: {
+        ...scenario,
+        ...(epciScenarios
+          ? {
+              epciScenarios: {
+                updateMany: Object.entries(epciScenarios).map(([epciCode, epciScenario]) => ({
+                  where: {
+                    scenarioId: id,
+                    epciCode,
+                  },
+                  data: {
+                    b2_tx_restructuration: epciScenario.b2_tx_restructuration,
+                    b2_tx_disparition: epciScenario.b2_tx_disparition,
+                    b2_tx_vacance: epciScenario.b2_tx_vacance,
+                    b2_tx_rs: epciScenario.b2_tx_rs,
+                    default: epciScenario.default,
+                  },
+                })),
+              },
+            }
+          : {}),
+      },
       where: { id },
     })
   }

@@ -12,6 +12,7 @@ export const ZEpciScenario = z.object({
   b2_tx_restructuration: z.number(),
   b2_tx_rs: z.number(),
   b2_tx_vacance: z.number(),
+  default: z.boolean(),
   epciCode: z.string(),
 })
 
@@ -67,11 +68,8 @@ export type TInitScenario = z.infer<typeof ZInitScenario>
 
 export const ZUpdateSimulationDto = ZScenario.omit({
   b17_motif: true,
-  b2_scenario: true,
   createdAt: true,
-  epciScenarios: true,
   isConfidential: true,
-  projection: true,
   updatedAt: true,
 })
 
