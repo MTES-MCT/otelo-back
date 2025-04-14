@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Res } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
+import { Response } from 'express'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
@@ -71,5 +72,20 @@ export class SimulationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSimulation(@Param('id') id: string, @User() { id: userId }: TUser) {
     return this.simulationsService.delete(userId, id)
+  }
+
+  @AccessControl({
+    entity: Prisma.ModelName.Simulation,
+    paramName: 'id',
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get(':id/scenario/export')
+  @HttpCode(HttpStatus.OK)
+  async exportScenario(@Param('id') id: string, @Res() res: Response) {
+    const { csvData, simulation } = await this.simulationsService.exportScenario(id)
+
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename=${new Date(simulation.createdAt).toISOString()}-otelo-scenario.csv`)
+    res.send(csvData)
   }
 }
