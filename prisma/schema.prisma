@@ -161,7 +161,6 @@ model EPCIScenario {
   b2_tx_disparition     Float @default(0.0)
   b2_tx_vacance         Float @default(0.0)
   b2_tx_rs              Float @default(0.0)
-  default               Boolean @default(false)
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")

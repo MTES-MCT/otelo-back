@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Query } from '@nestjs/common'
 import { Epci, Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { EpcisService } from '~/epcis/epcis.service'
@@ -7,6 +7,19 @@ import { TEpci } from '~/schemas/epcis/epci'
 @Controller('epcis')
 export class EpcisController {
   constructor(private readonly epcisService: EpcisService) {}
+
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async getEpcis(@Query('epcis') epcis: string): Promise<Epci[]> {
+    try {
+      return await this.epcisService.getList(epcis)
+    } catch (error) {
+      throw new NotFoundException(`EPCI with code ${epcis} not found`, { cause: error })
+    }
+  }
 
   @AccessControl({
     roles: [Role.ADMIN, Role.USER],

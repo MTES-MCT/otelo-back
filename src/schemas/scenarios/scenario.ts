@@ -12,7 +12,6 @@ export const ZEpciScenario = z.object({
   b2_tx_restructuration: z.number(),
   b2_tx_rs: z.number(),
   b2_tx_vacance: z.number(),
-  default: z.boolean(),
   epciCode: z.string(),
 })
 

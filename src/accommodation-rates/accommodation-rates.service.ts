@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '~/db/prisma.service'
-import { EpcisService } from '~/epcis/epcis.service'
 import { VacancyService } from '~/vacancy/vacancy.service'
 
 interface AccommodationRatesByEpci {
@@ -22,12 +21,10 @@ export class AccommodationRatesService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly vacancyService: VacancyService,
-    private readonly epcisService: EpcisService,
   ) {}
 
-  async getAccommodationRates(epciCode: string): Promise<AccommodationRatesByEpci> {
-    const epcis = await this.epcisService.getBassinEpcisByEpciCode(epciCode)
-    const epcisCodes = epcis.map((epci) => epci.code)
+  async getAccommodationRates(epcis: string): Promise<AccommodationRatesByEpci> {
+    const epcisCodes = epcis.split(',')
 
     const [filocomData, vacancyData] = await Promise.all([
       this.prismaService.filocomFlux.findMany({
