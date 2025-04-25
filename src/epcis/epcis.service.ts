@@ -15,6 +15,14 @@ export class EpcisService {
     })
   }
 
+  getList(epcis: string): Promise<Epci[]> {
+    return this.prisma.epci.findMany({
+      where: {
+        code: { in: epcis.split(',') },
+      },
+    })
+  }
+
   create(data: TEpci): Promise<Epci> {
     return this.prisma.epci.create({
       data,
