@@ -12,7 +12,7 @@ export class DataVisualisationController {
     roles: [Role.ADMIN, Role.USER],
   })
   @Get()
-  async get(@Query() query: { epci: string; type: TDataVisualisation }) {
-    return this.dataVisualisationService.getDataByType(query.type, query.epci)
+  async get(@Query() query: { epci: string; type: TDataVisualisation; populationType?: string }) {
+    return this.dataVisualisationService.getDataByType(query.type, query.epci, query.populationType)
   }
 }

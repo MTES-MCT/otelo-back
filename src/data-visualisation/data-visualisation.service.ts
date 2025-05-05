@@ -11,11 +11,13 @@ export class DataVisualisationService {
     private readonly demographicEvolutionService: DemographicEvolutionService,
     private readonly rpInseeService: RpInseeService,
   ) {}
-  async getDataByType(type: TDataVisualisation, epci: string) {
+  async getDataByType(type: TDataVisualisation, epci: string, populationType?: string) {
     const bassinEpcis = await this.epcisService.getBassinEpcisByEpciCode(epci)
     const epcis = bassinEpcis.map((epci) => ({ code: epci.code, name: epci.name }))
 
     switch (type) {
+      case 'projection-menages-evolution':
+        return this.demographicEvolutionService.getDemographicEvolutionOmphaleAndYear(epcis, populationType)
       case 'projection-population-evolution':
         return this.demographicEvolutionService.getDemographicEvolutionPopulationAndYear(epcis)
       case 'menage-evolution':
