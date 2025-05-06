@@ -32,7 +32,7 @@ export class AccommodationRatesService {
           epciCode: { in: epcisCodes },
         },
       }),
-      this.vacancyService.getVacancy(epcisCodes),
+      this.vacancyService.getNewestVacancy(epcisCodes),
     ])
 
     return epcisCodes.reduce<AccommodationRatesByEpci>((acc, epciCode) => {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '~/db/prisma.service'
 import { TRPDataResults, TRPDataTable } from '~/schemas/data-visualisation/data-visualisation'
 
-const createTableData = (results: TRPDataResults[], type: 'menage' | 'population'): TRPDataTable => {
+const createTableData = (results: TRPDataResults[], type: 'menage' | 'population' | 'secondaryAccommodation' | 'vacant'): TRPDataTable => {
   return results.reduce((acc, { data, epci }) => {
     if (!acc[epci.code]) {
       acc[epci.code] = {
@@ -15,6 +15,7 @@ const createTableData = (results: TRPDataResults[], type: 'menage' | 'population
       if (item[type]) {
         acc[epci.code][item.year] = {
           value: Math.round(item[type]),
+          percent: `${((item[type] / item.totalAccommodation) * 100).toFixed(2)}%`,
         }
       }
     })
@@ -45,17 +46,25 @@ const createTableData = (results: TRPDataResults[], type: 'menage' | 'population
 export class RpInseeService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getRPByEpci(epciCode: string, type: 'menage' | 'population') {
+  async getRPByEpci(epciCode: string, type: 'menage' | 'population' | 'secondaryAccommodation' | 'vacant') {
     const data = await this.prismaService.rP.findMany({
-      select: { menage: type === 'menage', population: type === 'population', year: true },
+      select: {
+        menage: type === 'menage',
+        population: type === 'population',
+        secondaryAccommodation: type === 'secondaryAccommodation',
+        vacant: type === 'vacant',
+        year: true,
+        totalAccommodation: true,
+      },
       where: {
         epciCode,
       },
     })
+
     const { max, min } = data.reduce(
       (acc, projection) => {
         Object.entries(projection).forEach(([key, value]) => {
-          if (key !== 'year') {
+          if (key !== 'year' && key !== 'totalAccommodation') {
             const numValue = Math.round(value)
             acc.min = Math.min(acc.min, numValue)
             acc.max = Math.max(acc.max, numValue)
@@ -65,11 +74,15 @@ export class RpInseeService {
       },
       { max: -Infinity, min: Infinity },
     )
+
     return {
       data: data.map((item) => ({
         ...item,
-        menage: Math.round(item.menage),
-        population: Math.round(item.population),
+        menage: item.menage && Math.round(item.menage),
+        population: item.population && Math.round(item.population),
+        secondaryAccommodation: item.secondaryAccommodation && Math.round(item.secondaryAccommodation),
+        vacant: item.vacant && Math.round(item.vacant),
+        totalAccommodation: Math.round(item.totalAccommodation),
       })),
       metadata: {
         max,
@@ -78,7 +91,7 @@ export class RpInseeService {
     }
   }
 
-  async getRP(epcis: Array<{ code: string; name: string }>, type: 'menage' | 'population') {
+  async getRP(epcis: Array<{ code: string; name: string }>, type: 'menage' | 'population' | 'secondaryAccommodation' | 'vacant') {
     const results = await Promise.all(
       epcis.map(async (epci) => ({
         ...(await this.getRPByEpci(epci.code, type)),
