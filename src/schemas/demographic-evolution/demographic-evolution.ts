@@ -89,6 +89,21 @@ export const ZGetDemographicEvolutionByEpciQuery = z.object({
 
 export type TGetDemographicEvolutionByEpciQuery = z.infer<typeof ZGetDemographicEvolutionByEpciQuery>
 
+export const ZDemographicEvolutionMenagesByEpci = z.object({
+  centralB: z.number().optional(),
+  centralC: z.number().optional(),
+  centralH: z.number().optional(),
+  pbB: z.number().optional(),
+  pbC: z.number().optional(),
+  pbH: z.number().optional(),
+  phB: z.number().optional(),
+  phC: z.number().optional(),
+  phH: z.number().optional(),
+  year: z.number(),
+})
+
+export type TDemographicEvolutionMenagesByEpci = z.infer<typeof ZDemographicEvolutionMenagesByEpci>
+
 export interface MaxYearScenario {
   scenario: 'central' | 'haute' | 'basse'
   value: number

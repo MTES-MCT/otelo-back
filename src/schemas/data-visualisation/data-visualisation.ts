@@ -6,11 +6,15 @@ export type TDataVisualisation =
   | 'menage-evolution'
   | 'projection-population-evolution'
   | 'projection-menages-evolution'
+  | 'residences-secondaires'
+  | 'logements-vacants'
 
-// Define a schema for the individual RP data item
 const ZRPDataItem = z.object({
   menage: z.number().optional(),
   population: z.number().optional(),
+  secondaryAccommodation: z.number().optional(),
+  vacant: z.number().optional(),
+  totalAccommodation: z.number(),
   year: z.number(),
 })
 
@@ -81,3 +85,49 @@ export const ZDemographicProjectionDataTable = z.record(
 )
 
 export type TDemographicProjectionDataTable = z.infer<typeof ZDemographicProjectionDataTable>
+
+export const ZDataVisualisationQuery = z.object({
+  epci: z.string(),
+  type: z.string(),
+  populationType: z.string().optional(),
+  source: z.string().optional(),
+})
+
+export type TDataVisualisationQuery = z.infer<typeof ZDataVisualisationQuery>
+
+export const ZVacancyAccommodationDataTable = z.object({
+  annualEvolution: z
+    .record(
+      z.object({
+        percent: z.string(),
+        value: z.number(),
+      }),
+    )
+    .optional(),
+  name: z.string(),
+})
+
+export type TVacancyAccommodationDataTable = z.infer<typeof ZVacancyAccommodationDataTable>
+
+const ZVacancyAccommodation = z.object({
+  year: z.number(),
+  nbTotal: z.number(),
+  nbLogVac2Less: z.number(),
+  nbLogVac2More: z.number(),
+  propLogVac2Less: z.number(),
+  propLogVac2More: z.number(),
+})
+
+export const ZVacancyAccommodationEvolution = z.object({
+  data: z.array(ZVacancyAccommodation),
+  epci: z.object({
+    code: z.string(),
+    name: z.string(),
+  }),
+  metadata: z.object({
+    max: z.number(),
+    min: z.number(),
+  }),
+})
+
+export type TVacancyAccommodationEvolution = z.infer<typeof ZVacancyAccommodationEvolution>

@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { TDemographicProjectionDataTable } from '~/schemas/data-visualisation/data-visualisation'
-import { TDemographicEvolutionByEpci } from '~/schemas/demographic-evolution/demographic-evolution'
+import { TDemographicEvolutionByEpci, TDemographicEvolutionMenagesByEpci } from '~/schemas/demographic-evolution/demographic-evolution'
 
-const createTableData = (results: Array<{ data: TDemographicEvolutionByEpci[]; epci: { code: string; name: string } }>) => {
+const createProjectionPopulationTableData = (
+  results: Array<{ data: TDemographicEvolutionByEpci[]; epci: { code: string; name: string } }>,
+) => {
   return results.reduce((acc, { data, epci }) => {
     if (!acc[epci.code]) {
       acc[epci.code] = {
@@ -20,7 +22,6 @@ const createTableData = (results: Array<{ data: TDemographicEvolutionByEpci[]; e
         haute: Math.round(item.haute),
       }
     })
-
     const years = data.map((item) => item.year).sort((a, b) => a - b)
 
     for (let i = 0; i < years.length - 1; i++) {
@@ -51,12 +52,62 @@ const createTableData = (results: Array<{ data: TDemographicEvolutionByEpci[]; e
   }, {} as TDemographicProjectionDataTable)
 }
 
+const createProjectionMenagesTableData = (
+  results: Array<{ data: TDemographicEvolutionMenagesByEpci[]; epci: { code: string; name: string } }>,
+  populationType?: string,
+) => {
+  return results.reduce((acc, { data, epci }) => {
+    if (!acc[epci.code]) {
+      acc[epci.code] = {
+        annualEvolution: {},
+        name: epci.name,
+      }
+    }
+    const dataKeyPrefix = populationType === 'haute' ? 'ph' : populationType === 'central' ? 'central' : 'pb'
+    data.forEach((item) => {
+      acc[epci.code][item.year] = {
+        basse: Math.round(item[`${dataKeyPrefix}B`]!),
+        central: Math.round(item[`${dataKeyPrefix}C`]!),
+        haute: Math.round(item[`${dataKeyPrefix}H`]!),
+      }
+    })
+    const years = data.map((item) => item.year).sort((a, b) => a - b)
+
+    for (let i = 0; i < years.length - 1; i++) {
+      const startYear = years[i]
+      const endYear = years[i + 1]
+      const startValue = data.find((item) => item.year === startYear)
+      const endValue = data.find((item) => item.year === endYear)
+      if (startValue && endValue) {
+        acc[epci.code].annualEvolution![`${startYear}-${endYear}`] = {
+          basse: {
+            percent: `${((Math.pow(endValue[`${dataKeyPrefix}B`]! / startValue[`${dataKeyPrefix}B`]!, 1 / (endYear - startYear)) - 1) * 100).toFixed(2)}%`,
+            value: Math.round((endValue[`${dataKeyPrefix}B`]! - startValue[`${dataKeyPrefix}B`]!) / (endYear - startYear)),
+          },
+          central: {
+            percent: `${((Math.pow(endValue[`${dataKeyPrefix}C`]! / startValue[`${dataKeyPrefix}C`]!, 1 / (endYear - startYear)) - 1) * 100).toFixed(2)}%`,
+            value: Math.round((endValue[`${dataKeyPrefix}C`]! - startValue[`${dataKeyPrefix}C`]!) / (endYear - startYear)),
+          },
+          haute: {
+            percent: `${((Math.pow(endValue[`${dataKeyPrefix}H`]! / startValue[`${dataKeyPrefix}H`]!, 1 / (endYear - startYear)) - 1) * 100).toFixed(2)}%`,
+            value: Math.round((endValue[`${dataKeyPrefix}H`]! - startValue[`${dataKeyPrefix}H`]!) / (endYear - startYear)),
+          },
+        }
+      }
+    }
+
+    return acc
+  }, {} as TDemographicProjectionDataTable)
+}
+
 @Injectable()
 export class DemographicEvolutionService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getDemographicEvolution(epciCodes: string) {
+  async getDemographicEvolution(epciCodes: string, years?: number[]) {
     const epcisArray = epciCodes.split(',')
+    const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code IN (${Prisma.join(epcisArray)})${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
+
     const projections = await this.prismaService.$queryRaw<
       Array<{
         epci_code: string
@@ -85,7 +136,7 @@ export class DemographicEvolutionService {
         ROUND(pb_c) as "pbC",
         ROUND(pb_h) as "pbH"
       FROM demographic_evolution_omphale
-      WHERE epci_code IN (${Prisma.join(epcisArray)})
+      ${whereCond}
       ORDER BY epci_code, year ASC
     `
 
@@ -200,7 +251,32 @@ export class DemographicEvolutionService {
       }),
     )
 
-    const tableData = createTableData(results)
+    const tableData = createProjectionPopulationTableData(results)
+
+    return {
+      linearChart: results.reduce(
+        (acc, { data, metadata, epci }) => ({
+          ...acc,
+          [epci.code]: { data, metadata, epci },
+        }),
+        {},
+      ),
+      tableData,
+    }
+  }
+
+  async getDemographicEvolutionOmphaleAndYear(epcis: Array<{ code: string; name: string }>, populationType?: string) {
+    const results = await Promise.all(
+      epcis.map(async (epci) => {
+        const data = await this.getDemographicEvolution(epci.code, [2021, 2030, 2040, 2050])
+        return {
+          data: data[epci.code].data,
+          metadata: data[epci.code].metadata,
+          epci,
+        }
+      }),
+    )
+    const tableData = createProjectionMenagesTableData(results, populationType)
 
     return {
       linearChart: results.reduce(

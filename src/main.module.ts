@@ -12,6 +12,7 @@ import { CalculationModule } from './calculation/calculation.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
 import { EpcisModule } from './epcis/epcis.module'
+import { FilocomModule } from './filocom/filocom.module'
 import { HealthController } from './health/health.controller'
 import { RpInseeModule } from './rp-insee/rp-insee.module'
 import { ScenariosModule } from './scenarios/scenarios.module'
@@ -41,6 +42,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     BassinModule,
     DataVisualisationModule,
     RpInseeModule,
+    FilocomModule,
   ],
   providers: [
     AuthenticationGuard,
