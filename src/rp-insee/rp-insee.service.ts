@@ -15,6 +15,7 @@ const createTableData = (results: TRPDataResults[], type: 'menage' | 'population
       if (item[type]) {
         acc[epci.code][item.year] = {
           value: Math.round(item[type]),
+          percentValue: ((item[type] / item.totalAccommodation) * 100).toFixed(2),
           percent: `${((item[type] / item.totalAccommodation) * 100).toFixed(2)}%`,
         }
       }
@@ -27,11 +28,14 @@ const createTableData = (results: TRPDataResults[], type: 'menage' | 'population
       const endYear = years[i + 1]
       const startValue = data.find((item) => item.year === startYear)?.[type]
       const endValue = data.find((item) => item.year === endYear)?.[type]
-
+      const startValuePercent = acc[epci.code][startYear].percentValue
+      const endValuePercent = acc[epci.code][endYear].percentValue
       if (startValue && endValue) {
         const evolutionValue = (endValue - startValue) / (endYear - startYear)
-        const evolutionPercent = ((Math.pow(endValue / startValue, 1 / (endYear - startYear)) - 1) * 100).toFixed(2)
+        const evolutionPercentPoint = ((endValuePercent - startValuePercent) / (endYear - startYear)).toFixed(2)
+        const evolutionPercent = (((endValuePercent / startValuePercent) ** (1 / (endYear - startYear)) - 1) * 100).toFixed(2)
         acc[epci.code].annualEvolution![`${startYear}-${endYear}`] = {
+          percentPoint: `${evolutionPercentPoint}%`,
           percent: `${evolutionPercent}%`,
           value: Math.round(evolutionValue),
         }

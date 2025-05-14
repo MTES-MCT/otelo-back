@@ -2,7 +2,14 @@ import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { TDemographicProjectionDataTable } from '~/schemas/data-visualisation/data-visualisation'
-import { TDemographicEvolutionByEpci, TDemographicEvolutionMenagesByEpci } from '~/schemas/demographic-evolution/demographic-evolution'
+import {
+  TDemographicEvolutionByEpci,
+  TDemographicEvolutionMenagesByEpci,
+  TDemographicEvolutionMenagesByEpciAndYear,
+  TDemographicEvolutionPopulationByEpciAndYear,
+  TDemographicMenagesMaxYearsByEpci,
+  TDemographicPopulationMaxYearsByEpci,
+} from '~/schemas/demographic-evolution/demographic-evolution'
 
 const createProjectionPopulationTableData = (
   results: Array<{ data: TDemographicEvolutionByEpci[]; epci: { code: string; name: string } }>,
@@ -10,6 +17,10 @@ const createProjectionPopulationTableData = (
   return results.reduce((acc, { data, epci }) => {
     if (!acc[epci.code]) {
       acc[epci.code] = {
+        '2021': { basse: -Infinity, central: -Infinity, haute: -Infinity },
+        '2030': { basse: -Infinity, central: -Infinity, haute: -Infinity },
+        '2040': { basse: -Infinity, central: -Infinity, haute: -Infinity },
+        '2050': { basse: -Infinity, central: -Infinity, haute: -Infinity },
         annualEvolution: {},
         name: epci.name,
       }
@@ -59,6 +70,10 @@ const createProjectionMenagesTableData = (
   return results.reduce((acc, { data, epci }) => {
     if (!acc[epci.code]) {
       acc[epci.code] = {
+        '2021': { basse: -Infinity, central: -Infinity, haute: -Infinity },
+        '2030': { basse: -Infinity, central: -Infinity, haute: -Infinity },
+        '2040': { basse: -Infinity, central: -Infinity, haute: -Infinity },
+        '2050': { basse: -Infinity, central: -Infinity, haute: -Infinity },
         annualEvolution: {},
         name: epci.name,
       }
@@ -104,7 +119,7 @@ const createProjectionMenagesTableData = (
 export class DemographicEvolutionService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getDemographicEvolution(epciCodes: string, years?: number[]) {
+  async getDemographicEvolution(epciCodes: string, years?: number[]): Promise<TDemographicEvolutionMenagesByEpciAndYear> {
     const epcisArray = epciCodes.split(',')
     const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code IN (${Prisma.join(epcisArray)})${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
 
@@ -140,36 +155,36 @@ export class DemographicEvolutionService {
       ORDER BY epci_code, year ASC
     `
 
-    const groupedByEpci = projections.reduce(
-      (acc, projection) => {
-        const { epci_code, ...data } = projection
+    const groupedByEpci = projections.reduce((acc, projection) => {
+      const { epci_code, ...data } = projection
 
-        if (!acc[epci_code]) {
-          acc[epci_code] = {
-            data: [],
-            metadata: { max: -Infinity, min: Infinity },
-          }
+      if (!acc[epci_code]) {
+        acc[epci_code] = {
+          data: [],
+          metadata: { max: -Infinity, min: Infinity },
         }
+      }
 
-        acc[epci_code].data.push(data)
+      acc[epci_code].data.push(data)
 
-        Object.entries(data).forEach(([key, value]) => {
-          if (key !== 'year') {
-            const numValue = Number(value)
-            acc[epci_code].metadata.min = Math.min(acc[epci_code].metadata.min, numValue)
-            acc[epci_code].metadata.max = Math.max(acc[epci_code].metadata.max, numValue)
-          }
-        })
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'year') {
+          const numValue = Number(value)
+          acc[epci_code].metadata.min = Math.min(acc[epci_code].metadata.min, numValue)
+          acc[epci_code].metadata.max = Math.max(acc[epci_code].metadata.max, numValue)
+        }
+      })
 
-        return acc
-      },
-      {} as Record<string, { data: Array<Omit<(typeof projections)[0], 'epci_code'>>; metadata: { max: number; min: number } }>,
-    )
+      return acc
+    }, {} as TDemographicEvolutionMenagesByEpciAndYear)
 
     return groupedByEpci
   }
 
-  async getDemographicEvolutionPopulationByEpci(epciCodes: string, years?: number[]) {
+  async getDemographicEvolutionPopulationByEpci(
+    epciCodes: string,
+    years?: number[],
+  ): Promise<TDemographicEvolutionPopulationByEpciAndYear> {
     const epcisArray = epciCodes.split(',')
     const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code IN (${Prisma.join(epcisArray)})${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
 
@@ -193,31 +208,28 @@ export class DemographicEvolutionService {
         ORDER BY epci_code, year ASC
       `
 
-    const groupedByEpci = projections.reduce(
-      (acc, projection) => {
-        const { epci_code, ...data } = projection
+    const groupedByEpci = projections.reduce((acc, projection) => {
+      const { epci_code, ...data } = projection
 
-        if (!acc[epci_code]) {
-          acc[epci_code] = {
-            data: [],
-            metadata: { max: -Infinity, min: Infinity },
-          }
+      if (!acc[epci_code]) {
+        acc[epci_code] = {
+          data: [],
+          metadata: { max: -Infinity, min: Infinity },
         }
+      }
 
-        acc[epci_code].data.push(data)
+      acc[epci_code].data.push(data)
 
-        Object.entries(data).forEach(([key, value]) => {
-          if (key !== 'year') {
-            const numValue = Number(value)
-            acc[epci_code].metadata.min = Math.min(acc[epci_code].metadata.min, numValue)
-            acc[epci_code].metadata.max = Math.max(acc[epci_code].metadata.max, numValue)
-          }
-        })
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'year') {
+          const numValue = Number(value)
+          acc[epci_code].metadata.min = Math.min(acc[epci_code].metadata.min, numValue)
+          acc[epci_code].metadata.max = Math.max(acc[epci_code].metadata.max, numValue)
+        }
+      })
 
-        return acc
-      },
-      {} as Record<string, { data: Array<Omit<(typeof projections)[0], 'epci_code'>>; metadata: { max: number; min: number } }>,
-    )
+      return acc
+    }, {} as TDemographicEvolutionPopulationByEpciAndYear)
 
     return groupedByEpci
   }
@@ -239,8 +251,42 @@ export class DemographicEvolutionService {
     )
   }
 
+  getDemographicEvolutionPopulationMaxYearsByEpci(
+    demographicEvolutionPopulationByEpci: TDemographicEvolutionPopulationByEpciAndYear[],
+  ): TDemographicPopulationMaxYearsByEpci {
+    return demographicEvolutionPopulationByEpci.reduce((acc, { data, epci }) => {
+      const maxYearsValues = {
+        central: { value: -Infinity, year: 0 },
+        haute: { value: -Infinity, year: 0 },
+        basse: { value: -Infinity, year: 0 },
+      }
+
+      data.forEach((item) => {
+        if (item.central > maxYearsValues.central.value) maxYearsValues.central = { value: item.central, year: item.year }
+        if (item.haute > maxYearsValues.haute.value) maxYearsValues.haute = { value: item.haute, year: item.year }
+        if (item.basse > maxYearsValues.basse.value) maxYearsValues.basse = { value: item.basse, year: item.year }
+      })
+
+      acc[epci.code] = maxYearsValues
+      return acc
+    }, {} as TDemographicPopulationMaxYearsByEpci)
+  }
+
   async getDemographicEvolutionPopulationAndYear(epcis: Array<{ code: string; name: string }>) {
-    const results = await Promise.all(
+    const results: TDemographicEvolutionPopulationByEpciAndYear[] = await Promise.all(
+      epcis.map(async (epci) => {
+        const data = await this.getDemographicEvolutionPopulationByEpci(epci.code)
+        return {
+          data: data[epci.code].data,
+          metadata: data[epci.code].metadata,
+          epci,
+        }
+      }),
+    )
+
+    const maxYears = this.getDemographicEvolutionPopulationMaxYearsByEpci(results)
+
+    const tableResults = await Promise.all(
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolutionPopulationByEpci(epci.code, [2021, 2030, 2040, 2050])
         return {
@@ -251,7 +297,7 @@ export class DemographicEvolutionService {
       }),
     )
 
-    const tableData = createProjectionPopulationTableData(results)
+    const tableData = createProjectionPopulationTableData(tableResults)
 
     return {
       linearChart: results.reduce(
@@ -262,11 +308,55 @@ export class DemographicEvolutionService {
         {},
       ),
       tableData,
+      maxYears,
     }
+  }
+
+  getDemographicEvolutionMenagesMaxYearsByEpci(
+    demographicEvolutionMenagesByEpci: TDemographicEvolutionMenagesByEpciAndYear[],
+  ): TDemographicMenagesMaxYearsByEpci {
+    return demographicEvolutionMenagesByEpci.reduce((acc, { data, epci }) => {
+      const maxYearsValues = {
+        centralB: { value: -Infinity, year: 0 },
+        centralC: { value: -Infinity, year: 0 },
+        centralH: { value: -Infinity, year: 0 },
+        phB: { value: -Infinity, year: 0 },
+        phC: { value: -Infinity, year: 0 },
+        phH: { value: -Infinity, year: 0 },
+        pbB: { value: -Infinity, year: 0 },
+        pbC: { value: -Infinity, year: 0 },
+        pbH: { value: -Infinity, year: 0 },
+      }
+
+      data.forEach((item) => {
+        if (item.centralB > maxYearsValues.centralB.value) maxYearsValues.centralB = { value: item.centralB, year: item.year }
+        if (item.centralC > maxYearsValues.centralC.value) maxYearsValues.centralC = { value: item.centralC, year: item.year }
+        if (item.centralH > maxYearsValues.centralH.value) maxYearsValues.centralH = { value: item.centralH, year: item.year }
+        if (item.phB > maxYearsValues.phB.value) maxYearsValues.phB = { value: item.phB, year: item.year }
+        if (item.phC > maxYearsValues.phC.value) maxYearsValues.phC = { value: item.phC, year: item.year }
+        if (item.phH > maxYearsValues.phH.value) maxYearsValues.phH = { value: item.phH, year: item.year }
+        if (item.pbB > maxYearsValues.pbB.value) maxYearsValues.pbB = { value: item.pbB, year: item.year }
+        if (item.pbC > maxYearsValues.pbC.value) maxYearsValues.pbC = { value: item.pbC, year: item.year }
+        if (item.pbH > maxYearsValues.pbH.value) maxYearsValues.pbH = { value: item.pbH, year: item.year }
+      })
+
+      acc[epci.code] = maxYearsValues
+      return acc
+    }, {} as TDemographicMenagesMaxYearsByEpci)
   }
 
   async getDemographicEvolutionOmphaleAndYear(epcis: Array<{ code: string; name: string }>, populationType?: string) {
     const results = await Promise.all(
+      epcis.map(async (epci) => {
+        const data = await this.getDemographicEvolution(epci.code)
+        return {
+          data: data[epci.code].data,
+          metadata: data[epci.code].metadata,
+          epci,
+        }
+      }),
+    )
+    const tableResults = await Promise.all(
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolution(epci.code, [2021, 2030, 2040, 2050])
         return {
@@ -276,7 +366,10 @@ export class DemographicEvolutionService {
         }
       }),
     )
-    const tableData = createProjectionMenagesTableData(results, populationType)
+
+    const maxYears = this.getDemographicEvolutionMenagesMaxYearsByEpci(results)
+
+    const tableData = createProjectionMenagesTableData(tableResults, populationType)
 
     return {
       linearChart: results.reduce(
@@ -287,6 +380,7 @@ export class DemographicEvolutionService {
         {},
       ),
       tableData,
+      maxYears,
     }
   }
 }
