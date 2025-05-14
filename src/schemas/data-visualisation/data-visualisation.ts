@@ -41,6 +41,7 @@ export const ZRPDataTable = z.record(
         z.object({
           percent: z.string(),
           value: z.number(),
+          percentPoint: z.string(),
         }),
       )
       .optional(),
@@ -60,29 +61,49 @@ export const ZDemographicProjectionResults = z.object({
 
 export type TDemographicProjectionResults = z.infer<typeof ZDemographicProjectionResults>
 
-export const ZDemographicProjectionDataTable = z.record(
-  z.object({
-    annualEvolution: z
-      .record(
-        z.object({
-          basse: z.object({
-            percent: z.string(),
-            value: z.number(),
-          }),
-          central: z.object({
-            percent: z.string(),
-            value: z.number(),
-          }),
-          haute: z.object({
-            percent: z.string(),
-            value: z.number(),
-          }),
-        }),
-      )
-      .optional(),
-    name: z.string(),
+const ZDemographicProjectionDataTableRow = z.object({
+  '2021': z.object({
+    basse: z.number(),
+    central: z.number(),
+    haute: z.number(),
   }),
-)
+  '2030': z.object({
+    basse: z.number(),
+    central: z.number(),
+    haute: z.number(),
+  }),
+  '2040': z.object({
+    basse: z.number(),
+    central: z.number(),
+    haute: z.number(),
+  }),
+  '2050': z.object({
+    basse: z.number(),
+    central: z.number(),
+    haute: z.number(),
+  }),
+  annualEvolution: z.record(
+    z.object({
+      basse: z.object({
+        percent: z.string(),
+        value: z.number(),
+      }),
+      central: z.object({
+        percent: z.string(),
+        value: z.number(),
+      }),
+      haute: z.object({
+        percent: z.string(),
+        value: z.number(),
+      }),
+    }),
+  ),
+  name: z.string(),
+})
+
+export type TDemographicProjectionDataTableRow = z.infer<typeof ZDemographicProjectionDataTableRow>
+
+export const ZDemographicProjectionDataTable = z.record(ZDemographicProjectionDataTableRow)
 
 export type TDemographicProjectionDataTable = z.infer<typeof ZDemographicProjectionDataTable>
 

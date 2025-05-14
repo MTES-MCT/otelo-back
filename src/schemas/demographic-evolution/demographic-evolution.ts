@@ -83,6 +83,7 @@ export const ZDemographicEvolutionByEpci = z.object({
 
 export type TDemographicEvolutionByEpci = z.infer<typeof ZDemographicEvolutionByEpci>
 
+export const ZDemographicEvolutionPopulationMaxYearsByEpci = z.object({})
 export const ZGetDemographicEvolutionByEpciQuery = z.object({
   epciCodes: z.string(),
 })
@@ -104,8 +105,70 @@ export const ZDemographicEvolutionMenagesByEpci = z.object({
 
 export type TDemographicEvolutionMenagesByEpci = z.infer<typeof ZDemographicEvolutionMenagesByEpci>
 
-export interface MaxYearScenario {
-  scenario: 'central' | 'haute' | 'basse'
-  value: number
-  year: number
-}
+export const ZDemographicEvolutionPopulationByEpciAndYear = z.object({
+  data: z.array(
+    z.object({
+      year: z.number(),
+      central: z.number(),
+      haute: z.number(),
+      basse: z.number(),
+    }),
+  ),
+  metadata: z.object({ max: z.number(), min: z.number() }),
+  epci: z.object({
+    code: z.string(),
+    name: z.string(),
+  }),
+})
+
+export type TDemographicEvolutionPopulationByEpciAndYear = z.infer<typeof ZDemographicEvolutionPopulationByEpciAndYear>
+
+export const ZDemographicPopulationMaxYearsByEpci = z.record(
+  z.object({
+    central: z.object({ value: z.number(), year: z.number() }),
+    haute: z.object({ value: z.number(), year: z.number() }),
+    basse: z.object({ value: z.number(), year: z.number() }),
+  }),
+)
+
+export type TDemographicPopulationMaxYearsByEpci = z.infer<typeof ZDemographicPopulationMaxYearsByEpci>
+
+export const ZDemographicMenagesMaxYearsByEpci = z.record(
+  z.object({
+    centralB: z.object({ value: z.number(), year: z.number() }),
+    centralC: z.object({ value: z.number(), year: z.number() }),
+    centralH: z.object({ value: z.number(), year: z.number() }),
+    phB: z.object({ value: z.number(), year: z.number() }),
+    phC: z.object({ value: z.number(), year: z.number() }),
+    phH: z.object({ value: z.number(), year: z.number() }),
+    pbB: z.object({ value: z.number(), year: z.number() }),
+    pbC: z.object({ value: z.number(), year: z.number() }),
+    pbH: z.object({ value: z.number(), year: z.number() }),
+  }),
+)
+
+export type TDemographicMenagesMaxYearsByEpci = z.infer<typeof ZDemographicMenagesMaxYearsByEpci>
+
+export const ZDemographicEvolutionMenagesByEpciAndYear = z.object({
+  data: z.array(
+    z.object({
+      year: z.number(),
+      centralB: z.number(),
+      centralC: z.number(),
+      centralH: z.number(),
+      phB: z.number(),
+      phC: z.number(),
+      phH: z.number(),
+      pbB: z.number(),
+      pbC: z.number(),
+      pbH: z.number(),
+    }),
+  ),
+  metadata: z.object({ max: z.number(), min: z.number() }),
+  epci: z.object({
+    code: z.string(),
+    name: z.string(),
+  }),
+})
+
+export type TDemographicEvolutionMenagesByEpciAndYear = z.infer<typeof ZDemographicEvolutionMenagesByEpciAndYear>
