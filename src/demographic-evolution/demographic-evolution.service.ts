@@ -10,6 +10,7 @@ import {
   TDemographicMenagesMaxYearsByEpci,
   TDemographicPopulationMaxYearsByEpci,
 } from '~/schemas/demographic-evolution/demographic-evolution'
+import { TEpci } from '~/schemas/epcis/epci'
 
 const createProjectionPopulationTableData = (
   results: Array<{ data: TDemographicEvolutionByEpci[]; epci: { code: string; name: string } }>,
@@ -234,7 +235,7 @@ export class DemographicEvolutionService {
     return groupedByEpci
   }
 
-  async getDemographicEvolutionPopulation(epcis: Array<{ code: string; name: string }>) {
+  async getDemographicEvolutionPopulation(epcis: TEpci[]) {
     const results = await Promise.all(
       epcis.map(async (epci) => ({
         data: await this.getDemographicEvolutionPopulationByEpci(epci.code),
@@ -272,7 +273,7 @@ export class DemographicEvolutionService {
     }, {} as TDemographicPopulationMaxYearsByEpci)
   }
 
-  async getDemographicEvolutionPopulationAndYear(epcis: Array<{ code: string; name: string }>) {
+  async getDemographicEvolutionPopulationAndYear(epcis: TEpci[]) {
     const results: TDemographicEvolutionPopulationByEpciAndYear[] = await Promise.all(
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolutionPopulationByEpci(epci.code)
@@ -345,7 +346,7 @@ export class DemographicEvolutionService {
     }, {} as TDemographicMenagesMaxYearsByEpci)
   }
 
-  async getDemographicEvolutionOmphaleAndYear(epcis: Array<{ code: string; name: string }>, populationType?: string) {
+  async getDemographicEvolutionOmphaleAndYear(epcis: TEpci[], populationType?: string) {
     const results = await Promise.all(
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolution(epci.code)
