@@ -3,6 +3,7 @@ import { VacancyAccommodation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { EpcisService } from '~/epcis/epcis.service'
 import { TVacancyAccommodationDataTable, TVacancyAccommodationEvolution } from '~/schemas/data-visualisation/data-visualisation'
+import { TEpci } from '~/schemas/epcis/epci'
 
 const createTableData = (results: TVacancyAccommodationEvolution[]): TVacancyAccommodationDataTable => {
   return results.reduce((acc, { data, epci }) => {
@@ -96,7 +97,7 @@ export class VacancyService {
     }
   }
 
-  async getVacancy(epcis: Array<{ code: string; name: string }>) {
+  async getVacancy(epcis: TEpci[]) {
     const results = await Promise.all(
       epcis.map(async (epci) => ({
         ...(await this.getVacancyByEpci(epci.code, [2014, 2019, 2024])),
