@@ -23,6 +23,7 @@ export class SimulationsService {
     const simulations = await this.prismaService.simulation.findMany({
       select: {
         createdAt: true,
+        name: true,
         epcis: { select: { code: true, name: true, region: true } },
         id: true,
         updatedAt: true,
@@ -31,6 +32,7 @@ export class SimulationsService {
     })
 
     return simulations.map((simulation) => ({
+      name: simulation.name,
       createdAt: simulation.createdAt,
       epcis: simulation.epcis,
       id: simulation.id,
@@ -45,6 +47,7 @@ export class SimulationsService {
     })
 
     return {
+      name: simulation.name,
       createdAt: simulation.createdAt,
       epcis: simulation.epcis,
       id: simulation.id,
@@ -70,7 +73,7 @@ export class SimulationsService {
         epcis: {
           connect: data.epci.map((epci) => ({ code: epci.code })),
         },
-        name: 'Simulation',
+        name: data.name,
         scenario: { connect: { id: scenario.id } },
         user: { connect: { id: userId } },
       },

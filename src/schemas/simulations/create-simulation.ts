@@ -12,6 +12,7 @@ export const ZCreateSimulation = ZSimulation.omit({
 export type TCreateSimulation = z.infer<typeof ZCreateSimulation>
 
 export const ZInitSimulation = ZCreateSimulation.extend({
+  name: z.string(),
   epci: z.array(ZEpci.omit({ name: true })),
   scenario: ZInitScenario,
 })
