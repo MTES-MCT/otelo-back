@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '~/db/prisma.service'
 import { TRPDataResults, TRPDataTable } from '~/schemas/data-visualisation/data-visualisation'
+import { TEpci } from '~/schemas/epcis/epci'
 
 const createTableData = (results: TRPDataResults[], type: 'menage' | 'population' | 'secondaryAccommodation' | 'vacant'): TRPDataTable => {
   return results.reduce((acc, { data, epci }) => {
@@ -95,7 +96,7 @@ export class RpInseeService {
     }
   }
 
-  async getRP(epcis: Array<{ code: string; name: string }>, type: 'menage' | 'population' | 'secondaryAccommodation' | 'vacant') {
+  async getRP(epcis: TEpci[], type: 'menage' | 'population' | 'secondaryAccommodation' | 'vacant') {
     const results = await Promise.all(
       epcis.map(async (epci) => ({
         ...(await this.getRPByEpci(epci.code, type)),

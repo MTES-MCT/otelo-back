@@ -8,12 +8,17 @@ import envRessources from '~/config/environment'
 import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
 import { AuthModule } from './auth/auth.module'
+import { BadQualityModule } from './bad-quality/bad-quality.module'
 import { CalculationModule } from './calculation/calculation.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
 import { EpcisModule } from './epcis/epcis.module'
 import { FilocomModule } from './filocom/filocom.module'
+import { FinancialInadequationModule } from './financial-inadequation/financial-inadequation.module'
 import { HealthController } from './health/health.controller'
+import { HostedModule } from './hosted/hosted.module'
+import { NoAccommodationModule } from './no-accommodation/no-accommodation.module'
+import { PhysicalInadequationModule } from './physical-inadequation/physical-inadequation.module'
 import { RpInseeModule } from './rp-insee/rp-insee.module'
 import { ScenariosModule } from './scenarios/scenarios.module'
 import { SessionsModule } from './sessions/sessions.module'
@@ -43,6 +48,11 @@ import { VacancyModule } from './vacancy/vacancy.module'
     DataVisualisationModule,
     RpInseeModule,
     FilocomModule,
+    BadQualityModule,
+    HostedModule,
+    NoAccommodationModule,
+    FinancialInadequationModule,
+    PhysicalInadequationModule,
   ],
   providers: [
     AuthenticationGuard,
