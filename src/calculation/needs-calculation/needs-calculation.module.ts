@@ -18,6 +18,7 @@ import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-ca
 import { PrismaModule } from '~/db/prisma.module'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { SimulationsService } from '~/simulations/simulations.service'
+import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
 import { VacancyModule } from '~/vacancy/vacancy.module'
 
 interface AuthenticatedRequest extends Request {
@@ -41,15 +42,16 @@ interface AuthenticatedRequest extends Request {
       ) => {
         const simulationId = request.params.simulationId
         const simulation = await simulationService.get(simulationId)
-        const periodProjection = simulation.scenario.projection - 2021
+        const periodProjection = simulation.scenario.projection
         const coefficient = await coefficientCalculationService.calculateCoefficient(
           simulation.scenario.b1_horizon_resorption,
-          periodProjection,
+          simulation.scenario.projection,
         )
 
         return {
           coefficient,
           periodProjection,
+          baseYear: 2021,
           simulation,
         }
       },
@@ -65,6 +67,7 @@ interface AuthenticatedRequest extends Request {
     RenewalHousingStockService,
     SitadelService,
     NewConstructionsService,
+    StockRequirementsService,
   ],
 })
 export class NeedsCalculationModule {}

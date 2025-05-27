@@ -1,19 +1,24 @@
 import { z } from 'zod'
-import { ZCalculationResult, ZChartDataResult } from '~/schemas/calculator/calculation-result'
+import { ZCalculationResult, ZChartDataResult, ZNewConstructionsChartDataResult } from '~/schemas/calculator/calculation-result'
 
-export const ZResults = z.object({
+export const ZStockRequirementsResults = z.object({
   badQuality: ZCalculationResult,
-  demographicEvolution: ZCalculationResult,
-  epcisTotals: z.array(z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number() })),
   financialInadequation: ZCalculationResult,
   hosted: ZCalculationResult,
-  newConstructions: ZChartDataResult,
-  noAccomodation: ZCalculationResult,
   physicalInadequation: ZCalculationResult,
+  socialParc: ZCalculationResult,
+  noAccomodation: ZCalculationResult,
+})
+
+export type TStockRequirementsResults = z.infer<typeof ZStockRequirementsResults>
+
+export const ZResults = ZStockRequirementsResults.extend({
+  demographicEvolution: ZCalculationResult,
+  epcisTotals: z.array(z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number() })),
+  newConstructions: ZNewConstructionsChartDataResult,
   renewalNeeds: ZCalculationResult,
   secondaryResidenceAccomodationEvolution: ZCalculationResult,
   sitadel: ZChartDataResult,
-  socialParc: ZCalculationResult,
   total: z.number(),
   totalFlux: z.number(),
   totalStock: z.number(),

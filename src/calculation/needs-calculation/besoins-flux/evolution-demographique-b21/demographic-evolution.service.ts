@@ -92,9 +92,8 @@ export class DemographicEvolutionService extends BaseCalculator {
   }
 
   async calculateByEpci(epciCode: string): Promise<number> {
-    const { simulation } = this.context
+    const { simulation, baseYear } = this.context
     const { scenario } = simulation
-    const baseYear = 2021
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
@@ -124,18 +123,18 @@ export class DemographicEvolutionService extends BaseCalculator {
     return results
   }
 
-  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear: number | undefined = 2021): Promise<TDemographicEvolution> {
-    const { simulation } = this.context
+  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear?: number): Promise<TDemographicEvolution> {
+    const { simulation, baseYear: baseYearContext } = this.context
     const { scenario } = simulation
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
-
+    const omphaleBaseYear = baseYear ?? baseYearContext
     const futureProjections = await this.getProjectionsByOmphale({
       epciCode,
       omphale,
     })
 
-    const sortedProjections = futureProjections.sort((a, b) => a.year - b.year).filter(({ year }) => year >= baseYear)
+    const sortedProjections = futureProjections.sort((a, b) => a.year - b.year).filter(({ year }) => year >= omphaleBaseYear)
 
     const { max, min, periodMax, periodMin, yearlyData } = sortedProjections.reduce(
       (acc, projection, index) => {
@@ -148,7 +147,7 @@ export class DemographicEvolutionService extends BaseCalculator {
           min: Math.min(acc.min, value),
           periodMax: Math.max(acc.periodMax, projection.year),
           periodMin: Math.min(acc.periodMin, projection.year),
-          yearlyData: [...acc.yearlyData, { value: value > 0 ? value : 0, year: projection.year }],
+          yearlyData: [...acc.yearlyData, { value, year: projection.year }],
         }
       },
       {
@@ -176,9 +175,8 @@ export class DemographicEvolutionService extends BaseCalculator {
   }
 
   async calculateOmphaleProjectionsByYearFromBaseAndEpci(epciCode: string): Promise<TDemographicEvolution> {
-    const { simulation } = this.context
+    const { simulation, baseYear } = this.context
     const { scenario } = simulation
-    const baseYear = 2021
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({

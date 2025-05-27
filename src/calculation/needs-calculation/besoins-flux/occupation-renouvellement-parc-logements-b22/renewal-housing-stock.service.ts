@@ -69,11 +69,38 @@ export class RenewalHousingStockService extends BaseCalculator {
     const currentVacancyRate = data.txLvParctot
     const newVacancyRate = await this.getVacantAccommodationRate(epciCode)
     const totalActualParc = data.parctot
+
     const demographicEvolution = await this.demographicEvolutionService.calculateByEpci(epciCode)
     const potentialNeeds = await this.getPotentialNeeds(demographicEvolution, epciCode)
     const renewalNeeds = await this.calculateByEpci(epciCode)
 
     return Math.round((totalActualParc - renewalNeeds + potentialNeeds) * newVacancyRate - totalActualParc * currentVacancyRate)
+  }
+
+  async getVacantAccomodationEvolutionByEpciAndYear(epciCode: string, peakYear: number): Promise<Record<number, number>> {
+    const { simulation, baseYear, periodProjection } = this.context
+    const { scenario } = simulation
+    const { b1_horizon_resorption } = scenario
+    const data = await this.getFilocomFlux(epciCode)
+
+    const defaultVacancyRate = data.txLvParctot
+    const targetVacancyRate = await this.getVacantAccommodationRate(epciCode)
+
+    const result: Record<number, number> = {}
+
+    const minYear = Math.min(peakYear, b1_horizon_resorption)
+
+    for (let year = baseYear; year <= periodProjection; year++) {
+      if (year <= peakYear) {
+        const previousYearRate = year === baseYear ? defaultVacancyRate : result[year - 1]
+        const rateChange = (targetVacancyRate - defaultVacancyRate) / (minYear - baseYear)
+        result[year] = previousYearRate + rateChange
+      } else {
+        result[year] = result[peakYear]
+      }
+    }
+
+    return result
   }
 
   async getSecondaryResidenceAccomodationEvolution(): Promise<TCalculationResult> {
@@ -108,6 +135,32 @@ export class RenewalHousingStockService extends BaseCalculator {
     return Math.round(evolution)
   }
 
+  async getSecondaryResidenceAccomodationEvolutionByEpciAndYear(epciCode: string, peakYear: number): Promise<Record<number, number>> {
+    const { simulation, baseYear, periodProjection } = this.context
+    const { scenario } = simulation
+    const { b1_horizon_resorption } = scenario
+    const data = await this.getFilocomFlux(epciCode)
+
+    const defaultSecondaryResidenceRate = data.txRsParctot
+    const targetSecondaryResidenceRate = this.getSecondaryResidenceRate(data.txRsParctot, epciCode)
+
+    const result: Record<number, number> = {}
+
+    const minYear = Math.min(peakYear, b1_horizon_resorption)
+
+    for (let year = baseYear; year <= periodProjection; year++) {
+      if (year <= peakYear) {
+        const previousYearRate = year === baseYear ? defaultSecondaryResidenceRate : result[year - 1]
+        const rateChange = (targetSecondaryResidenceRate - defaultSecondaryResidenceRate) / (minYear - baseYear)
+        result[year] = previousYearRate + rateChange
+      } else {
+        result[year] = result[peakYear]
+      }
+    }
+
+    return result
+  }
+
   async getPotentialNeeds(demographicEvolution: number, epciCode: string): Promise<number> {
     const data = await this.getFilocomFlux(epciCode)
     const totalActualParc = data.parctot
@@ -121,7 +174,8 @@ export class RenewalHousingStockService extends BaseCalculator {
   }
 
   private async calculateTauxRestructuration(data: FilocomFlux): Promise<number> {
-    const { periodProjection, simulation } = this.context
+    const { simulation, baseYear } = this.context
+    const periodProjection = simulation.scenario.projection - baseYear
     const { scenario } = simulation
     const annualRate = (1.0 + data.txRestParctot) ** (1.0 / 6.0) - 1.0
 
@@ -131,7 +185,8 @@ export class RenewalHousingStockService extends BaseCalculator {
   }
 
   private async calculateTauxDisparition(data: FilocomFlux): Promise<number> {
-    const { periodProjection, simulation } = this.context
+    const { simulation, baseYear } = this.context
+    const periodProjection = simulation.scenario.projection - baseYear
     const { scenario } = simulation
     const annualRate = (1.0 + data.txDispParctot) ** (1.0 / 6.0) - 1.0
 
