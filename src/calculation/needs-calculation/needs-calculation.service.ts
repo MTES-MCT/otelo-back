@@ -45,7 +45,6 @@ export class NeedsCalculationService {
     let total = 0
     let totalStock = 0
     let totalFlux = 0
-    console.log(newConstructions)
 
     const epcisTotals = this.context.simulation.epcis.map((epci) => {
       const epciTotalFlux =
