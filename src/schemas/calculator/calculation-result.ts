@@ -21,3 +21,18 @@ export const ZChartDataResult = z.object({
   epcis: z.array(ZChartData),
 })
 export type TChartDataResult = z.infer<typeof ZChartDataResult>
+
+export const ZNewConstructionsChartData = z.object({
+  code: z.string(),
+  data: z.object({
+    housingNeeds: z.record(z.number()),
+    surplusHousing: z.record(z.number()),
+  }),
+  metadata: z.object({ max: z.number(), min: z.number() }),
+})
+export type TNewConstructionsChartData = z.infer<typeof ZNewConstructionsChartData>
+
+export const ZNewConstructionsChartDataResult = z.object({
+  epcis: z.array(ZNewConstructionsChartData),
+})
+export type TNewConstructionsChartDataResult = z.infer<typeof ZNewConstructionsChartDataResult>

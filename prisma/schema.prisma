@@ -108,7 +108,7 @@ model Scenario {
   id                     String             @id @default(uuid())
   isConfidential         Boolean            @default(true)
   projection             Int
-  b1_horizon_resorption  Int                @default(20)
+  b1_horizon_resorption  Int                @default(2050)
   b11_sa                 Boolean            @default(true)
   b11_fortune            Boolean            @default(true)
   b11_hotel              Boolean            @default(true)
