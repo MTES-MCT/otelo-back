@@ -117,7 +117,7 @@ export class NewConstructionsService extends BaseCalculator {
 
     // Calculate the year just before we pass from positive to negative
     const peakYearIndex = additionalHousingUnitsForDeficitAndNewHouseholds.findIndex(({ value }) => value < 0)
-    const peakYear = additionalHousingUnitsForDeficitAndNewHouseholds[peakYearIndex - 1].year
+    const peakYear = additionalHousingUnitsForDeficitAndNewHouseholds[peakYearIndex - 1]?.year ?? 2050
 
     const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(epciCode, peakYear)
     const secondaryResidenceAccomodationEvolution = await this.renewalHousingStock.getSecondaryResidenceAccomodationEvolutionByEpciAndYear(
