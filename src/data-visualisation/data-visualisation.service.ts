@@ -56,7 +56,12 @@ export class DataVisualisationService {
   async getDataByType(query: TDataVisualisationQuery) {
     const { epci, type, populationType, source } = query
     const bassinEpcis = await this.epcisService.getBassinEpcisByEpciCode(epci)
-    const epcis = bassinEpcis.map((epci) => ({ code: epci.code, name: epci.name, region: epci.region }))
+    const epcis = bassinEpcis.map((epci) => ({
+      code: epci.code,
+      name: epci.name,
+      region: epci.region,
+      bassinName: epci.bassinName,
+    }))
 
     switch (type) {
       case 'projection-menages-evolution':
