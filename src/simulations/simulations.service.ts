@@ -24,7 +24,7 @@ export class SimulationsService {
       select: {
         createdAt: true,
         name: true,
-        epcis: { select: { code: true, name: true, region: true } },
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
         id: true,
         updatedAt: true,
       },
@@ -42,7 +42,10 @@ export class SimulationsService {
 
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
-      include: { epcis: { select: { code: true, name: true } }, scenario: { include: { epciScenarios: true } } },
+      include: {
+        epcis: { select: { code: true, name: true, bassinName: true } },
+        scenario: { include: { epciScenarios: true } },
+      },
       where: { id },
     })
 
