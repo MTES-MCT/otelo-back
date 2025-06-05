@@ -40,6 +40,68 @@ export class SimulationsService {
     }))
   }
 
+  async findByEpciCode(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
+    const simulations = await this.prismaService.simulation.findMany({
+      select: {
+        createdAt: true,
+        name: true,
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        id: true,
+        updatedAt: true,
+      },
+      where: {
+        epcis: {
+          every: {
+            code: epciCode,
+          },
+        },
+        userId,
+      },
+    })
+
+    return simulations.map((simulation) => ({
+      name: simulation.name,
+      createdAt: simulation.createdAt,
+      epcis: simulation.epcis,
+      id: simulation.id,
+      updatedAt: simulation.updatedAt,
+    }))
+  }
+
+  async findByBassinName(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
+    const epci = await this.prismaService.epci.findUnique({ where: { code: epciCode } })
+    if (!epci?.bassinName) {
+      return []
+    }
+    const simulations = await this.prismaService.simulation.findMany({
+      select: {
+        createdAt: true,
+        name: true,
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        id: true,
+        updatedAt: true,
+      },
+      where: {
+        userId,
+        epcis: {
+          every: {
+            bassinName: {
+              equals: epci.bassinName,
+            },
+          },
+        },
+      },
+    })
+
+    return simulations.map((simulation) => ({
+      name: simulation.name,
+      createdAt: simulation.createdAt,
+      epcis: simulation.epcis,
+      id: simulation.id,
+      updatedAt: simulation.updatedAt,
+    }))
+  }
+
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: {

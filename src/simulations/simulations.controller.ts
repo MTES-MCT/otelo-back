@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Res } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query, Res } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import { Response } from 'express'
 import { User } from '~/common/decorators/authenticated-user'
@@ -19,6 +19,32 @@ export class SimulationsController {
   @Get()
   async list(@User() { id: userId }: TUser) {
     return this.simulationsService.list(userId)
+  }
+
+  @AccessControl({
+    roles: [Role.USER, Role.ADMIN],
+  })
+  @HttpCode(HttpStatus.OK)
+  @Get('/find-by')
+  async findBy(
+    @User() { id: userId }: TUser,
+    @Query() {
+      epciCode,
+      isBassin = false,
+    }: {
+      epciCode?: string
+      isBassin?: boolean
+    },
+  ) {
+    if (epciCode && isBassin) {
+      return this.simulationsService.findByBassinName(userId, epciCode)
+    }
+
+    if (epciCode) {
+      return this.simulationsService.findByEpciCode(userId, epciCode)
+    }
+
+    return []
   }
 
   @AccessControl({
