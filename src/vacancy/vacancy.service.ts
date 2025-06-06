@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { VacancyAccommodation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
-import { EpcisService } from '~/epcis/epcis.service'
 import { TVacancyAccommodationDataTable, TVacancyAccommodationEvolution } from '~/schemas/data-visualisation/data-visualisation'
 import { TEpci } from '~/schemas/epcis/epci'
 
@@ -52,10 +51,7 @@ const createTableData = (results: TVacancyAccommodationEvolution[]): TVacancyAcc
 
 @Injectable()
 export class VacancyService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly epcisService: EpcisService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getNewestVacancy(epcisCodes: string[]): Promise<VacancyAccommodation[]> {
     return this.prismaService.vacancyAccommodation.findMany({
