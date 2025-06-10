@@ -34,7 +34,7 @@ const createTableData = (results: TRPDataResults[], type: 'menage' | 'population
       if (startValue && endValue) {
         const evolutionValue = (endValue - startValue) / (endYear - startYear)
         const evolutionPercentPoint = ((endValuePercent - startValuePercent) / (endYear - startYear)).toFixed(2)
-        const evolutionPercent = (((endValuePercent / startValuePercent) ** (1 / (endYear - startYear)) - 1) * 100).toFixed(2)
+        const evolutionPercent = (((endValue / startValue) ** (1 / (endYear - startYear)) - 1) * 100).toFixed(2)
         acc[epci.code].annualEvolution![`${startYear}-${endYear}`] = {
           percentPoint: `${evolutionPercentPoint}%`,
           percent: `${evolutionPercent}%`,
