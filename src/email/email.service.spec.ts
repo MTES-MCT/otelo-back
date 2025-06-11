@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios'
-import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
+import { Test, TestingModule } from '@nestjs/testing'
 import { of } from 'rxjs'
 import { TEmailDto } from '~/schemas/email/email'
 import { EmailService } from './email.service'
