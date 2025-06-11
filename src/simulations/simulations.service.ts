@@ -111,6 +111,18 @@ export class SimulationsService {
     }
   }
 
+  async getMany(ids: string[]): Promise<TSimulationWithEpciAndScenario[]> {
+    const simulations = await this.prismaService.simulation.findMany({
+      include: {
+        epcis: { select: { code: true, name: true, bassinName: true } },
+        scenario: { include: { epciScenarios: true } },
+      },
+      where: { id: { in: ids } },
+    })
+
+    return simulations as TSimulationWithEpciAndScenario[]
+  }
+
   async getScenario(id: string) {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: { scenario: { select: { id: true } } },

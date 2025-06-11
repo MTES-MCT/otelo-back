@@ -41,3 +41,11 @@ export const ZSimulationWithResults = ZSimulationWithEpciAndScenario.extend({
 })
 
 export type TSimulationWithResults = z.infer<typeof ZSimulationWithResults>
+
+export const ZRequestPowerpoint = z.object({
+  nextStep: z.string(),
+  resultDate: z.coerce.date(),
+  selectedSimulations: z.array(z.string()),
+})
+
+export type TRequestPowerpoint = z.infer<typeof ZRequestPowerpoint>

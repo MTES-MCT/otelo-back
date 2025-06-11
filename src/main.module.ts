@@ -6,6 +6,7 @@ import { AuthenticationGuard } from '~/common/guards/authentication.guard'
 import { AuthorizationGuard } from '~/common/guards/authorization.guard'
 import envRessources from '~/config/environment'
 import { ResultsModule } from '~/results/results.module'
+import { EmailModule } from './email/email.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
 import { AuthModule } from './auth/auth.module'
 import { BadQualityModule } from './bad-quality/bad-quality.module'
@@ -53,6 +54,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     NoAccommodationModule,
     FinancialInadequationModule,
     PhysicalInadequationModule,
+    EmailModule,
   ],
   providers: [
     AuthenticationGuard,
