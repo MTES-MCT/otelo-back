@@ -43,11 +43,12 @@ export class SimulationsService {
   async findByEpciCode(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
     const simulations = await this.prismaService.simulation.findMany({
       select: {
-        createdAt: true,
-        name: true,
-        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
         id: true,
+        name: true,
+        createdAt: true,
         updatedAt: true,
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        scenario: { select: { b2_scenario: true, projection: true } },
       },
       where: {
         epcis: {
@@ -59,13 +60,7 @@ export class SimulationsService {
       },
     })
 
-    return simulations.map((simulation) => ({
-      name: simulation.name,
-      createdAt: simulation.createdAt,
-      epcis: simulation.epcis,
-      id: simulation.id,
-      updatedAt: simulation.updatedAt,
-    }))
+    return simulations
   }
 
   async findByBassinName(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
@@ -75,11 +70,12 @@ export class SimulationsService {
     }
     const simulations = await this.prismaService.simulation.findMany({
       select: {
-        createdAt: true,
-        name: true,
-        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
         id: true,
+        name: true,
+        createdAt: true,
         updatedAt: true,
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        scenario: { select: { b2_scenario: true, projection: true } },
       },
       where: {
         userId,
@@ -93,13 +89,7 @@ export class SimulationsService {
       },
     })
 
-    return simulations.map((simulation) => ({
-      name: simulation.name,
-      createdAt: simulation.createdAt,
-      epcis: simulation.epcis,
-      id: simulation.id,
-      updatedAt: simulation.updatedAt,
-    }))
+    return simulations
   }
 
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {

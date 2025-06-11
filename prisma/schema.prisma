@@ -134,7 +134,7 @@ model Scenario {
   source_b15             SourceB15          @default(Filo)
   b15_taux_reallocation  Int                @default(80)
   b17_motif              MotifB17           @default(Tout)
-  b2_scenario            String?
+  b2_scenario            String
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
@@ -566,7 +566,7 @@ model FilocomFlux {
 }
 
 model VacancyAccommodation {
-  year  Int
+  year Int
 
   nbTotal         Int   @map("nb_total")
   nbLogVac2Less   Int   @map("nb_log_vac_2less")
