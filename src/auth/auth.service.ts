@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import { Request } from 'express'
 import { ScenariosService } from '~/scenarios/scenarios.service'
@@ -21,11 +21,18 @@ export class AuthService {
   async validateSignIn(signInData: TSignupCallback) {
     const { email } = signInData
 
-    const user = await this.usersService.findByEmail(email)
-    if (!user) {
-      throw new UnauthorizedException('User not found')
-    }
+    let user = await this.usersService.findByEmail(email)
 
+    if (!user) {
+      user = await this.usersService.create({
+        email,
+        firstname: signInData.firstname,
+        provider: 'proconnect',
+        sub: signInData.sub,
+        lastname: signInData.lastname,
+        emailVerified: new Date(),
+      })
+    }
     const session = await this.sessionsService.upsert(user)
     await this.usersService.update(user.id, {
       lastLoginAt: new Date(),
