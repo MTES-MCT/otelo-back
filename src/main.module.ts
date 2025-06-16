@@ -12,6 +12,7 @@ import { BadQualityModule } from './bad-quality/bad-quality.module'
 import { CalculationModule } from './calculation/calculation.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
+import { EmailModule } from './email/email.module'
 import { EpcisModule } from './epcis/epcis.module'
 import { FilocomModule } from './filocom/filocom.module'
 import { FinancialInadequationModule } from './financial-inadequation/financial-inadequation.module'
@@ -53,6 +54,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     NoAccommodationModule,
     FinancialInadequationModule,
     PhysicalInadequationModule,
+    EmailModule,
   ],
   providers: [
     AuthenticationGuard,

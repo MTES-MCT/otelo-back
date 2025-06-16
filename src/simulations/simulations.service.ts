@@ -40,6 +40,58 @@ export class SimulationsService {
     }))
   }
 
+  async findByEpciCode(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
+    const simulations = await this.prismaService.simulation.findMany({
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        scenario: { select: { b2_scenario: true, projection: true } },
+      },
+      where: {
+        epcis: {
+          every: {
+            code: epciCode,
+          },
+        },
+        userId,
+      },
+    })
+
+    return simulations
+  }
+
+  async findByBassinName(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
+    const epci = await this.prismaService.epci.findUnique({ where: { code: epciCode } })
+    if (!epci?.bassinName) {
+      return []
+    }
+    const simulations = await this.prismaService.simulation.findMany({
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        scenario: { select: { b2_scenario: true, projection: true } },
+      },
+      where: {
+        userId,
+        epcis: {
+          every: {
+            bassinName: {
+              equals: epci.bassinName,
+            },
+          },
+        },
+      },
+    })
+
+    return simulations
+  }
+
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: {
@@ -57,6 +109,18 @@ export class SimulationsService {
       scenario: simulation.scenario as TSimulationWithEpciAndScenario['scenario'],
       updatedAt: simulation.updatedAt,
     }
+  }
+
+  async getMany(ids: string[]): Promise<TSimulationWithEpciAndScenario[]> {
+    const simulations = await this.prismaService.simulation.findMany({
+      include: {
+        epcis: { select: { code: true, name: true, bassinName: true } },
+        scenario: { include: { epciScenarios: true } },
+      },
+      where: { id: { in: ids } },
+    })
+
+    return simulations as TSimulationWithEpciAndScenario[]
   }
 
   async getScenario(id: string) {

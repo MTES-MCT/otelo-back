@@ -22,6 +22,10 @@ export const ZSimulationWithEpci = ZSimulation.pick({
   updatedAt: true,
 }).extend({
   epcis: z.array(ZEpci.omit({ region: true })),
+  scenario: ZScenario.pick({
+    b2_scenario: true,
+    projection: true,
+  }).optional(),
 })
 
 export type TSimulationWithEpci = z.infer<typeof ZSimulationWithEpci>
@@ -37,3 +41,11 @@ export const ZSimulationWithResults = ZSimulationWithEpciAndScenario.extend({
 })
 
 export type TSimulationWithResults = z.infer<typeof ZSimulationWithResults>
+
+export const ZRequestPowerpoint = z.object({
+  nextStep: z.string(),
+  resultDate: z.coerce.date(),
+  selectedSimulations: z.array(z.string()),
+})
+
+export type TRequestPowerpoint = z.infer<typeof ZRequestPowerpoint>
