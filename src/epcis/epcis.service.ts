@@ -60,6 +60,19 @@ export class EpcisService {
     return [...epcis.filter((e) => e.code === epciCode), ...epcis.filter((e) => e.code !== epciCode)]
   }
 
+  async getContiguousEpcis(epciCode: string): Promise<Epci[]> {
+    const contiguousEpcis = await this.prisma.ePCIContiguity.findMany({
+      where: {
+        epciCode,
+      },
+      include: {
+        contiguousEpci: true,
+      },
+    })
+
+    return contiguousEpcis.map((contiguity) => contiguity.contiguousEpci)
+  }
+
   async delete(code: string): Promise<void> {
     await this.prisma.epci.delete({
       where: { code },

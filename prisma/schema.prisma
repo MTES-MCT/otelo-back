@@ -203,6 +203,10 @@ model Epci {
   bassinName String? @map("bassin_name")
   RP         RP[]
 
+  // Contiguity relationships
+  contiguousTo   EPCIContiguity[] @relation("EPCIContiguity")
+  contiguousFrom EPCIContiguity[] @relation("ContiguousEPCI")
+
   @@map("epcis")
 }
 
@@ -608,4 +612,15 @@ model RP {
 
   @@id([epciCode, year])
   @@map("rp")
+}
+
+model EPCIContiguity {
+  epciCode          String @map("epci_code")
+  contiguousEpciCode String @map("contiguous_epci_code")
+
+  epci          Epci @relation("EPCIContiguity", fields: [epciCode], references: [code])
+  contiguousEpci Epci @relation("ContiguousEPCI", fields: [contiguousEpciCode], references: [code])
+
+  @@id([epciCode, contiguousEpciCode])
+  @@map("epci_contiguity")
 }
