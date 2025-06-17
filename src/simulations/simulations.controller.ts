@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Put, Query, Res } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Put, Res } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Prisma, Role } from '@prisma/client'
 import { Response } from 'express'
@@ -25,38 +25,12 @@ export class SimulationsController {
   }
 
   @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
+    roles: [Role.ADMIN, Role.USER],
   })
   @HttpCode(HttpStatus.OK)
-  @Get()
-  async list(@User() { id: userId }: TUser) {
-    return this.simulationsService.list(userId)
-  }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @HttpCode(HttpStatus.OK)
-  @Get('/find-by')
-  async findBy(
-    @User() { id: userId }: TUser,
-    @Query() {
-      epciCode,
-      isBassin = false,
-    }: {
-      epciCode?: string
-      isBassin?: boolean
-    },
-  ) {
-    if (epciCode && isBassin) {
-      return this.simulationsService.findByBassinName(userId, epciCode)
-    }
-
-    if (epciCode) {
-      return this.simulationsService.findByEpciCode(userId, epciCode)
-    }
-
-    return []
+  @Get('dashboard-list')
+  async getDashboardList(@User() { id: userId }: TUser) {
+    return this.simulationsService.getDashboardList(userId)
   }
 
   @AccessControl({

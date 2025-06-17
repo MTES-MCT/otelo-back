@@ -78,4 +78,12 @@ export class EpcisController {
   async getEpcisByBassin(@Param('epciCode') epciCode: string): Promise<Epci[]> {
     return this.epcisService.getBassinEpcisByEpciCode(epciCode)
   }
+
+  @Get(':code/contiguous')
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+  })
+  async getContiguousEpcis(@Param('code') code: string): Promise<Epci[]> {
+    return this.epcisService.getContiguousEpcis(code)
+  }
 }

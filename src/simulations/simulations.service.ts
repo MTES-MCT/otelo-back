@@ -25,68 +25,11 @@ export class SimulationsService {
         createdAt: true,
         name: true,
         epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        scenario: { select: { b2_scenario: true, projection: true } },
         id: true,
         updatedAt: true,
       },
       where: { userId },
-    })
-
-    return simulations.map((simulation) => ({
-      name: simulation.name,
-      createdAt: simulation.createdAt,
-      epcis: simulation.epcis,
-      id: simulation.id,
-      updatedAt: simulation.updatedAt,
-    }))
-  }
-
-  async findByEpciCode(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
-    const simulations = await this.prismaService.simulation.findMany({
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
-        scenario: { select: { b2_scenario: true, projection: true } },
-      },
-      where: {
-        epcis: {
-          every: {
-            code: epciCode,
-          },
-        },
-        userId,
-      },
-    })
-
-    return simulations
-  }
-
-  async findByBassinName(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
-    const epci = await this.prismaService.epci.findUnique({ where: { code: epciCode } })
-    if (!epci?.bassinName) {
-      return []
-    }
-    const simulations = await this.prismaService.simulation.findMany({
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
-        scenario: { select: { b2_scenario: true, projection: true } },
-      },
-      where: {
-        userId,
-        epcis: {
-          every: {
-            bassinName: {
-              equals: epci.bassinName,
-            },
-          },
-        },
-      },
     })
 
     return simulations
@@ -239,5 +182,42 @@ export class SimulationsService {
       simulation,
       csvData: csvRows.join('\n'),
     }
+  }
+
+  /**
+   * Gets the list of simulations for a user and groups them by their most common bassinName.
+   */
+  async getDashboardList(userId: string) {
+    const simulations = await this.list(userId)
+
+    // Group simulations by their most common bassinName
+    const groupedSimulations: Record<string, TSimulationWithEpci[]> = {}
+
+    simulations.forEach((simulation) => {
+      const bassinNames = simulation.epcis.map(({ bassinName }) => bassinName).filter((name): name is string => Boolean(name))
+
+      if (!bassinNames.length) return 'Autres'
+
+      // Count occurrences
+      const counts = new Map<string, number>()
+      bassinNames.forEach((name) => {
+        counts.set(name, (counts.get(name) || 0) + 1)
+      })
+
+      // Find the name with the highest count
+      let mostCommon = 'Autres'
+      let maxCount = 0
+
+      counts.forEach((count, name) => {
+        if (count > maxCount) {
+          maxCount = count
+          mostCommon = name
+        }
+      })
+      groupedSimulations[mostCommon] = groupedSimulations[mostCommon] || []
+      groupedSimulations[mostCommon].push(simulation)
+    })
+
+    return groupedSimulations
   }
 }
