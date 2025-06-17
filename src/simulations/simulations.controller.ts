@@ -25,35 +25,6 @@ export class SimulationsController {
   }
 
   @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @HttpCode(HttpStatus.OK)
-  @Get()
-  async list(@User() { id: userId }: TUser) {
-    return this.simulationsService.list(userId)
-  }
-
-  @Get('/find-by')
-  async findBy(
-    @User() { id: userId }: TUser,
-    @Query() {
-      epciCode,
-    }: {
-      epciCode?: string
-    },
-  ) {
-    if (epciCode) {
-      return this.simulationsService.findByBassinName(userId, epciCode)
-    }
-
-    if (epciCode) {
-      return this.simulationsService.findByEpciCode(userId, epciCode)
-    }
-
-    return []
-  }
-
-  @AccessControl({
     roles: [Role.ADMIN, Role.USER],
   })
   @HttpCode(HttpStatus.OK)

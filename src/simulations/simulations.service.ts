@@ -35,58 +35,6 @@ export class SimulationsService {
     return simulations
   }
 
-  async findByEpciCode(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
-    const simulations = await this.prismaService.simulation.findMany({
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
-        scenario: { select: { b2_scenario: true, projection: true } },
-      },
-      where: {
-        epcis: {
-          every: {
-            code: epciCode,
-          },
-        },
-        userId,
-      },
-    })
-
-    return simulations
-  }
-
-  async findByBassinName(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
-    const epci = await this.prismaService.epci.findUnique({ where: { code: epciCode } })
-    if (!epci?.bassinName) {
-      return []
-    }
-    const simulations = await this.prismaService.simulation.findMany({
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        epcis: { select: { code: true, name: true, region: true, bassinName: true } },
-        scenario: { select: { b2_scenario: true, projection: true } },
-      },
-      where: {
-        userId,
-        epcis: {
-          every: {
-            bassinName: {
-              equals: epci.bassinName,
-            },
-          },
-        },
-      },
-    })
-
-    return simulations
-  }
-
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: {
@@ -238,22 +186,10 @@ export class SimulationsService {
 
   /**
    * Gets the list of simulations for a user and groups them by their most common bassinName.
-   *
-   * This implementation uses vanilla JavaScript with a more concise approach:
-   * 1. For each simulation, find the most common bassinName
-   * 2. Group simulations by that bassinName
-   *
-   * Alternative approaches:
-   * - Using lodash: `_.groupBy(simulations, simulation => getMostCommonBassinName(simulation))`
-   * - Using ramda: `R.groupBy(simulation => getMostCommonBassinName(simulation), simulations)`
    */
   async getDashboardList(userId: string) {
     const simulations = await this.list(userId)
 
-    return this.groupSimulationsByEpciBassinName(simulations)
-  }
-
-  groupSimulationsByEpciBassinName(simulations: TSimulationWithEpci[]) {
     // Group simulations by their most common bassinName
     const groupedSimulations: Record<string, TSimulationWithEpci[]> = {}
 
