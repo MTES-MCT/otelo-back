@@ -25,19 +25,14 @@ export class SimulationsService {
         createdAt: true,
         name: true,
         epcis: { select: { code: true, name: true, region: true, bassinName: true } },
+        scenario: { select: { b2_scenario: true, projection: true } },
         id: true,
         updatedAt: true,
       },
       where: { userId },
     })
 
-    return simulations.map((simulation) => ({
-      name: simulation.name,
-      createdAt: simulation.createdAt,
-      epcis: simulation.epcis,
-      id: simulation.id,
-      updatedAt: simulation.updatedAt,
-    }))
+    return simulations
   }
 
   async findByEpciCode(userId: string, epciCode: string): Promise<TSimulationWithEpci[]> {
@@ -239,5 +234,54 @@ export class SimulationsService {
       simulation,
       csvData: csvRows.join('\n'),
     }
+  }
+
+  /**
+   * Gets the list of simulations for a user and groups them by their most common bassinName.
+   *
+   * This implementation uses vanilla JavaScript with a more concise approach:
+   * 1. For each simulation, find the most common bassinName
+   * 2. Group simulations by that bassinName
+   *
+   * Alternative approaches:
+   * - Using lodash: `_.groupBy(simulations, simulation => getMostCommonBassinName(simulation))`
+   * - Using ramda: `R.groupBy(simulation => getMostCommonBassinName(simulation), simulations)`
+   */
+  async getDashboardList(userId: string) {
+    const simulations = await this.list(userId)
+
+    return this.groupSimulationsByEpciBassinName(simulations)
+  }
+
+  groupSimulationsByEpciBassinName(simulations: TSimulationWithEpci[]) {
+    // Group simulations by their most common bassinName
+    const groupedSimulations: Record<string, TSimulationWithEpci[]> = {}
+
+    simulations.forEach((simulation) => {
+      const bassinNames = simulation.epcis.map(({ bassinName }) => bassinName).filter((name): name is string => Boolean(name))
+
+      if (!bassinNames.length) return 'Autres'
+
+      // Count occurrences
+      const counts = new Map<string, number>()
+      bassinNames.forEach((name) => {
+        counts.set(name, (counts.get(name) || 0) + 1)
+      })
+
+      // Find the name with the highest count
+      let mostCommon = 'Autres'
+      let maxCount = 0
+
+      counts.forEach((count, name) => {
+        if (count > maxCount) {
+          maxCount = count
+          mostCommon = name
+        }
+      })
+      groupedSimulations[mostCommon] = groupedSimulations[mostCommon] || []
+      groupedSimulations[mostCommon].push(simulation)
+    })
+
+    return groupedSimulations
   }
 }
