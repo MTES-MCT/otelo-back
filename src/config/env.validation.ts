@@ -10,6 +10,9 @@ const ZEnvSchema = z.object({
   EMAIL_SENDER_NAME: z.string(),
   EMAIL_SENDER_EMAIL: z.string(),
   EMAIL_RECEIVER_EMAIL: z.string(),
+  DEMARCHES_SIMPLIFIEES_URL: z.string(),
+  DEMARCHES_SIMPLIFIEES_TOKEN: z.string(),
+  DEMARCHES_SIMPLIFIEES_DEMARCHE_ID: z.string(),
 })
 
 export const validateEnvConfig = (config: Record<string, unknown>): Record<string, unknown> => ZEnvSchema.parse(config)

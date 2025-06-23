@@ -7,10 +7,11 @@ import { TUser, TUserList } from '~/schemas/users/user'
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async hasUserAccessTo(id: string): Promise<boolean> {
-    return !!(await this.prisma.user.findFirst({
-      where: { id },
-    }))
+  async hasUserAccessTo(email: string): Promise<boolean> {
+    const user = await this.prisma.user.findFirst({
+      where: { email },
+    })
+    return !!user && (user.role === 'ADMIN' || user.hasAccess)
   }
 
   async list(): Promise<{ userCount: number; users: TUser[] }> {
