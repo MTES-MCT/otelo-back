@@ -89,10 +89,11 @@ export class RenewalHousingStockService extends BaseCalculator {
     const result: Record<number, number> = {}
 
     const minYear = Math.min(peakYear, b1_horizon_resorption)
+    result[baseYear] = defaultVacancyRate
 
-    for (let year = baseYear; year <= periodProjection; year++) {
+    for (let year = baseYear + 1; year <= periodProjection; year++) {
       if (year <= peakYear) {
-        const previousYearRate = year === baseYear ? defaultVacancyRate : result[year - 1]
+        const previousYearRate = result[year - 1]
         const rateChange = (targetVacancyRate - defaultVacancyRate) / (minYear - baseYear)
         result[year] = previousYearRate + rateChange
       } else {
@@ -148,9 +149,10 @@ export class RenewalHousingStockService extends BaseCalculator {
 
     const minYear = Math.min(peakYear, b1_horizon_resorption)
 
-    for (let year = baseYear; year <= periodProjection; year++) {
+    result[baseYear] = defaultSecondaryResidenceRate
+    for (let year = baseYear + 1; year <= periodProjection; year++) {
       if (year <= peakYear) {
-        const previousYearRate = year === baseYear ? defaultSecondaryResidenceRate : result[year - 1]
+        const previousYearRate = result[year - 1]
         const rateChange = (targetSecondaryResidenceRate - defaultSecondaryResidenceRate) / (minYear - baseYear)
         result[year] = previousYearRate + rateChange
       } else {
