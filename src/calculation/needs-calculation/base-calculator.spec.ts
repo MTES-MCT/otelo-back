@@ -17,6 +17,7 @@ describe('BaseCalculator', () => {
   let calculator: TestCalculator
   const mockContext: CalculationContext = {
     coefficient: 1.5,
+    periodProjection: 6,
     simulation: {
       createdAt: new Date('2024-01-01'),
       epci: {
@@ -49,11 +50,12 @@ describe('BaseCalculator', () => {
         b15_taux_reallocation: 80,
         b17_motif: 'Tout',
         b1_horizon_resorption: 20,
-        b2_scenario_omphale: 'Central_C',
+        b2_scenario: 'Central_C',
         b2_tx_disparition: 0,
         b2_tx_restructuration: 0,
         b2_tx_rs: 0.02,
         b2_tx_vacance: 0,
+        b2_tx_vacance_longue: 0,
         createdAt: new Date('2024-01-01'),
         id: 'scenario-1',
         isConfidential: false,

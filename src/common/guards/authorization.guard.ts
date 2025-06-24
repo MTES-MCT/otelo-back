@@ -1,25 +1,24 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Role } from '@prisma/client'
+import { Request } from 'express'
 import { AuthService } from '~/auth/auth.service'
 import { ACCESS_CONTROL_KEY, TModelAccess } from '~/common/decorators/control-access.decorator'
 import { IS_PUBLIC_KEY } from '~/common/decorators/public.decorator'
+import { TUser } from '~/schemas/users/user'
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  private readonly logger = new Logger(AuthorizationGuard.name)
-
   constructor(
     private readonly reflector: Reflector,
     private readonly authService: AuthService,
   ) {}
 
   canActivate(context: ExecutionContext): Promise<boolean> {
-    this.logger.log('AuthorizationGuard')
     if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()])) {
       return Promise.resolve(true)
     }
-    const request = context.switchToHttp().getRequest()
+    const request = context.switchToHttp().getRequest<Request & { user: TUser }>()
     const user = request.user
 
     if (request.user.role === Role.ADMIN) {

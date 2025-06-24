@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
 import { AuthService } from '~/auth/auth.service'
 import { User } from '~/common/decorators/authenticated-user'
@@ -25,8 +25,6 @@ export class AuthController {
   @Public()
   @UseGuards(RefreshTokenGuard)
   async refresh(@Req() request: Request) {
-    Logger.log('Refresh token processing')
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, token] = request.headers.authorization?.split(' ') ?? []
     const refreshedUserSession = await this.authService.refreshToken(token)
     request['user'] = refreshedUserSession.user as TUser

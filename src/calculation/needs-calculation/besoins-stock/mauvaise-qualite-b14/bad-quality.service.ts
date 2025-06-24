@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 
 @Injectable()
 export class BadQualityService extends BaseCalculator {
@@ -29,32 +30,30 @@ export class BadQualityService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
-    const { coefficient, simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
-
+  async calculateByEpci(epciCode: string): Promise<number> {
+    const { simulation } = this.context
+    const { scenario } = simulation
+    const { b14_confort, b14_occupation, b14_qualite, b14_taux_reallocation, source_b14 } = scenario
     const sourceCalculators = {
       FF: async () => {
         const getColumnPrefix = () => {
           const qualityMap = {
-            FF_Ind: 'pp_ss_',
-            FF_ss_ent: 'pp_ss_ent_',
-            FF_ss_ent_mvq: 'pp_ss_quali_ent_',
+            FF_Ind: 'ppSs',
+            FF_ss_ent: 'ppSsEnt',
+            FF_ss_ent_mvq: 'ppSsQualiEnt',
           }
 
           const comfortMap = {
-            FF_abs_chauf: 'chauff',
-            FF_abs_sani: 'sdb',
-            FF_abs_sani_chauf: 'sdb_chauff',
-            FF_abs_wc: 'wc',
-            FF_abs_wc_chauf: 'wc_chauff',
-            FF_abs_wc_sani: 'wc_sdb',
+            FF_abs_chauf: 'Chauff',
+            FF_abs_sani: 'Sdb',
+            FF_abs_sani_chauf: 'SdbChauff',
+            FF_abs_wc: 'Wc',
+            FF_abs_wc_chauf: 'WcChauff',
+            FF_abs_wc_sani: 'WcSdb',
             FF_abs_wc_sani_chauf: '3elts',
           }
-
-          const prefix = qualityMap[scenario.b14_qualite]
-          const comfort = comfortMap[scenario.b14_confort]
+          const prefix = qualityMap[b14_qualite]
+          const comfort = comfortMap[b14_confort]
           return `${prefix}${comfort}`
         }
 
@@ -63,11 +62,11 @@ export class BadQualityService extends BaseCalculator {
 
         let sum = 0
         if (scenario.b14_occupation.includes('loc')) {
-          const locColumn = `${columnPrefix}_loc` as keyof typeof foncierData
+          const locColumn = `${columnPrefix}Loc`
           sum += (foncierData[locColumn] as number) || 0
         }
-        if (scenario.b14_occupation.includes('prop')) {
-          const pptColumn = `${columnPrefix}_ppt` as keyof typeof foncierData
+        if (b14_occupation.includes('prop')) {
+          const pptColumn = `${columnPrefix}Ppt`
           sum += (foncierData[pptColumn] as number) || 0
         }
         return sum
@@ -75,39 +74,57 @@ export class BadQualityService extends BaseCalculator {
       Filo: async () => {
         let sum = 0
         let type: string = ''
-        if (scenario.b14_occupation.includes('loc')) {
-          type = 'pppi_lp'
+        if (b14_occupation.includes('loc')) {
+          type = 'pppiLp'
         }
-        if (scenario.b14_occupation.includes('prop')) {
-          type = 'pppi_po'
+        if (b14_occupation.includes('prop')) {
+          type = 'pppiPo'
         }
         sum += (await this.getFilocomBadQuality(epciCode))[type]
         return sum
       },
       RP: async () => {
+        const badQuality = await this.getRPBadQuality(epciCode)
         const comfortMap = {
           RP_abs_sani: {
-            loc: (await this.getRPBadQuality('epciCode')).saniLocNonhlm,
-            prop: (await this.getRPBadQuality('epciCode')).saniPpT,
+            loc: badQuality.saniLocNonhlm,
+            prop: badQuality.saniPpT,
           },
           RP_abs_sani_chfl: {
-            loc: (await this.getRPBadQuality('epciCode')).saniChflLocNonhlm,
-            prop: (await this.getRPBadQuality('epciCode')).saniChflPpT,
+            loc: badQuality.saniChflLocNonhlm,
+            prop: badQuality.saniChflPpT,
           },
         }
 
         let sum = 0
-        if (scenario.b14_occupation.includes('loc')) {
-          sum += comfortMap[scenario.b14_confort]?.loc || 0
+        if (b14_occupation.includes('loc')) {
+          sum += comfortMap[b14_confort]?.loc || 0
         }
-        if (scenario.b14_occupation.includes('prop')) {
-          sum += comfortMap[scenario.b14_confort]?.prop || 0
+        if (b14_occupation.includes('prop')) {
+          sum += comfortMap[b14_confort]?.prop || 0
         }
         return sum
       },
     }
+    const result = (await sourceCalculators[source_b14]?.()) || 0
+    return this.applyCoefficient(result * (1 - b14_taux_reallocation / 100.0))
+  }
 
-    const result = (await sourceCalculators[scenario.source_b14]?.()) || 0
-    return Math.round(result * (1 - scenario.b14_taux_reallocation / 100.0) * coefficient)
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation } = this.context
+    const { epcis } = simulation
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.calculateByEpci(epci.code),
+      })),
+    )
+
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
   }
 }

@@ -1,14 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { FilocomFlux } from '@prisma/client'
-import { coefficientConfig } from '~/calculation/coefficient-calculation/coefficient.config'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { DemographicEvolutionService } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 
 @Injectable()
 export class RenewalHousingStockService extends BaseCalculator {
-  private readonly DEFAULT_PROJECTION_PERIOD = 6
-
   constructor(
     @Inject('CalculationContext')
     protected readonly context: CalculationContext,
@@ -26,78 +24,199 @@ export class RenewalHousingStockService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
-    const demographicEvolution = await this.demographicEvolutionService.calculate()
-    const potentialNeeds = await this.getPotentialNeeds(demographicEvolution)
-    return Math.round(potentialNeeds - demographicEvolution)
+  async calculateByEpci(epciCode: string): Promise<number> {
+    return this.calculateRenewalNeedsByEpci(epciCode)
   }
 
-  async getPotentialNeeds(demographicEvolution: number): Promise<number> {
+  private async getVacantAccommodationRate(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci } = simulation
-
-    const flux = await this.getFilocomFlux(epci.code)
-
-    const calculateParcRpActuel = () => Math.round(totalActualParc * flux.txRpParctot)
-    const calculateTauxLv = () => Math.round(flux.txLvParctot + scenario.b2_tx_vacance / 100)
-    const calculateTauxRs = () => Math.round(flux.txRsParctot + scenario.b2_tx_rs / 100)
-    const calculateTauxRp = () => 1 - calculateTauxLv() - calculateTauxRs()
-
     const { scenario } = simulation
+    const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
 
-    const totalActualParc = flux.parctot
-    const rpActualParc = calculateParcRpActuel()
+    return epciScenario!.b2_tx_vacance
+  }
 
-    return Math.round(
-      (rpActualParc + demographicEvolution) / calculateTauxRp() -
-        (totalActualParc - (await this.calculateBesoinRenouvellement(totalActualParc))),
+  private getSecondaryResidenceRate(txRsParctot: number, epciCode): number {
+    const { simulation } = this.context
+    const { scenario } = simulation
+    const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
+    if (epciScenario) {
+      return epciScenario.b2_tx_rs
+    }
+    return txRsParctot
+  }
+
+  async getVacantAccomodationEvolution(): Promise<TCalculationResult> {
+    const { simulation } = this.context
+    const { epcis } = simulation
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.getVacantAccomodationEvolutionByEpci(epci.code),
+      })),
     )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
   }
 
-  private async getAnnualTaux(rateKey: 'txrest_parctot' | 'txdisp_parctot'): Promise<number> {
-    const { simulation } = this.context
-    const { epci } = simulation
-    const { region } = epci
+  async getVacantAccomodationEvolutionByEpci(epciCode: string): Promise<number> {
+    const data = await this.getFilocomFlux(epciCode)
 
-    const flux = await this.getFilocomFlux(epci.code)
+    const currentVacancyRate = data.txLvParctot
+    const newVacancyRate = await this.getVacantAccommodationRate(epciCode)
+    const totalActualParc = data.parctot
 
-    const coeff = !['01', '02', '03', '04'].includes(region) ? coefficientConfig.baseCoeff.default : coefficientConfig.baseCoeff[region]
-    const currentRate = rateKey === 'txrest_parctot' ? flux.txRestParctot : flux.txDispParctot
+    const demographicEvolution = await this.demographicEvolutionService.calculateByEpci(epciCode)
+    const potentialNeeds = await this.getPotentialNeeds(demographicEvolution, epciCode)
+    const renewalNeeds = await this.calculateByEpci(epciCode)
 
-    return Math.round((1.0 + currentRate) ** (1.0 / coeff) - 1.0)
+    return Math.round((totalActualParc - renewalNeeds + potentialNeeds) * newVacancyRate - totalActualParc * currentVacancyRate)
   }
 
-  private async getTauxRestructurationAnnuel(): Promise<number> {
-    return this.getAnnualTaux('txrest_parctot')
-  }
-
-  private async getTauxDisparitionAnnuel(): Promise<number> {
-    return this.getAnnualTaux('txdisp_parctot')
-  }
-
-  private async calculateTauxRestructuration(): Promise<number> {
-    const { simulation } = this.context
+  async getVacantAccomodationEvolutionByEpciAndYear(epciCode: string, peakYear: number): Promise<Record<number, number>> {
+    const { simulation, baseYear, periodProjection } = this.context
     const { scenario } = simulation
-    const periodProjection = this.DEFAULT_PROJECTION_PERIOD
-    const annualRate = (await this.getTauxRestructurationAnnuel()) + scenario.b2_tx_restructuration / 100.0
+    const { b1_horizon_resorption } = scenario
+    const data = await this.getFilocomFlux(epciCode)
 
-    return Math.round((1.0 + annualRate) ** periodProjection - 1.0)
+    const defaultVacancyRate = data.txLvParctot
+    const targetVacancyRate = await this.getVacantAccommodationRate(epciCode)
+
+    const result: Record<number, number> = {}
+
+    const minYear = Math.min(peakYear, b1_horizon_resorption)
+
+    for (let year = baseYear; year <= periodProjection; year++) {
+      if (year <= peakYear) {
+        const previousYearRate = year === baseYear ? defaultVacancyRate : result[year - 1]
+        const rateChange = (targetVacancyRate - defaultVacancyRate) / (minYear - baseYear)
+        result[year] = previousYearRate + rateChange
+      } else {
+        result[year] = result[peakYear]
+      }
+    }
+
+    return result
   }
 
-  private async calculateTauxDisparition(): Promise<number> {
+  async getSecondaryResidenceAccomodationEvolution(): Promise<TCalculationResult> {
     const { simulation } = this.context
-    const { scenario } = simulation
-    const periodProjection = this.DEFAULT_PROJECTION_PERIOD
-    const annualRate = (await this.getTauxDisparitionAnnuel()) + scenario.b2_tx_disparition / 100.0
+    const { epcis } = simulation
 
-    return Math.round((1.0 + annualRate) ** periodProjection - 1.0)
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.getSecondaryResidenceAccomodationEvolutionByEpci(epci.code),
+      })),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
   }
 
-  private async calculateBesoinRenouvellement(totalActualParc: number): Promise<number> {
-    const restructurationTaux = await this.calculateTauxRestructuration()
-    const disparitionTaux = await this.calculateTauxDisparition()
-    const renouvellement = totalActualParc * (restructurationTaux - disparitionTaux)
+  async getSecondaryResidenceAccomodationEvolutionByEpci(epciCode: string): Promise<number> {
+    const data = await this.getFilocomFlux(epciCode)
+    const currentSecondaryResidenceRate = data.txRsParctot
+    const newSecondaryResidenceRate = this.getSecondaryResidenceRate(data.txRsParctot, epciCode)
+    const totalActualParc = data.parctot
+    const demographicEvolution = await this.demographicEvolutionService.calculateByEpci(epciCode)
+    const potentialNeeds = await this.getPotentialNeeds(demographicEvolution, epciCode)
+    const renewalNeeds = await this.calculateByEpci(epciCode)
 
+    const evolution =
+      (totalActualParc - renewalNeeds + potentialNeeds) * newSecondaryResidenceRate - totalActualParc * currentSecondaryResidenceRate
+
+    return Math.round(evolution)
+  }
+
+  async getSecondaryResidenceAccomodationEvolutionByEpciAndYear(epciCode: string, peakYear: number): Promise<Record<number, number>> {
+    const { simulation, baseYear, periodProjection } = this.context
+    const { scenario } = simulation
+    const { b1_horizon_resorption } = scenario
+    const data = await this.getFilocomFlux(epciCode)
+
+    const defaultSecondaryResidenceRate = data.txRsParctot
+    const targetSecondaryResidenceRate = this.getSecondaryResidenceRate(data.txRsParctot, epciCode)
+
+    const result: Record<number, number> = {}
+
+    const minYear = Math.min(peakYear, b1_horizon_resorption)
+
+    for (let year = baseYear; year <= periodProjection; year++) {
+      if (year <= peakYear) {
+        const previousYearRate = year === baseYear ? defaultSecondaryResidenceRate : result[year - 1]
+        const rateChange = (targetSecondaryResidenceRate - defaultSecondaryResidenceRate) / (minYear - baseYear)
+        result[year] = previousYearRate + rateChange
+      } else {
+        result[year] = result[peakYear]
+      }
+    }
+
+    return result
+  }
+
+  async getPotentialNeeds(demographicEvolution: number, epciCode: string): Promise<number> {
+    const data = await this.getFilocomFlux(epciCode)
+    const totalActualParc = data.parctot
+    const actualParcRp = Math.round(totalActualParc * data.txRpParctot)
+    const txLv = await this.getVacantAccommodationRate(epciCode)
+    const txRs = this.getSecondaryResidenceRate(data.txRsParctot, epciCode)
+    const txRp = 1 - txLv - txRs
+
+    const renewalNeeds = await this.calculateRenewalNeedsByEpci(epciCode)
+    return Math.round((actualParcRp + demographicEvolution) / txRp - (totalActualParc - renewalNeeds))
+  }
+
+  private async calculateTauxRestructuration(data: FilocomFlux): Promise<number> {
+    const { simulation, baseYear } = this.context
+    const periodProjection = simulation.scenario.projection - baseYear
+    const { scenario } = simulation
+    const annualRate = (1.0 + data.txRestParctot) ** (1.0 / 6.0) - 1.0
+
+    // Todo: restructuration per epci scenario
+    const txRestAnnual = annualRate + scenario.epciScenarios[0].b2_tx_restructuration / 100.0
+    return (1.0 + txRestAnnual) ** periodProjection - 1.0
+  }
+
+  private async calculateTauxDisparition(data: FilocomFlux): Promise<number> {
+    const { simulation, baseYear } = this.context
+    const periodProjection = simulation.scenario.projection - baseYear
+    const { scenario } = simulation
+    const annualRate = (1.0 + data.txDispParctot) ** (1.0 / 6.0) - 1.0
+
+    // Todo: disparition per epci scenario
+    const txDistAnnual = annualRate + scenario.epciScenarios[0].b2_tx_disparition / 100.0
+    return (1.0 + txDistAnnual) ** periodProjection - 1.0
+  }
+
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation } = this.context
+    const { epcis } = simulation
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.calculateByEpci(epci.code),
+      })),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
+  }
+
+  async calculateRenewalNeedsByEpci(epciCode: string): Promise<number> {
+    const data = await this.getFilocomFlux(epciCode)
+
+    const restructurationTaux = await this.calculateTauxRestructuration(data)
+    const disparitionTaux = await this.calculateTauxDisparition(data)
+    const renouvellement = data.parctot * (restructurationTaux - disparitionTaux)
     return Math.round(-1 * renouvellement)
   }
 }

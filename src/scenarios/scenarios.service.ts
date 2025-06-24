@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { TCreateScenario } from '~/schemas/scenarios/create-scenario'
-import { TScenario, ZScenario } from '~/schemas/scenarios/scenario'
+import { TInitScenario, TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { PrismaService } from '../db/prisma.service'
 
 @Injectable()
@@ -13,33 +12,61 @@ export class ScenariosService {
     }))
   }
 
-  async get(userId: string, id: string): Promise<TScenario> {
-    const scenario = await this.prisma.scenario.findUniqueOrThrow({
-      where: { id, userId },
+  async get(id: string) {
+    return this.prisma.scenario.findUniqueOrThrow({
+      where: { id },
     })
-
-    return ZScenario.parse(scenario)
   }
 
   async list(userId: string) {
     return this.prisma.scenario.findMany({ where: { userId } })
   }
 
-  async create(userId: string, data: TCreateScenario) {
+  async create(userId: string, data: TInitScenario) {
+    const { epcis, ...scenario } = data
     return this.prisma.scenario.create({
       data: {
-        ...data,
+        ...scenario,
+        epciScenarios: {
+          createMany: {
+            data: Object.entries(epcis).map(([code, epciScenario]) => ({
+              epciCode: code,
+              ...epciScenario,
+            })),
+          },
+        },
         user: { connect: { id: userId } },
       },
     })
   }
 
-  async update(userId: string, id: string, data: Partial<TScenario>) {
+  async update(id: string, data: TUpdateSimulationDto) {
+    const { epciScenarios, ...scenario } = data
     return this.prisma.scenario.update({
       data: {
-        ...data,
+        ...scenario,
+        ...(epciScenarios
+          ? {
+              epciScenarios: {
+                updateMany: Object.entries(epciScenarios).map(
+                  ([epciCode, { b2_tx_disparition, b2_tx_restructuration, b2_tx_rs, b2_tx_vacance }]) => ({
+                    where: {
+                      scenarioId: id,
+                      epciCode,
+                    },
+                    data: {
+                      b2_tx_restructuration,
+                      b2_tx_disparition,
+                      b2_tx_vacance,
+                      b2_tx_rs,
+                    },
+                  }),
+                ),
+              },
+            }
+          : {}),
       },
-      where: { id, userId },
+      where: { id },
     })
   }
 

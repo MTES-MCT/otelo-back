@@ -1,3 +1,4 @@
+import { B11Etablissement, B15Surocc } from '@prisma/client'
 import { z } from 'zod'
 import { ZCommonDateFields } from '~/schemas/common-date-fields'
 
@@ -6,8 +7,16 @@ export enum ESourceB11 {
   SNE = 'SNE',
 }
 
+export const ZEpciScenario = z.object({
+  b2_tx_disparition: z.number(),
+  b2_tx_restructuration: z.number(),
+  b2_tx_rs: z.number(),
+  b2_tx_vacance: z.number(),
+  epciCode: z.string(),
+})
+
 export const ZScenario = ZCommonDateFields.extend({
-  b11_etablissement: z.array(z.string()),
+  b11_etablissement: z.array(z.nativeEnum(B11Etablissement)),
   b11_fortune: z.boolean(),
   b11_hotel: z.boolean(),
   b11_part_etablissement: z.number(),
@@ -26,15 +35,12 @@ export const ZScenario = ZCommonDateFields.extend({
   b14_taux_reallocation: z.number(),
   b15_loc_hors_hlm: z.boolean(),
   b15_proprietaire: z.boolean(),
-  b15_surocc: z.string(),
+  b15_surocc: z.nativeEnum(B15Surocc),
   b15_taux_reallocation: z.number(),
   b17_motif: z.union([z.literal('Tout'), z.literal('Env'), z.literal('Assis'), z.literal('Rappr'), z.literal('Trois')]),
   b1_horizon_resorption: z.number(),
-  b2_scenario_omphale: z.string(),
-  b2_tx_disparition: z.number(),
-  b2_tx_restructuration: z.number(),
-  b2_tx_rs: z.number(),
-  b2_tx_vacance: z.number(),
+  b2_scenario: z.string(),
+  epciScenarios: z.array(ZEpciScenario),
   id: z.string(),
   isConfidential: z.boolean(),
   projection: z.number(),
@@ -44,3 +50,26 @@ export const ZScenario = ZCommonDateFields.extend({
 })
 
 export type TScenario = z.infer<typeof ZScenario>
+
+export const ZInitScenario = ZCommonDateFields.extend({
+  b2_scenario: z.string(),
+  epcis: z.record(
+    z.string(),
+    z.object({
+      b2_tx_rs: z.number().optional(),
+      b2_tx_vacance: z.number().optional(),
+    }),
+  ),
+  projection: z.number(),
+})
+
+export type TInitScenario = z.infer<typeof ZInitScenario>
+
+export const ZUpdateSimulationDto = ZScenario.omit({
+  b17_motif: true,
+  createdAt: true,
+  isConfidential: true,
+  updatedAt: true,
+})
+
+export type TUpdateSimulationDto = z.infer<typeof ZUpdateSimulationDto>

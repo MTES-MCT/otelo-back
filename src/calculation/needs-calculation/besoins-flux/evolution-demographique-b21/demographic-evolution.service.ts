@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import {
   EOmphale,
-  TDemographicEvolutionOmphale,
+  TDemographicEvolution,
   TGetDemographicEvolution,
   TGetDemographicEvolutionByOmphaleQuery,
   TGetDemographicEvolutionByYearAndOmphaleQuery,
@@ -31,18 +32,8 @@ export class DemographicEvolutionService extends BaseCalculator {
     super(context)
   }
 
-  async getPopulationProjectionsByYear(epciCode: string) {
-    return this.prismaService.demographicEvolutionPopulation.findMany({
-      where: {
-        epciCode,
-      },
-    })
-  }
-
   async getProjectionByYearAndOmphale(query: TGetDemographicEvolutionByYearAndOmphaleQuery): Promise<TGetDemographicEvolution> {
-    const { simulation } = this.context
-    const { epci } = simulation
-    const { code: epciCode } = epci
+    const { epciCode } = query
     const { omphale, year } = query
 
     const demographicEvolution = await this.prismaService.demographicEvolutionOmphale.findFirstOrThrow({
@@ -69,10 +60,7 @@ export class DemographicEvolutionService extends BaseCalculator {
   }
 
   async getProjectionsByOmphale(query: TGetDemographicEvolutionByOmphaleQuery): Promise<TGetDemographicEvolution[]> {
-    const { simulation } = this.context
-    const { epci } = simulation
-    const { code: epciCode } = epci
-    const { omphale } = query
+    const { epciCode, omphale } = query
 
     const demographicEvolutions = await this.prismaService.demographicEvolutionOmphale.findMany({
       select: { epciCode: true, [omphale]: true, year: true },
@@ -88,13 +76,26 @@ export class DemographicEvolutionService extends BaseCalculator {
     }))
   }
 
-  async calculate(): Promise<number> {
-    const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
-    const baseYear = 2018
+  async calculate(): Promise<TCalculationResult> {
+    const { epcis } = this.context.simulation
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        epciCode: epci.code,
+        value: await this.calculateByEpci(epci.code),
+      })),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    return {
+      epcis: results,
+      total,
+    }
+  }
 
-    const omphale = omphaleMap[scenario.b2_scenario_omphale.toLowerCase()]
+  async calculateByEpci(epciCode: string): Promise<number> {
+    const { simulation, baseYear } = this.context
+    const { scenario } = simulation
+
+    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
       epciCode,
       omphale,
@@ -106,16 +107,78 @@ export class DemographicEvolutionService extends BaseCalculator {
       omphale,
       year: scenario.projection,
     })
-    return this.applyCoefficient(futureProjection[omphale] - baseProjection[omphale])
+    return Math.round(futureProjection[omphale] - baseProjection[omphale])
   }
 
-  async calculateProjectionsByYear(): Promise<TDemographicEvolutionOmphale> {
+  async calculateOmphaleProjectionsByYear(): Promise<Array<{ data: TDemographicEvolution; epciCode: string }>> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
-    const baseYear = 2018
+    const { epcis } = simulation
 
-    const omphale = omphaleMap[scenario.b2_scenario_omphale.toLowerCase()]
+    const results = await Promise.all(
+      epcis.map(async (epci) => ({
+        data: await this.calculateOmphaleProjectionsByYearFromBaseAndEpci(epci.code),
+        epciCode: epci.code,
+      })),
+    )
+    return results
+  }
+
+  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear?: number): Promise<TDemographicEvolution> {
+    const { simulation, baseYear: baseYearContext } = this.context
+    const { scenario } = simulation
+
+    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
+    const omphaleBaseYear = baseYear ?? baseYearContext
+    const futureProjections = await this.getProjectionsByOmphale({
+      epciCode,
+      omphale,
+    })
+
+    const sortedProjections = futureProjections.sort((a, b) => a.year - b.year).filter(({ year }) => year >= omphaleBaseYear)
+
+    const { max, min, periodMax, periodMin, yearlyData } = sortedProjections.reduce(
+      (acc, projection, index) => {
+        const currentValue = projection[omphale]
+        const previousValue = index > 0 ? sortedProjections[index - 1][omphale] : projection[omphale]
+        const value = this.applyCoefficient(currentValue - previousValue)
+
+        return {
+          max: Math.max(acc.max, value),
+          min: Math.min(acc.min, value),
+          periodMax: Math.max(acc.periodMax, projection.year),
+          periodMin: Math.min(acc.periodMin, projection.year),
+          yearlyData: [...acc.yearlyData, { value, year: projection.year }],
+        }
+      },
+      {
+        max: -Infinity,
+        min: Infinity,
+        periodMax: -Infinity,
+        periodMin: Infinity,
+        yearlyData: [] as { value: number; year: number }[],
+      },
+    )
+
+    return {
+      data: yearlyData,
+      metadata: {
+        data: {
+          max,
+          min,
+        },
+        period: {
+          endYear: periodMax,
+          startYear: periodMin,
+        },
+      },
+    }
+  }
+
+  async calculateOmphaleProjectionsByYearFromBaseAndEpci(epciCode: string): Promise<TDemographicEvolution> {
+    const { simulation, baseYear } = this.context
+    const { scenario } = simulation
+
+    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const baseProjection = await this.getProjectionByYearAndOmphale({
       epciCode,
       omphale,
@@ -128,8 +191,7 @@ export class DemographicEvolutionService extends BaseCalculator {
     })
 
     const { max, min, periodMax, periodMin, yearlyData } = futureProjections
-      // we dont want the base year data in the yearly data
-      .filter(({ year }) => year !== baseYear)
+      .filter(({ year }) => year >= baseYear)
       .reduce(
         (acc, projection) => {
           const value = this.applyCoefficient(projection[omphale] - baseProjection[omphale])

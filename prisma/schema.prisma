@@ -87,41 +87,54 @@ enum MotifB17 {
   Trois
 }
 
+enum B15Surocc {
+  Acc
+  Mod
+}
+
+enum B11Etablissement {
+  autreCentre
+  demandeAsile
+  reinsertion
+  centreProvisoire
+  jeuneTravailleur
+  foyerMigrants
+  malade
+  maisonRelai
+  horsMaisonRelai
+}
+
 model Scenario {
-  id                     String    @id @default(uuid())
-  isConfidential         Boolean   @default(true)
+  id                     String             @id @default(uuid())
+  isConfidential         Boolean            @default(true)
   projection             Int
-  b1_horizon_resorption  Int     @default(20)
-  b11_sa                 Boolean?
-  b11_fortune            Boolean?
-  b11_hotel              Boolean?
-  source_b11             SourceB11?
-  b11_etablissement      String[]
-  b11_part_etablissement Int?
-  b12_cohab_interg_subie Int?
-  b12_heberg_particulier Boolean?
-  b12_heberg_gratuit     Boolean?
-  b12_heberg_temporaire  Boolean?
-  b13_acc                Boolean?
-  b13_plp                Boolean?
-  b13_taux_effort        Int?
-  b13_taux_reallocation  Int?
-  b14_confort            String?
-  b14_occupation         String?
+  b1_horizon_resorption  Int                @default(2050)
+  b11_sa                 Boolean            @default(true)
+  b11_fortune            Boolean            @default(true)
+  b11_hotel              Boolean            @default(true)
+  source_b11             SourceB11          @default(RP)
+  b11_etablissement      B11Etablissement[] @default([autreCentre, demandeAsile, reinsertion, centreProvisoire, jeuneTravailleur, foyerMigrants, malade, maisonRelai, horsMaisonRelai])
+  b11_part_etablissement Int                @default(100)
+  b12_cohab_interg_subie Int                @default(50)
+  b12_heberg_particulier Boolean            @default(true)
+  b12_heberg_gratuit     Boolean            @default(true)
+  b12_heberg_temporaire  Boolean            @default(true)
+  b13_acc                Boolean            @default(true)
+  b13_plp                Boolean            @default(true)
+  b13_taux_effort        Int                @default(30)
+  b13_taux_reallocation  Int                @default(80)
+  b14_confort            String             @default("RP_abs_sani")
+  b14_occupation         String             @default("prop_loc")
   b14_qualite            String?
-  source_b14             SourceB14?
-  b14_taux_reallocation  Int?
-  b15_surocc             String?
-  b15_proprietaire       Boolean?
-  b15_loc_hors_hlm       Boolean?
-  source_b15             SourceB15?
-  b15_taux_reallocation  Int?
-  b17_motif              MotifB17?
-  b2_scenario_omphale    String?
-  b2_tx_restructuration  Int?
-  b2_tx_disparition      Int?
-  b2_tx_vacance          Int?
-  b2_tx_rs               Int?
+  source_b14             SourceB14          @default(Filo)
+  b14_taux_reallocation  Int                @default(80)
+  b15_surocc             B15Surocc          @default(Acc)
+  b15_proprietaire       Boolean            @default(false)
+  b15_loc_hors_hlm       Boolean            @default(true)
+  source_b15             SourceB15          @default(Filo)
+  b15_taux_reallocation  Int                @default(80)
+  b17_motif              MotifB17           @default(Tout)
+  b2_scenario            String
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
@@ -129,9 +142,34 @@ model Scenario {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  simulations Simulation[]
+  simulations   Simulation[]
+  epciScenarios EPCIScenario[]
 
   @@map("scenarios")
+}
+
+model Bassin {
+  name String @id @unique
+
+  epcis Epci[]
+
+  @@map("bassin")
+}
+
+model EPCIScenario {
+  b2_tx_restructuration Float @default(0.0)
+  b2_tx_disparition     Float @default(0.0)
+  b2_tx_vacance         Float @default(0.0)
+  b2_tx_rs              Float @default(0.0)
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  scenario   Scenario @relation(fields: [scenarioId], references: [id])
+  scenarioId String   @map("scenario_id")
+
+  @@id([epciCode, scenarioId])
+  @@map("epci_scenarios")
 }
 
 model Epci {
@@ -139,24 +177,35 @@ model Epci {
   name   String
   region String
 
-  simulations                  Simulation[]
-  demographicEvolutionsOmphale DemographicEvolutionOmphale[]
+  simulations                    Simulation[]
+  demographicEvolutionsOmphale   DemographicEvolutionOmphale[]
   demographicEvolutionPopulation DemographicEvolutionPopulation[]
-  financialInadequations       FinancialInadequation[]
-  physicalInadequations_RP     PhysicalInadequation_RP[]
-  physicalInadequations_Filo   PhysicalInadequation_Filo[]
-  hostedFilocom                HostedFilocom[]
-  hostedSne                    HostedSne[]
-  hostedFiness                 HostedFiness[]
-  socialParc                   SocialParc[]
-  homeless                     Homeless[]
-  makeshiftHousingRP           MakeShiftHousing_RP[]
-  makeshiftHousingSNE          MakeShiftHousing_SNE[]
-  hotel                        Hotel[]
-  badQualityFilocom            BadQuality_Filocom[]
-  badQualityRP                 BadQuality_RP[]
-  BadQuality_Fonciers          BadQuality_Fonciers[]
-  filocomFlux                  FilocomFlux[]
+  financialInadequations         FinancialInadequation[]
+  physicalInadequations_RP       PhysicalInadequation_RP[]
+  physicalInadequations_Filo     PhysicalInadequation_Filo[]
+  hostedFilocom                  HostedFilocom[]
+  hostedSne                      HostedSne[]
+  hostedFiness                   HostedFiness[]
+  socialParc                     SocialParc[]
+  homeless                       Homeless[]
+  makeshiftHousingRP             MakeShiftHousing_RP[]
+  makeshiftHousingSNE            MakeShiftHousing_SNE[]
+  hotel                          Hotel[]
+  badQualityFilocom              BadQuality_Filocom[]
+  badQualityRP                   BadQuality_RP[]
+  badQualityFonciers             BadQuality_Fonciers[]
+  filocomFlux                    FilocomFlux[]
+  vacancyAccommodation           VacancyAccommodation[]
+  epciScenario                   EPCIScenario[]
+  sitadel                        Sitadel[]
+
+  Bassin     Bassin? @relation(fields: [bassinName], references: [name])
+  bassinName String? @map("bassin_name")
+  RP         RP[]
+
+  // Contiguity relationships
+  contiguousTo   EPCIContiguity[] @relation("EPCIContiguity")
+  contiguousFrom EPCIContiguity[] @relation("ContiguousEPCI")
 
   @@map("epcis")
 }
@@ -171,8 +220,7 @@ model Simulation {
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
 
-  epci     Epci   @relation(fields: [epciCode], references: [code])
-  epciCode String @map("epci_code")
+  epcis Epci[]
 
   scenario   Scenario @relation(fields: [scenarioId], references: [id])
   scenarioId String   @map("scenario_id")
@@ -204,8 +252,8 @@ model DemographicEvolutionPopulation {
   year Int
 
   central Float @map("central")
-  haute Float @map("haute")
-  basse Float @map("basse")
+  haute   Float @map("haute")
+  basse   Float @map("basse")
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
@@ -263,48 +311,48 @@ model PhysicalInadequation_RP {
 }
 
 model FinancialInadequation {
-  nbAllPlus20ParcLocatifPrive   Float  @map("nb_all_plus20_parc_locatif_prive")
-  nbAllPlus21ParcLocatifPrive   Float  @map("nb_all_plus21_parc_locatif_prive")
-  nbAllPlus22ParcLocatifPrive   Float  @map("nb_all_plus22_parc_locatif_prive")
-  nbAllPlus23ParcLocatifPrive   Float  @map("nb_all_plus23_parc_locatif_prive")
-  nbAllPlus24ParcLocatifPrive   Float  @map("nb_all_plus24_parc_locatif_prive")
-  nbAllPlus25ParcLocatifPrive   Float  @map("nb_all_plus25_parc_locatif_prive")
-  nbAllPlus26ParcLocatifPrive   Float  @map("nb_all_plus26_parc_locatif_prive")
-  nbAllPlus27ParcLocatifPrive   Float  @map("nb_all_plus27_parc_locatif_prive")
-  nbAllPlus28ParcLocatifPrive   Float  @map("nb_all_plus28_parc_locatif_prive")
-  nbAllPlus29ParcLocatifPrive   Float  @map("nb_all_plus29_parc_locatif_prive")
-  nbAllPlus30ParcLocatifPrive   Float  @map("nb_all_plus30_parc_locatif_prive")
-  nbAllPlus31ParcLocatifPrive   Float  @map("nb_all_plus31_parc_locatif_prive")
-  nbAllPlus32ParcLocatifPrive   Float  @map("nb_all_plus32_parc_locatif_prive")
-  nbAllPlus33ParcLocatifPrive   Float  @map("nb_all_plus33_parc_locatif_prive")
-  nbAllPlus34ParcLocatifPrive   Float  @map("nb_all_plus34_parc_locatif_prive")
-  nbAllPlus35ParcLocatifPrive   Float  @map("nb_all_plus35_parc_locatif_prive")
-  nbAllPlus36ParcLocatifPrive   Float  @map("nb_all_plus36_parc_locatif_prive")
-  nbAllPlus37ParcLocatifPrive   Float  @map("nb_all_plus37_parc_locatif_prive")
-  nbAllPlus38ParcLocatifPrive   Float  @map("nb_all_plus38_parc_locatif_prive")
-  nbAllPlus39ParcLocatifPrive   Float  @map("nb_all_plus39_parc_locatif_prive")
-  nbAllPlus40ParcLocatifPrive   Float  @map("nb_all_plus40_parc_locatif_prive")
-  nbAllPlus20AccessionPropriete Float  @map("nb_all_plus20_accession_propriete")
-  nbAllPlus21AccessionPropriete Float  @map("nb_all_plus21_accession_propriete")
-  nbAllPlus22AccessionPropriete Float  @map("nb_all_plus22_accession_propriete")
-  nbAllPlus23AccessionPropriete Float  @map("nb_all_plus23_accession_propriete")
-  nbAllPlus24AccessionPropriete Float  @map("nb_all_plus24_accession_propriete")
-  nbAllPlus25AccessionPropriete Float  @map("nb_all_plus25_accession_propriete")
-  nbAllPlus26AccessionPropriete Float  @map("nb_all_plus26_accession_propriete")
-  nbAllPlus27AccessionPropriete Float  @map("nb_all_plus27_accession_propriete")
-  nbAllPlus28AccessionPropriete Float  @map("nb_all_plus28_accession_propriete")
-  nbAllPlus29AccessionPropriete Float  @map("nb_all_plus29_accession_propriete")
-  nbAllPlus30AccessionPropriete Float  @map("nb_all_plus30_accession_propriete")
-  nbAllPlus31AccessionPropriete Float  @map("nb_all_plus31_accession_propriete")
-  nbAllPlus32AccessionPropriete Float  @map("nb_all_plus32_accession_propriete")
-  nbAllPlus33AccessionPropriete Float  @map("nb_all_plus33_accession_propriete")
-  nbAllPlus34AccessionPropriete Float  @map("nb_all_plus34_accession_propriete")
-  nbAllPlus35AccessionPropriete Float  @map("nb_all_plus35_accession_propriete")
-  nbAllPlus36AccessionPropriete Float  @map("nb_all_plus36_accession_propriete")
-  nbAllPlus37AccessionPropriete Float  @map("nb_all_plus37_accession_propriete")
-  nbAllPlus38AccessionPropriete Float  @map("nb_all_plus38_accession_propriete")
-  nbAllPlus39AccessionPropriete Float  @map("nb_all_plus39_accession_propriete")
-  nbAllPlus40AccessionPropriete Float  @map("nb_all_plus40_accession_propriete")
+  nbAllPlus20ParcLocatifPrive   Float @map("nb_all_plus20_parc_locatif_prive")
+  nbAllPlus21ParcLocatifPrive   Float @map("nb_all_plus21_parc_locatif_prive")
+  nbAllPlus22ParcLocatifPrive   Float @map("nb_all_plus22_parc_locatif_prive")
+  nbAllPlus23ParcLocatifPrive   Float @map("nb_all_plus23_parc_locatif_prive")
+  nbAllPlus24ParcLocatifPrive   Float @map("nb_all_plus24_parc_locatif_prive")
+  nbAllPlus25ParcLocatifPrive   Float @map("nb_all_plus25_parc_locatif_prive")
+  nbAllPlus26ParcLocatifPrive   Float @map("nb_all_plus26_parc_locatif_prive")
+  nbAllPlus27ParcLocatifPrive   Float @map("nb_all_plus27_parc_locatif_prive")
+  nbAllPlus28ParcLocatifPrive   Float @map("nb_all_plus28_parc_locatif_prive")
+  nbAllPlus29ParcLocatifPrive   Float @map("nb_all_plus29_parc_locatif_prive")
+  nbAllPlus30ParcLocatifPrive   Float @map("nb_all_plus30_parc_locatif_prive")
+  nbAllPlus31ParcLocatifPrive   Float @map("nb_all_plus31_parc_locatif_prive")
+  nbAllPlus32ParcLocatifPrive   Float @map("nb_all_plus32_parc_locatif_prive")
+  nbAllPlus33ParcLocatifPrive   Float @map("nb_all_plus33_parc_locatif_prive")
+  nbAllPlus34ParcLocatifPrive   Float @map("nb_all_plus34_parc_locatif_prive")
+  nbAllPlus35ParcLocatifPrive   Float @map("nb_all_plus35_parc_locatif_prive")
+  nbAllPlus36ParcLocatifPrive   Float @map("nb_all_plus36_parc_locatif_prive")
+  nbAllPlus37ParcLocatifPrive   Float @map("nb_all_plus37_parc_locatif_prive")
+  nbAllPlus38ParcLocatifPrive   Float @map("nb_all_plus38_parc_locatif_prive")
+  nbAllPlus39ParcLocatifPrive   Float @map("nb_all_plus39_parc_locatif_prive")
+  nbAllPlus40ParcLocatifPrive   Float @map("nb_all_plus40_parc_locatif_prive")
+  nbAllPlus20AccessionPropriete Float @map("nb_all_plus20_accession_propriete")
+  nbAllPlus21AccessionPropriete Float @map("nb_all_plus21_accession_propriete")
+  nbAllPlus22AccessionPropriete Float @map("nb_all_plus22_accession_propriete")
+  nbAllPlus23AccessionPropriete Float @map("nb_all_plus23_accession_propriete")
+  nbAllPlus24AccessionPropriete Float @map("nb_all_plus24_accession_propriete")
+  nbAllPlus25AccessionPropriete Float @map("nb_all_plus25_accession_propriete")
+  nbAllPlus26AccessionPropriete Float @map("nb_all_plus26_accession_propriete")
+  nbAllPlus27AccessionPropriete Float @map("nb_all_plus27_accession_propriete")
+  nbAllPlus28AccessionPropriete Float @map("nb_all_plus28_accession_propriete")
+  nbAllPlus29AccessionPropriete Float @map("nb_all_plus29_accession_propriete")
+  nbAllPlus30AccessionPropriete Float @map("nb_all_plus30_accession_propriete")
+  nbAllPlus31AccessionPropriete Float @map("nb_all_plus31_accession_propriete")
+  nbAllPlus32AccessionPropriete Float @map("nb_all_plus32_accession_propriete")
+  nbAllPlus33AccessionPropriete Float @map("nb_all_plus33_accession_propriete")
+  nbAllPlus34AccessionPropriete Float @map("nb_all_plus34_accession_propriete")
+  nbAllPlus35AccessionPropriete Float @map("nb_all_plus35_accession_propriete")
+  nbAllPlus36AccessionPropriete Float @map("nb_all_plus36_accession_propriete")
+  nbAllPlus37AccessionPropriete Float @map("nb_all_plus37_accession_propriete")
+  nbAllPlus38AccessionPropriete Float @map("nb_all_plus38_accession_propriete")
+  nbAllPlus39AccessionPropriete Float @map("nb_all_plus39_accession_propriete")
+  nbAllPlus40AccessionPropriete Float @map("nb_all_plus40_accession_propriete")
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
@@ -519,4 +567,60 @@ model FilocomFlux {
 
   @@id(epciCode)
   @@map("filocom_flux")
+}
+
+model VacancyAccommodation {
+  year Int
+
+  nbTotal         Int   @map("nb_total")
+  nbLogVac2Less   Int   @map("nb_log_vac_2less")
+  nbLogVac2More   Int   @map("nb_log_vac_2more")
+  nbLogVac5More   Int   @map("nb_log_vac_5more")
+  propLogVac2Less Float @map("prop_log_vac_2less")
+  propLogVac2More Float @map("prop_log_vac_2more")
+  propLogVac5More Float @map("prop_log_vac_5more")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("vacancy_accommodation")
+}
+
+model Sitadel {
+  year  Int
+  value Int
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("sitadel")
+}
+
+model RP {
+  year                   Int
+  menage                 Float
+  population             Float
+  vacant                 Float
+  principalAccommodation Float @map("principal_accommodation")
+  secondaryAccommodation Float @map("secondary_accommodation")
+  totalAccommodation     Float @map("total_accommodation")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("rp")
+}
+
+model EPCIContiguity {
+  epciCode          String @map("epci_code")
+  contiguousEpciCode String @map("contiguous_epci_code")
+
+  epci          Epci @relation("EPCIContiguity", fields: [epciCode], references: [code])
+  contiguousEpci Epci @relation("ContiguousEPCI", fields: [contiguousEpciCode], references: [code])
+
+  @@id([epciCode, contiguousEpciCode])
+  @@map("epci_contiguity")
 }

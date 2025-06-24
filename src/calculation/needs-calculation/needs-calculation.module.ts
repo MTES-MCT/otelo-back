@@ -12,10 +12,14 @@ import { FinancialInadequationService } from '~/calculation/needs-calculation/be
 import { PhysicalInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-physique-b15/physical-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-calculation.service'
+import { NewConstructionsService } from '~/calculation/needs-calculation/new-constructions/new-constructions.service'
+import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-calculation.module'
-import { PrismaService } from '~/db/prisma.service'
+import { PrismaModule } from '~/db/prisma.module'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { SimulationsService } from '~/simulations/simulations.service'
+import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
+import { VacancyModule } from '~/vacancy/vacancy.module'
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -25,7 +29,7 @@ interface AuthenticatedRequest extends Request {
 
 @Module({
   exports: [NeedsCalculationService],
-  imports: [CoefficientCalculationModule, RatioCalculationModule, SimulationsModule],
+  imports: [PrismaModule, CoefficientCalculationModule, RatioCalculationModule, SimulationsModule, VacancyModule],
   providers: [
     {
       inject: [CoefficientCalculationService, SimulationsService, REQUEST],
@@ -38,6 +42,7 @@ interface AuthenticatedRequest extends Request {
       ) => {
         const simulationId = request.params.simulationId
         const simulation = await simulationService.get(simulationId)
+        const periodProjection = simulation.scenario.projection
         const coefficient = await coefficientCalculationService.calculateCoefficient(
           simulation.scenario.b1_horizon_resorption,
           simulation.scenario.projection,
@@ -45,11 +50,12 @@ interface AuthenticatedRequest extends Request {
 
         return {
           coefficient,
+          periodProjection,
+          baseYear: 2021,
           simulation,
         }
       },
     },
-    PrismaService,
     NeedsCalculationService,
     NoAccomodationService,
     HostedService,
@@ -59,6 +65,9 @@ interface AuthenticatedRequest extends Request {
     SocialParcService,
     DemographicEvolutionService,
     RenewalHousingStockService,
+    SitadelService,
+    NewConstructionsService,
+    StockRequirementsService,
   ],
 })
 export class NeedsCalculationModule {}

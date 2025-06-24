@@ -1,0 +1,599 @@
+{
+  "features": [
+    {
+      "properties": {
+        "code_zo": "REG27_ZO16",
+        "lib_zo": "M\u00e2con",
+        "epcis": [
+          {
+            "code_epci": "200071645"
+          },
+          {
+            "code_epci": "200040293"
+          },
+          {
+            "code_epci": "200069698"
+          },
+          {
+            "code_epci": "200070308"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG84_ZO_03-2",
+        "lib_zo": "Moulins",
+        "epcis": [
+          {
+            "code_epci": "200071496"
+          },
+          {
+            "code_epci": "200071470"
+          },
+          {
+            "code_epci": "200071140"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO17",
+        "lib_zo": "Creusot-charolais",
+        "epcis": [
+          {
+            "code_epci": "200070548"
+          },
+          {
+            "code_epci": "200071884"
+          },
+          {
+            "code_epci": "200070316"
+          },
+          {
+            "code_epci": "247103864"
+          },
+          {
+            "code_epci": "247100290"
+          },
+          {
+            "code_epci": "247100639"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO20",
+        "lib_zo": "Cosne-puisaye",
+        "epcis": [
+          {
+            "code_epci": "200067916"
+          },
+          {
+            "code_epci": "200067130"
+          },
+          {
+            "code_epci": "200068088"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO01",
+        "lib_zo": "Beaune",
+        "epcis": [
+          {
+            "code_epci": "200006682"
+          },
+          {
+            "code_epci": "242101509"
+          },
+          {
+            "code_epci": "200070894"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO02",
+        "lib_zo": "Dijon",
+        "epcis": [
+          {
+            "code_epci": "200039063"
+          },
+          {
+            "code_epci": "242100410"
+          },
+          {
+            "code_epci": "200069540"
+          },
+          {
+            "code_epci": "200072825"
+          },
+          {
+            "code_epci": "242100154"
+          },
+          {
+            "code_epci": "200000925"
+          },
+          {
+            "code_epci": "200070902"
+          },
+          {
+            "code_epci": "200039055"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO03",
+        "lib_zo": "Montbard",
+        "epcis": [
+          {
+            "code_epci": "200070910"
+          },
+          {
+            "code_epci": "200071017"
+          },
+          {
+            "code_epci": "200071173"
+          },
+          {
+            "code_epci": "242101459"
+          },
+          {
+            "code_epci": "242101491"
+          },
+          {
+            "code_epci": "242101434"
+          },
+          {
+            "code_epci": "242101442"
+          },
+          {
+            "code_epci": "200071207"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO04",
+        "lib_zo": "Besan\u00e7on",
+        "epcis": [
+          {
+            "code_epci": "200041887"
+          },
+          {
+            "code_epci": "200068070"
+          },
+          {
+            "code_epci": "242500361"
+          },
+          {
+            "code_epci": "242504447"
+          },
+          {
+            "code_epci": "247000698"
+          },
+          {
+            "code_epci": "247000706"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO05",
+        "lib_zo": "Montb\u00e9liard",
+        "epcis": [
+          {
+            "code_epci": "247000722"
+          },
+          {
+            "code_epci": "200065647"
+          },
+          {
+            "code_epci": "200068294"
+          },
+          {
+            "code_epci": "242504371"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO07",
+        "lib_zo": "Horloger",
+        "epcis": [
+          {
+            "code_epci": "200023075"
+          },
+          {
+            "code_epci": "242504181"
+          },
+          {
+            "code_epci": "242504355"
+          },
+          {
+            "code_epci": "242504116"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO06",
+        "lib_zo": "Pontarlier",
+        "epcis": [
+          {
+            "code_epci": "200069565"
+          },
+          {
+            "code_epci": "242500338"
+          },
+          {
+            "code_epci": "242504488"
+          },
+          {
+            "code_epci": "242500320"
+          },
+          {
+            "code_epci": "242504496"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO12",
+        "lib_zo": "Lure-luxeuil",
+        "epcis": [
+          {
+            "code_epci": "247000821"
+          },
+          {
+            "code_epci": "247000664"
+          },
+          {
+            "code_epci": "247000714"
+          },
+          {
+            "code_epci": "247000755"
+          },
+          {
+            "code_epci": "247000854"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO08",
+        "lib_zo": "Dole",
+        "epcis": [
+          {
+            "code_epci": "200010650"
+          },
+          {
+            "code_epci": "243900420"
+          },
+          {
+            "code_epci": "243900560"
+          },
+          {
+            "code_epci": "243901089"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO09",
+        "lib_zo": "L\u00e9donien",
+        "epcis": [
+          {
+            "code_epci": "200072056"
+          },
+          {
+            "code_epci": "200012060"
+          },
+          {
+            "code_epci": "200071595"
+          },
+          {
+            "code_epci": "200069615"
+          },
+          {
+            "code_epci": "200071116"
+          },
+          {
+            "code_epci": "243900719"
+          },
+          {
+            "code_epci": "243901071"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO10",
+        "lib_zo": "Saint-claude",
+        "epcis": [
+          {
+            "code_epci": "200026573"
+          },
+          {
+            "code_epci": "200069623"
+          },
+          {
+            "code_epci": "243900412"
+          },
+          {
+            "code_epci": "243900354"
+          },
+          {
+            "code_epci": "243900610"
+          },
+          {
+            "code_epci": "243900479"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG24_ZO45_zone_3",
+        "lib_zo": "Montargois en G\u00e2tinais",
+        "epcis": [
+          {
+            "code_epci": "200067668"
+          },
+          {
+            "code_epci": "200067676"
+          },
+          {
+            "code_epci": "244500203"
+          },
+          {
+            "code_epci": "244500419"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG44_ZO04",
+        "lib_zo": "Chaumont - Langres",
+        "epcis": [
+          {
+            "code_epci": "200027308"
+          },
+          {
+            "code_epci": "200072999"
+          },
+          {
+            "code_epci": "200069664"
+          },
+          {
+            "code_epci": "200070332"
+          },
+          {
+            "code_epci": "245200597"
+          },
+          {
+            "code_epci": "200068658"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO18",
+        "lib_zo": "Morvan",
+        "epcis": [
+          {
+            "code_epci": "200067882"
+          },
+          {
+            "code_epci": "200067890"
+          },
+          {
+            "code_epci": "200070530"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO21",
+        "lib_zo": "Avallon-clamecy-tonnerre",
+        "epcis": [
+          {
+            "code_epci": "200039642"
+          },
+          {
+            "code_epci": "200039758"
+          },
+          {
+            "code_epci": "200039709"
+          },
+          {
+            "code_epci": "200067692"
+          },
+          {
+            "code_epci": "200067429"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO19",
+        "lib_zo": "Nivernais",
+        "epcis": [
+          {
+            "code_epci": "200067908"
+          },
+          {
+            "code_epci": "200067700"
+          },
+          {
+            "code_epci": "245801063"
+          },
+          {
+            "code_epci": "245804406"
+          },
+          {
+            "code_epci": "245804497"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO13",
+        "lib_zo": "Vesoul",
+        "epcis": [
+          {
+            "code_epci": "200041853"
+          },
+          {
+            "code_epci": "200041861"
+          },
+          {
+            "code_epci": "200041879"
+          },
+          {
+            "code_epci": "247000367"
+          },
+          {
+            "code_epci": "247000011"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO14",
+        "lib_zo": "Nord-ouest Haute-sa\u00f4ne",
+        "epcis": [
+          {
+            "code_epci": "200036150"
+          },
+          {
+            "code_epci": "200041721"
+          },
+          {
+            "code_epci": "200036549"
+          },
+          {
+            "code_epci": "247000623"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO15",
+        "lib_zo": "Chalon",
+        "epcis": [
+          {
+            "code_epci": "200042414"
+          },
+          {
+            "code_epci": "200071538"
+          },
+          {
+            "code_epci": "200071579"
+          },
+          {
+            "code_epci": "200040038"
+          },
+          {
+            "code_epci": "247103765"
+          },
+          {
+            "code_epci": "247104094"
+          },
+          {
+            "code_epci": "247100589"
+          },
+          {
+            "code_epci": "247100647"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO22",
+        "lib_zo": "Auxerre",
+        "epcis": [
+          {
+            "code_epci": "248900938"
+          },
+          {
+            "code_epci": "200067304"
+          },
+          {
+            "code_epci": "200067080"
+          },
+          {
+            "code_epci": "200067114"
+          },
+          {
+            "code_epci": "248900383"
+          },
+          {
+            "code_epci": "248900524"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO23",
+        "lib_zo": "Sens",
+        "epcis": [
+          {
+            "code_epci": "248900664"
+          },
+          {
+            "code_epci": "248900748"
+          },
+          {
+            "code_epci": "248900896"
+          },
+          {
+            "code_epci": "248900334"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG27_ZO11",
+        "lib_zo": "Belfort",
+        "epcis": [
+          {
+            "code_epci": "249000241"
+          },
+          {
+            "code_epci": "200069060"
+          },
+          {
+            "code_epci": "200069052"
+          }
+        ]
+      }
+    }
+  ]
+}

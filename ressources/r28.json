@@ -1,0 +1,497 @@
+{
+  "features": [
+    {
+      "properties": {
+        "code_zo": "REG28_ZO16",
+        "lib_zo": "Honfleur",
+        "epcis": [
+          {
+            "code_epci": "200066827"
+          },
+          {
+            "code_epci": "241400415"
+          },
+          {
+            "code_epci": "241400878"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO13",
+        "lib_zo": "Bayeux",
+        "epcis": [
+          {
+            "code_epci": "200066801"
+          },
+          {
+            "code_epci": "200069516"
+          },
+          {
+            "code_epci": "241400555"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO12_new",
+        "lib_zo": "Caen",
+        "epcis": [
+          {
+            "code_epci": "200065563"
+          },
+          {
+            "code_epci": "200065597"
+          },
+          {
+            "code_epci": "241400860"
+          },
+          {
+            "code_epci": "200065589"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO11",
+        "lib_zo": "Falaise",
+        "epcis": [
+          {
+            "code_epci": "200066710"
+          },
+          {
+            "code_epci": "200066728"
+          },
+          {
+            "code_epci": "241400514"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO06",
+        "lib_zo": "Vire Normandie",
+        "epcis": [
+          {
+            "code_epci": "200069524"
+          },
+          {
+            "code_epci": "200068799"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO14",
+        "lib_zo": "Lisieux",
+        "epcis": [
+          {
+            "code_epci": "200069532"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO18",
+        "lib_zo": "Bernay",
+        "epcis": [
+          {
+            "code_epci": "242700607"
+          },
+          {
+            "code_epci": "200066413"
+          },
+          {
+            "code_epci": "200066017"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO17",
+        "lib_zo": "\u00c9vreux",
+        "epcis": [
+          {
+            "code_epci": "200071454"
+          },
+          {
+            "code_epci": "200066462"
+          },
+          {
+            "code_epci": "242700276"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO30",
+        "lib_zo": "Louviers",
+        "epcis": [
+          {
+            "code_epci": "200035665"
+          },
+          {
+            "code_epci": "242700623"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO32",
+        "lib_zo": "Vernon",
+        "epcis": [
+          {
+            "code_epci": "200072312"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO19",
+        "lib_zo": "Pont-audemer",
+        "epcis": [
+          {
+            "code_epci": "200066405"
+          },
+          {
+            "code_epci": "200065787"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO28",
+        "lib_zo": "Gisors",
+        "epcis": [
+          {
+            "code_epci": "200071843"
+          },
+          {
+            "code_epci": "200070142"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO26",
+        "lib_zo": "Gournay-en-bray",
+        "epcis": [
+          {
+            "code_epci": "200070068"
+          },
+          {
+            "code_epci": "200069730"
+          },
+          {
+            "code_epci": "247600604"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG24_ZO28_zone_4",
+        "lib_zo": "Pays de Dreux + For\u00eats du Perche",
+        "epcis": [
+          {
+            "code_epci": "200069912"
+          },
+          {
+            "code_epci": "200040277"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28/24_ZO09",
+        "lib_zo": "zo du Perche",
+        "epcis": [
+          {
+            "code_epci": "200068856"
+          },
+          {
+            "code_epci": "200006971"
+          },
+          {
+            "code_epci": "200036069"
+          },
+          {
+            "code_epci": "200068435"
+          },
+          {
+            "code_epci": "200070167"
+          },
+          {
+            "code_epci": "200071504"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO03",
+        "lib_zo": "Saint-l\u00f4",
+        "epcis": [
+          {
+            "code_epci": "200066389"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO02",
+        "lib_zo": "Coutances",
+        "epcis": [
+          {
+            "code_epci": "200067031"
+          },
+          {
+            "code_epci": "200067023"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO04",
+        "lib_zo": "Granville",
+        "epcis": [
+          {
+            "code_epci": "200042604"
+          },
+          {
+            "code_epci": "200043354"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO01",
+        "lib_zo": "Cherbourg-en-cotentin",
+        "epcis": [
+          {
+            "code_epci": "200042729"
+          },
+          {
+            "code_epci": "200067205"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO05",
+        "lib_zo": "Avranches",
+        "epcis": [
+          {
+            "code_epci": "200069425"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO08",
+        "lib_zo": "Alen\u00e7on",
+        "epcis": [
+          {
+            "code_epci": "200071652"
+          },
+          {
+            "code_epci": "200035111"
+          },
+          {
+            "code_epci": "200035103"
+          },
+          {
+            "code_epci": "246100663"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO10",
+        "lib_zo": "Argentan",
+        "epcis": [
+          {
+            "code_epci": "200068450"
+          },
+          {
+            "code_epci": "200069458"
+          },
+          {
+            "code_epci": "200068468"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO07",
+        "lib_zo": "Flers",
+        "epcis": [
+          {
+            "code_epci": "200035814"
+          },
+          {
+            "code_epci": "200068443"
+          },
+          {
+            "code_epci": "200071520"
+          },
+          {
+            "code_epci": "246100390"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG52_ZO14",
+        "lib_zo": "Nord Sarthe",
+        "epcis": [
+          {
+            "code_epci": "200072676"
+          },
+          {
+            "code_epci": "200072692"
+          },
+          {
+            "code_epci": "200072718"
+          },
+          {
+            "code_epci": "200072700"
+          },
+          {
+            "code_epci": "247200686"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO23",
+        "lib_zo": "Yvetot",
+        "epcis": [
+          {
+            "code_epci": "247600620"
+          },
+          {
+            "code_epci": "200069847"
+          },
+          {
+            "code_epci": "200069839"
+          },
+          {
+            "code_epci": "247600646"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO22",
+        "lib_zo": "Bolbec",
+        "epcis": [
+          {
+            "code_epci": "200010700"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO25",
+        "lib_zo": "Dieppe",
+        "epcis": [
+          {
+            "code_epci": "200068534"
+          },
+          {
+            "code_epci": "247600729"
+          },
+          {
+            "code_epci": "247600786"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO29",
+        "lib_zo": "Rouen",
+        "epcis": [
+          {
+            "code_epci": "200023414"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO24",
+        "lib_zo": "Montville",
+        "epcis": [
+          {
+            "code_epci": "200070449"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO21",
+        "lib_zo": "F\u00e9camp",
+        "epcis": [
+          {
+            "code_epci": "200069821"
+          },
+          {
+            "code_epci": "247600505"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO20",
+        "lib_zo": "le Havre",
+        "epcis": [
+          {
+            "code_epci": "200084952"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG28_ZO27",
+        "lib_zo": "eu",
+        "epcis": [
+          {
+            "code_epci": "247600588"
+          },
+          {
+            "code_epci": "200069722"
+          }
+        ]
+      }
+    }
+  ]
+}

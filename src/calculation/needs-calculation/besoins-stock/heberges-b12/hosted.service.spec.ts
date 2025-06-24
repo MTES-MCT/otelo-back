@@ -12,6 +12,7 @@ describe('HostedService', () => {
   beforeEach(async () => {
     calculationContext = {
       coefficient: 1,
+      periodProjection: 2024,
       simulation: {
         epci: {
           code: '123456',
@@ -22,6 +23,10 @@ describe('HostedService', () => {
           b12_heberg_particulier: false,
           b12_heberg_temporaire: false,
         } as TScenario,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        id: '123456',
+        epcis: [],
       },
     } as CalculationContext
 
@@ -40,6 +45,7 @@ describe('HostedService', () => {
     }).compile()
 
     service = module.get<HostedService>(HostedService)
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     jest.spyOn(service as any, 'applyCoefficient').mockImplementation((value) => value)
   })
 

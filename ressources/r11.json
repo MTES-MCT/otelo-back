@@ -1,0 +1,372 @@
+{
+  "features": [
+    {
+      "properties": {
+        "code_zo": "REG11_ZO02",
+        "lib_zo": "Zo02",
+        "epcis": [
+          {
+            "code_epci": "200034130"
+          },
+          {
+            "code_epci": "200071074"
+          },
+          {
+            "code_epci": "200058519"
+          },
+          {
+            "code_epci": "247800550"
+          },
+          {
+            "code_epci": "200059889"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T1",
+        "lib_zo": "t1 \u2013 Ville de Paris",
+        "epcis": [
+          {
+            "code_epci": "200054781_T1"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO06",
+        "lib_zo": "Zo06",
+        "epcis": [
+          {
+            "code_epci": "200023240"
+          },
+          {
+            "code_epci": "200072346"
+          },
+          {
+            "code_epci": "247700107"
+          },
+          {
+            "code_epci": "247700032"
+          },
+          {
+            "code_epci": "247700057"
+          },
+          {
+            "code_epci": "200059228"
+          },
+          {
+            "code_epci": "200023919"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO08",
+        "lib_zo": "Zo08",
+        "epcis": [
+          {
+            "code_epci": "200077055"
+          },
+          {
+            "code_epci": "247700065"
+          },
+          {
+            "code_epci": "200072130"
+          },
+          {
+            "code_epci": "200072544"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO07",
+        "lib_zo": "Zo07",
+        "epcis": [
+          {
+            "code_epci": "200037133"
+          },
+          {
+            "code_epci": "200040251"
+          },
+          {
+            "code_epci": "200070779"
+          },
+          {
+            "code_epci": "247700644"
+          },
+          {
+            "code_epci": "247700701"
+          },
+          {
+            "code_epci": "200058477"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO10",
+        "lib_zo": "Zo10",
+        "epcis": [
+          {
+            "code_epci": "200033090"
+          },
+          {
+            "code_epci": "200056380"
+          },
+          {
+            "code_epci": "200055655"
+          },
+          {
+            "code_epci": "200073013"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO09",
+        "lib_zo": "Zo09",
+        "epcis": [
+          {
+            "code_epci": "247700594"
+          },
+          {
+            "code_epci": "247700339"
+          },
+          {
+            "code_epci": "200072874"
+          },
+          {
+            "code_epci": "200057958"
+          },
+          {
+            "code_epci": "200023125"
+          },
+          {
+            "code_epci": "247700438"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO03",
+        "lib_zo": "Zo03",
+        "epcis": [
+          {
+            "code_epci": "200033173"
+          },
+          {
+            "code_epci": "200073344"
+          },
+          {
+            "code_epci": "247800618"
+          },
+          {
+            "code_epci": "200058782"
+          },
+          {
+            "code_epci": "247800584"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO01",
+        "lib_zo": "Zo01",
+        "epcis": [
+          {
+            "code_epci": "200058485"
+          },
+          {
+            "code_epci": "249500430"
+          },
+          {
+            "code_epci": "249500455"
+          },
+          {
+            "code_epci": "249500513"
+          },
+          {
+            "code_epci": "249500109"
+          },
+          {
+            "code_epci": "200035970"
+          },
+          {
+            "code_epci": "249500489"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO04",
+        "lib_zo": "Zo04",
+        "epcis": [
+          {
+            "code_epci": "200017846"
+          },
+          {
+            "code_epci": "249100553"
+          },
+          {
+            "code_epci": "249100595"
+          },
+          {
+            "code_epci": "249100074"
+          },
+          {
+            "code_epci": "200057859"
+          },
+          {
+            "code_epci": "200056232"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T12",
+        "lib_zo": "T12 \u2013 Grand-orly Seine Bi\u00e8vre (gosb)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T12"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_ZO05",
+        "lib_zo": "Zo05",
+        "epcis": [
+          {
+            "code_epci": "249100157"
+          },
+          {
+            "code_epci": "249100546"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T2",
+        "lib_zo": "t2 \u2013 Vall\u00e9e Sud Grand Paris (vsgp)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T2"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T5",
+        "lib_zo": "t5 \u2013 Boucle Nord de Seine (bns)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T5"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T3",
+        "lib_zo": "t3 \u2013 Grand Paris Seine Ouest (gpso)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T3"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T4",
+        "lib_zo": "t4 \u2013 Paris Ouest la D\u00e9fense (pold)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T4"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T6",
+        "lib_zo": "t6 \u2013 Plaine Commune (pc)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T6"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T7",
+        "lib_zo": "t7 \u2013 Paris Terres D'envol (pte)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T7"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T8",
+        "lib_zo": "t8 \u2013 Est Ensemble (ee)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T8"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T9",
+        "lib_zo": "t9 \u2013 Grand Paris - Grand Est (gpge)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T9"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T11",
+        "lib_zo": "T11 \u2013 Grand Paris Sud Est Avenir (gpsea)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T11"
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "code_zo": "REG11_200054781_T10",
+        "lib_zo": "T10 \u2013 Paris-est-marne et Bois (pemb)",
+        "epcis": [
+          {
+            "code_epci": "200054781_T10"
+          }
+        ]
+      }
+    }
+  ]
+}
