@@ -72,6 +72,10 @@ export class AuthService {
     return false
   }
 
+  async hasAccess(email: string) {
+    return this.usersService.hasUserAccessTo(email)
+  }
+
   async logout(userId: string) {
     return this.sessionsService.deleteUserSessions(userId)
   }

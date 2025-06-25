@@ -24,6 +24,11 @@ export class AuthorizationGuard implements CanActivate {
     if (request.user.role === Role.ADMIN) {
       return Promise.resolve(true)
     }
+
+    if (!user.hasAccess) {
+      return Promise.resolve(false)
+    }
+
     const modelAccess = this.reflector.getAllAndOverride<TModelAccess>(ACCESS_CONTROL_KEY, [context.getHandler(), context.getClass()])
 
     if (!modelAccess) {

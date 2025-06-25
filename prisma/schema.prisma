@@ -21,6 +21,7 @@ model User {
   sub           String?
   provider      String?
   role          Role      @default(USER)
+  hasAccess     Boolean   @default(false)
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

@@ -5,6 +5,7 @@ import { BassinModule } from '~/bassin/bassin.module'
 import { AuthenticationGuard } from '~/common/guards/authentication.guard'
 import { AuthorizationGuard } from '~/common/guards/authorization.guard'
 import envRessources from '~/config/environment'
+import { CronModule } from '~/cron/cron.module'
 import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
 import { AuthModule } from './auth/auth.module'
@@ -55,6 +56,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     FinancialInadequationModule,
     PhysicalInadequationModule,
     EmailModule,
+    CronModule,
   ],
   providers: [
     AuthenticationGuard,

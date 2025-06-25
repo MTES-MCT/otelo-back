@@ -20,6 +20,13 @@ export class AuthController {
     return this.authService.validateSignIn(validatedData)
   }
 
+  @Public()
+  @Post('access')
+  @HttpCode(HttpStatus.OK)
+  async hasUserAccess(@Body() { email }: { email: string }) {
+    return this.authService.hasAccess(email)
+  }
+
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @Public()
