@@ -197,7 +197,6 @@ export class NewConstructionsService extends BaseCalculator {
     for (let year = baseYear; year <= periodProjection; year++) {
       const currentParc = parcEvolution[year]
       const additionalHousingForReplacements = this.calculateAdditionalHousingForReplacements(currentParc, epciCode, year)
-      console.log('additionalHousingForReplacements', additionalHousingForReplacements)
 
       const value = additionalHousingForReplacements[year] + (newHousingUnitsToConstruct[year] || 0)
 
