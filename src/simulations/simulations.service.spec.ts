@@ -101,7 +101,7 @@ describe('SimulationsService', () => {
 
       // Assert - Focus on behavior, not implementation
       expect(result).toEqual(mockClonedSimulation)
-      
+
       // Verify a new scenario is created with the user and original scenario data
       expect(mockScenariosService.create).toHaveBeenCalledWith(
         userId,
@@ -112,7 +112,7 @@ describe('SimulationsService', () => {
           b1_horizon_resorption: mockOriginalSimulation.scenario.b1_horizon_resorption,
           // Should transform epciScenarios into epcis format
           epcis: expect.any(Object),
-        })
+        }),
       )
 
       // Verify a new simulation is created with the cloned scenario
@@ -123,13 +123,10 @@ describe('SimulationsService', () => {
             scenario: { connect: { id: mockClonedScenario.id } },
             user: { connect: { id: userId } },
             epcis: expect.objectContaining({
-              connect: expect.arrayContaining([
-                { code: 'EPCI001' },
-                { code: 'EPCI002' },
-              ]),
+              connect: expect.arrayContaining([{ code: 'EPCI001' }, { code: 'EPCI002' }]),
             }),
           }),
-        })
+        }),
       )
     })
 
@@ -173,7 +170,7 @@ describe('SimulationsService', () => {
         userId,
         expect.objectContaining({
           epcis: {},
-        })
+        }),
       )
     })
 
@@ -236,7 +233,7 @@ describe('SimulationsService', () => {
           source_b11: 'INSEE',
           source_b14: 'FILOCOM',
           epcis: expect.any(Object),
-        })
+        }),
       )
     })
   })

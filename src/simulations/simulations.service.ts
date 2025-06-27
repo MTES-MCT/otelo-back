@@ -111,10 +111,8 @@ export class SimulationsService {
       },
       where: { id: originalId, userId },
     })
-    
-    const {
-      userId: _, id, ...scenarioData
-    } = originalSimulation.scenario
+
+    const { userId: _, id, ...scenarioData } = originalSimulation.scenario
 
     // Clone the scenario (deep copy)
     const clonedScenario = await this.scenariosService.create(userId, {
