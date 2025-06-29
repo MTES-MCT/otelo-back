@@ -158,9 +158,6 @@ export class CronService {
               },
               hasAccess: false,
             },
-            {
-              hasAccess: true,
-            },
           ],
         },
         data: {
