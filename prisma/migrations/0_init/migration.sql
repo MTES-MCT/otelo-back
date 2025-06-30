@@ -13,6 +13,12 @@ CREATE TYPE "SourceB15" AS ENUM ('RP', 'Filo');
 -- CreateEnum
 CREATE TYPE "MotifB17" AS ENUM ('Tout', 'Env', 'Assis', 'Rappr', 'Trois');
 
+-- CreateEnum
+CREATE TYPE "B15Surocc" AS ENUM ('Acc', 'Mod');
+
+-- CreateEnum
+CREATE TYPE "B11Etablissement" AS ENUM ('autreCentre', 'demandeAsile', 'reinsertion', 'centreProvisoire', 'jeuneTravailleur', 'foyerMigrants', 'malade', 'maisonRelai', 'horsMaisonRelai');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -23,6 +29,7 @@ CREATE TABLE "users" (
     "sub" TEXT,
     "provider" TEXT,
     "role" "Role" NOT NULL DEFAULT 'USER',
+    "hasAccess" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "last_login_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -59,37 +66,33 @@ CREATE TABLE "scenarios" (
     "id" TEXT NOT NULL,
     "isConfidential" BOOLEAN NOT NULL DEFAULT true,
     "projection" INTEGER NOT NULL,
-    "b1_horizon_resorption" INTEGER NOT NULL DEFAULT 20,
-    "b11_sa" BOOLEAN,
-    "b11_fortune" BOOLEAN,
-    "b11_hotel" BOOLEAN,
-    "source_b11" "SourceB11",
-    "b11_etablissement" TEXT[],
-    "b11_part_etablissement" INTEGER,
-    "b12_cohab_interg_subie" INTEGER,
-    "b12_heberg_particulier" BOOLEAN,
-    "b12_heberg_gratuit" BOOLEAN,
-    "b12_heberg_temporaire" BOOLEAN,
-    "b13_acc" BOOLEAN,
-    "b13_plp" BOOLEAN,
-    "b13_taux_effort" INTEGER,
-    "b13_taux_reallocation" INTEGER,
-    "b14_confort" TEXT,
-    "b14_occupation" TEXT,
+    "b1_horizon_resorption" INTEGER NOT NULL DEFAULT 2050,
+    "b11_sa" BOOLEAN NOT NULL DEFAULT true,
+    "b11_fortune" BOOLEAN NOT NULL DEFAULT true,
+    "b11_hotel" BOOLEAN NOT NULL DEFAULT true,
+    "source_b11" "SourceB11" NOT NULL DEFAULT 'RP',
+    "b11_etablissement" "B11Etablissement"[] DEFAULT ARRAY['autreCentre', 'demandeAsile', 'reinsertion', 'centreProvisoire', 'jeuneTravailleur', 'foyerMigrants', 'malade', 'maisonRelai', 'horsMaisonRelai']::"B11Etablissement"[],
+    "b11_part_etablissement" INTEGER NOT NULL DEFAULT 100,
+    "b12_cohab_interg_subie" INTEGER NOT NULL DEFAULT 50,
+    "b12_heberg_particulier" BOOLEAN NOT NULL DEFAULT true,
+    "b12_heberg_gratuit" BOOLEAN NOT NULL DEFAULT true,
+    "b12_heberg_temporaire" BOOLEAN NOT NULL DEFAULT true,
+    "b13_acc" BOOLEAN NOT NULL DEFAULT true,
+    "b13_plp" BOOLEAN NOT NULL DEFAULT true,
+    "b13_taux_effort" INTEGER NOT NULL DEFAULT 30,
+    "b13_taux_reallocation" INTEGER NOT NULL DEFAULT 80,
+    "b14_confort" TEXT NOT NULL DEFAULT 'RP_abs_sani',
+    "b14_occupation" TEXT NOT NULL DEFAULT 'prop_loc',
     "b14_qualite" TEXT,
-    "source_b14" "SourceB14",
-    "b14_taux_reallocation" INTEGER,
-    "b15_surocc" TEXT,
-    "b15_proprietaire" BOOLEAN,
-    "b15_loc_hors_hlm" BOOLEAN,
-    "source_b15" "SourceB15",
-    "b15_taux_reallocation" INTEGER,
-    "b17_motif" "MotifB17",
-    "b2_scenario_omphale" TEXT,
-    "b2_tx_restructuration" INTEGER,
-    "b2_tx_disparition" INTEGER,
-    "b2_tx_vacance" INTEGER,
-    "b2_tx_rs" INTEGER,
+    "source_b14" "SourceB14" NOT NULL DEFAULT 'Filo',
+    "b14_taux_reallocation" INTEGER NOT NULL DEFAULT 80,
+    "b15_surocc" "B15Surocc" NOT NULL DEFAULT 'Acc',
+    "b15_proprietaire" BOOLEAN NOT NULL DEFAULT false,
+    "b15_loc_hors_hlm" BOOLEAN NOT NULL DEFAULT true,
+    "source_b15" "SourceB15" NOT NULL DEFAULT 'Filo',
+    "b15_taux_reallocation" INTEGER NOT NULL DEFAULT 80,
+    "b17_motif" "MotifB17" NOT NULL DEFAULT 'Tout',
+    "b2_scenario" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -98,10 +101,30 @@ CREATE TABLE "scenarios" (
 );
 
 -- CreateTable
+CREATE TABLE "bassin" (
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "bassin_pkey" PRIMARY KEY ("name")
+);
+
+-- CreateTable
+CREATE TABLE "epci_scenarios" (
+    "b2_tx_restructuration" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "b2_tx_disparition" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "b2_tx_vacance" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "b2_tx_rs" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "epci_code" TEXT NOT NULL,
+    "scenario_id" TEXT NOT NULL,
+
+    CONSTRAINT "epci_scenarios_pkey" PRIMARY KEY ("epci_code","scenario_id")
+);
+
+-- CreateTable
 CREATE TABLE "epcis" (
     "code" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "region" TEXT NOT NULL,
+    "bassin_name" TEXT,
 
     CONSTRAINT "epcis_pkey" PRIMARY KEY ("code")
 );
@@ -113,7 +136,6 @@ CREATE TABLE "simulations" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "user_id" TEXT NOT NULL,
-    "epci_code" TEXT NOT NULL,
     "scenario_id" TEXT NOT NULL,
 
     CONSTRAINT "simulations_pkey" PRIMARY KEY ("id")
@@ -424,8 +446,68 @@ CREATE TABLE "filocom_flux" (
     CONSTRAINT "filocom_flux_pkey" PRIMARY KEY ("epci_code")
 );
 
+-- CreateTable
+CREATE TABLE "vacancy_accommodation" (
+    "year" INTEGER NOT NULL,
+    "nb_total" INTEGER NOT NULL,
+    "nb_log_vac_2less" INTEGER NOT NULL,
+    "nb_log_vac_2more" INTEGER NOT NULL,
+    "nb_log_vac_5more" INTEGER NOT NULL,
+    "prop_log_vac_2less" DOUBLE PRECISION NOT NULL,
+    "prop_log_vac_2more" DOUBLE PRECISION NOT NULL,
+    "prop_log_vac_5more" DOUBLE PRECISION NOT NULL,
+    "epci_code" TEXT NOT NULL,
+
+    CONSTRAINT "vacancy_accommodation_pkey" PRIMARY KEY ("epci_code","year")
+);
+
+-- CreateTable
+CREATE TABLE "sitadel" (
+    "year" INTEGER NOT NULL,
+    "value" INTEGER NOT NULL,
+    "epci_code" TEXT NOT NULL,
+
+    CONSTRAINT "sitadel_pkey" PRIMARY KEY ("epci_code","year")
+);
+
+-- CreateTable
+CREATE TABLE "rp" (
+    "year" INTEGER NOT NULL,
+    "menage" DOUBLE PRECISION NOT NULL,
+    "population" DOUBLE PRECISION NOT NULL,
+    "vacant" DOUBLE PRECISION NOT NULL,
+    "principal_accommodation" DOUBLE PRECISION NOT NULL,
+    "secondary_accommodation" DOUBLE PRECISION NOT NULL,
+    "total_accommodation" DOUBLE PRECISION NOT NULL,
+    "epci_code" TEXT NOT NULL,
+
+    CONSTRAINT "rp_pkey" PRIMARY KEY ("epci_code","year")
+);
+
+-- CreateTable
+CREATE TABLE "epci_contiguity" (
+    "epci_code" TEXT NOT NULL,
+    "contiguous_epci_code" TEXT NOT NULL,
+
+    CONSTRAINT "epci_contiguity_pkey" PRIMARY KEY ("epci_code","contiguous_epci_code")
+);
+
+-- CreateTable
+CREATE TABLE "_EpciToSimulation" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_EpciToSimulation_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "bassin_name_key" ON "bassin"("name");
+
+-- CreateIndex
+CREATE INDEX "_EpciToSimulation_B_index" ON "_EpciToSimulation"("B");
 
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -437,10 +519,16 @@ ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "scenarios" ADD CONSTRAINT "scenarios_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "simulations" ADD CONSTRAINT "simulations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "epci_scenarios" ADD CONSTRAINT "epci_scenarios_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "simulations" ADD CONSTRAINT "simulations_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "epci_scenarios" ADD CONSTRAINT "epci_scenarios_scenario_id_fkey" FOREIGN KEY ("scenario_id") REFERENCES "scenarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "epcis" ADD CONSTRAINT "epcis_bassin_name_fkey" FOREIGN KEY ("bassin_name") REFERENCES "bassin"("name") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "simulations" ADD CONSTRAINT "simulations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "simulations" ADD CONSTRAINT "simulations_scenario_id_fkey" FOREIGN KEY ("scenario_id") REFERENCES "scenarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -495,3 +583,25 @@ ALTER TABLE "bad_quality_fonciers" ADD CONSTRAINT "bad_quality_fonciers_epci_cod
 
 -- AddForeignKey
 ALTER TABLE "filocom_flux" ADD CONSTRAINT "filocom_flux_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "vacancy_accommodation" ADD CONSTRAINT "vacancy_accommodation_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sitadel" ADD CONSTRAINT "sitadel_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "rp" ADD CONSTRAINT "rp_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "epci_contiguity" ADD CONSTRAINT "epci_contiguity_epci_code_fkey" FOREIGN KEY ("epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "epci_contiguity" ADD CONSTRAINT "epci_contiguity_contiguous_epci_code_fkey" FOREIGN KEY ("contiguous_epci_code") REFERENCES "epcis"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_EpciToSimulation" ADD CONSTRAINT "_EpciToSimulation_A_fkey" FOREIGN KEY ("A") REFERENCES "epcis"("code") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_EpciToSimulation" ADD CONSTRAINT "_EpciToSimulation_B_fkey" FOREIGN KEY ("B") REFERENCES "simulations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
