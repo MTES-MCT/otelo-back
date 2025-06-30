@@ -7,7 +7,7 @@ import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { EmailService } from '~/email/email.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
-import { TRequestPowerpoint } from '~/schemas/simulations/simulation'
+import { TCloneSimulationDto, TRequestPowerpoint } from '~/schemas/simulations/simulation'
 import { TUser } from '~/schemas/users/user'
 import { SimulationsService } from '~/simulations/simulations.service'
 
@@ -84,6 +84,17 @@ export class SimulationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSimulation(@Param('id') id: string, @User() { id: userId }: TUser) {
     return this.simulationsService.delete(userId, id)
+  }
+
+  @AccessControl({
+    entity: Prisma.ModelName.Simulation,
+    paramName: 'id',
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Post(':id/clone')
+  @HttpCode(HttpStatus.CREATED)
+  async cloneSimulation(@Param('id') id: string, @Body() data: TCloneSimulationDto, @User() { id: userId }: TUser) {
+    return this.simulationsService.clone(userId, id, data)
   }
 
   @AccessControl({

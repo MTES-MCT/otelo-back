@@ -49,3 +49,9 @@ export const ZRequestPowerpoint = z.object({
 })
 
 export type TRequestPowerpoint = z.infer<typeof ZRequestPowerpoint>
+
+export const ZCloneSimulationDto = z.object({
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom ne doit pas dépasser 100 caractères'),
+})
+
+export type TCloneSimulationDto = z.infer<typeof ZCloneSimulationDto>

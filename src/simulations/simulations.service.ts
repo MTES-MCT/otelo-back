@@ -4,7 +4,7 @@ import { PrismaService } from '~/db/prisma.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
-import { TSimulationWithEpci, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
+import { TCloneSimulationDto, TSimulationWithEpci, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class SimulationsService {
@@ -30,6 +30,7 @@ export class SimulationsService {
         updatedAt: true,
       },
       where: { userId },
+      orderBy: { updatedAt: 'desc' },
     })
 
     return simulations
@@ -98,6 +99,45 @@ export class SimulationsService {
   async delete(userId: string, id: string): Promise<Simulation> {
     return this.prismaService.simulation.delete({
       where: { id, userId },
+    })
+  }
+
+  async clone(userId: string, originalId: string, data: TCloneSimulationDto): Promise<Simulation> {
+    // Get the original simulation with scenario and epcis
+    const originalSimulation = await this.prismaService.simulation.findUniqueOrThrow({
+      include: {
+        scenario: { include: { epciScenarios: true } },
+        epcis: { select: { code: true } },
+      },
+      where: { id: originalId, userId },
+    })
+
+    const { userId: _, id, ...scenarioData } = originalSimulation.scenario
+
+    // Clone the scenario (deep copy)
+    const clonedScenario = await this.scenariosService.create(userId, {
+      ...scenarioData,
+      epcis: originalSimulation.scenario.epciScenarios.reduce((acc, epciScenario) => {
+        acc[epciScenario.epciCode] = {
+          b2_tx_rs: epciScenario.b2_tx_rs,
+          b2_tx_vacance: epciScenario.b2_tx_vacance,
+          b2_tx_disparition: epciScenario.b2_tx_disparition,
+          b2_tx_restructuration: epciScenario.b2_tx_restructuration,
+        }
+        return acc
+      }, {}),
+    })
+
+    // Create the new simulation
+    return this.prismaService.simulation.create({
+      data: {
+        name: data.name,
+        epcis: {
+          connect: originalSimulation.epcis.map((epci) => ({ code: epci.code })),
+        },
+        scenario: { connect: { id: clonedScenario.id } },
+        user: { connect: { id: userId } },
+      },
     })
   }
 
@@ -195,8 +235,6 @@ export class SimulationsService {
 
     simulations.forEach((simulation) => {
       const bassinNames = simulation.epcis.map(({ bassinName }) => bassinName).filter((name): name is string => Boolean(name))
-
-      if (!bassinNames.length) return 'Autres'
 
       // Count occurrences
       const counts = new Map<string, number>()
