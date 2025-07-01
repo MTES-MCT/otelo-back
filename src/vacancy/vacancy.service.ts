@@ -55,7 +55,7 @@ export class VacancyService {
 
   async getNewestVacancy(epcisCodes: string[]): Promise<VacancyAccommodation[]> {
     return this.prismaService.vacancyAccommodation.findMany({
-      where: { epciCode: { in: epcisCodes }, year: { equals: 2024 } },
+      where: { epciCode: { in: epcisCodes }, year: { equals: 2021 } },
     })
   }
 

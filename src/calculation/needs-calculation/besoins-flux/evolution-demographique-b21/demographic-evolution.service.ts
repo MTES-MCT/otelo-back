@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
+import { CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
-import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import {
   EOmphale,
   TDemographicEvolution,
@@ -23,13 +22,15 @@ export const omphaleMap = {
 }
 
 @Injectable()
-export class DemographicEvolutionService extends BaseCalculator {
+export class DemographicEvolutionService {
   constructor(
     @Inject('CalculationContext')
     protected readonly context: CalculationContext,
     private readonly prismaService: PrismaService,
-  ) {
-    super(context)
+  ) {}
+
+  private applyCoefficient(value: number): number {
+    return Math.round(value * this.context.coefficient)
   }
 
   async getProjectionByYearAndOmphale(query: TGetDemographicEvolutionByYearAndOmphaleQuery): Promise<TGetDemographicEvolution> {
@@ -76,53 +77,6 @@ export class DemographicEvolutionService extends BaseCalculator {
     }))
   }
 
-  async calculate(): Promise<TCalculationResult> {
-    const { epcis } = this.context.simulation
-    const results = await Promise.all(
-      epcis.map(async (epci) => ({
-        epciCode: epci.code,
-        value: await this.calculateByEpci(epci.code),
-      })),
-    )
-    const total = results.reduce((sum, result) => sum + result.value, 0)
-    return {
-      epcis: results,
-      total,
-    }
-  }
-
-  async calculateByEpci(epciCode: string): Promise<number> {
-    const { simulation, baseYear } = this.context
-    const { scenario } = simulation
-
-    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
-    const baseProjection = await this.getProjectionByYearAndOmphale({
-      epciCode,
-      omphale,
-      year: baseYear,
-    })
-
-    const futureProjection = await this.getProjectionByYearAndOmphale({
-      epciCode,
-      omphale,
-      year: scenario.projection,
-    })
-    return Math.round(futureProjection[omphale] - baseProjection[omphale])
-  }
-
-  async calculateOmphaleProjectionsByYear(): Promise<Array<{ data: TDemographicEvolution; epciCode: string }>> {
-    const { simulation } = this.context
-    const { epcis } = simulation
-
-    const results = await Promise.all(
-      epcis.map(async (epci) => ({
-        data: await this.calculateOmphaleProjectionsByYearFromBaseAndEpci(epci.code),
-        epciCode: epci.code,
-      })),
-    )
-    return results
-  }
-
   async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear?: number): Promise<TDemographicEvolution> {
     const { simulation, baseYear: baseYearContext } = this.context
     const { scenario } = simulation
@@ -158,60 +112,6 @@ export class DemographicEvolutionService extends BaseCalculator {
         yearlyData: [] as { value: number; year: number }[],
       },
     )
-
-    return {
-      data: yearlyData,
-      metadata: {
-        data: {
-          max,
-          min,
-        },
-        period: {
-          endYear: periodMax,
-          startYear: periodMin,
-        },
-      },
-    }
-  }
-
-  async calculateOmphaleProjectionsByYearFromBaseAndEpci(epciCode: string): Promise<TDemographicEvolution> {
-    const { simulation, baseYear } = this.context
-    const { scenario } = simulation
-
-    const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
-    const baseProjection = await this.getProjectionByYearAndOmphale({
-      epciCode,
-      omphale,
-      year: baseYear,
-    })
-
-    const futureProjections = await this.getProjectionsByOmphale({
-      epciCode,
-      omphale,
-    })
-
-    const { max, min, periodMax, periodMin, yearlyData } = futureProjections
-      .filter(({ year }) => year >= baseYear)
-      .reduce(
-        (acc, projection) => {
-          const value = this.applyCoefficient(projection[omphale] - baseProjection[omphale])
-
-          return {
-            max: Math.max(acc.max, value),
-            min: Math.min(acc.min, value),
-            periodMax: Math.max(acc.periodMax, projection.year),
-            periodMin: Math.min(acc.periodMin, projection.year),
-            yearlyData: [...acc.yearlyData, { value, year: projection.year }],
-          }
-        },
-        {
-          max: -Infinity,
-          min: Infinity,
-          periodMax: -Infinity,
-          periodMin: Infinity,
-          yearlyData: [] as { value: number; year: number }[],
-        },
-      )
 
     return {
       data: yearlyData,

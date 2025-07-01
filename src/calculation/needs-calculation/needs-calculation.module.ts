@@ -4,6 +4,7 @@ import { Request } from 'express'
 import { CoefficientCalculationModule } from '~/calculation/coefficient-calculation/coefficient-calculation.module'
 import { CoefficientCalculationService } from '~/calculation/coefficient-calculation/coefficient-calculation.service'
 import { DemographicEvolutionService } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
+import { FlowRequirementService } from '~/calculation/needs-calculation/besoins-flux/flow-requirement.service'
 import { RenewalHousingStockService } from '~/calculation/needs-calculation/besoins-flux/occupation-renouvellement-parc-logements-b22/renewal-housing-stock.service'
 import { SocialParcService } from '~/calculation/needs-calculation/besoins-stock/besoins-menages-social-b17/social-parc.service'
 import { HostedService } from '~/calculation/needs-calculation/besoins-stock/heberges-b12/hosted.service'
@@ -12,7 +13,6 @@ import { FinancialInadequationService } from '~/calculation/needs-calculation/be
 import { PhysicalInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-physique-b15/physical-inadequation.service'
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-calculation.service'
-import { NewConstructionsService } from '~/calculation/needs-calculation/new-constructions/new-constructions.service'
 import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-calculation.module'
 import { PrismaModule } from '~/db/prisma.module'
@@ -66,7 +66,7 @@ interface AuthenticatedRequest extends Request {
     DemographicEvolutionService,
     RenewalHousingStockService,
     SitadelService,
-    NewConstructionsService,
+    FlowRequirementService,
     StockRequirementsService,
   ],
 })

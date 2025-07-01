@@ -5,12 +5,12 @@ import {
   omphaleMap,
 } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
 import { RenewalHousingStockService } from '~/calculation/needs-calculation/besoins-flux/occupation-renouvellement-parc-logements-b22/renewal-housing-stock.service'
-import { TNewConstructionsChartData, TNewConstructionsChartDataResult } from '~/schemas/calculator/calculation-result'
+import { TFlowRequirementChartData, TFlowRequirementChartDataResult } from '~/schemas/calculator/calculation-result'
 import { EOmphale, TDemographicEvolution, TGetDemographicEvolution } from '~/schemas/demographic-evolution/demographic-evolution'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
 
 @Injectable()
-export class NewConstructionsService extends BaseCalculator {
+export class FlowRequirementService extends BaseCalculator {
   constructor(
     @Inject('CalculationContext')
     protected readonly context: CalculationContext,
@@ -21,7 +21,7 @@ export class NewConstructionsService extends BaseCalculator {
     super(context)
   }
 
-  async calculate(): Promise<TNewConstructionsChartDataResult> {
+  async calculate(): Promise<TFlowRequirementChartDataResult> {
     const { simulation } = this.context
     const { epcis } = simulation
     const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(epci.code)))
@@ -34,7 +34,7 @@ export class NewConstructionsService extends BaseCalculator {
     const { b1_horizon_resorption } = scenario
     const result: Record<number, number> = {}
     additionalHousingUnitsForNewHouseholds.data.forEach(({ year }) => {
-      if (year >= b1_horizon_resorption) {
+      if (year > b1_horizon_resorption) {
         result[year] = 0
       } else {
         const calculation = stockByEpci / (b1_horizon_resorption - baseYear)
@@ -66,15 +66,11 @@ export class NewConstructionsService extends BaseCalculator {
     return result
   }
 
-  calculateAdditionalHousingForReplacements(totalParc: number, epciCode: string, year: number) {
+  calculateAdditionalHousingForReplacements(totalParc: number, epciCode: string) {
     const { simulation } = this.context
     const { scenario } = simulation
     const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
-    const result: Record<number, number> = {}
-
-    result[year] = totalParc * (epciScenario!.b2_tx_disparition * epciScenario!.b2_tx_restructuration)
-
-    return result
+    return totalParc * (epciScenario!.b2_tx_disparition - epciScenario!.b2_tx_restructuration)
   }
 
   calculateHousingNeeds(additionalHousingForReplacements: Record<number, number>, newHousingUnitsToConstruct: Record<number, number>) {
@@ -161,61 +157,49 @@ export class NewConstructionsService extends BaseCalculator {
     return result
   }
 
-  calculateParcEvolutionByYear(
+  calculateParcEvolutionAndNeedsSequential(
     initialParc: number,
     newHousingUnitsToConstruct: Record<number, number>,
     epciCode: string,
-  ): Record<number, number> {
+  ): {
+    parcEvolution: Record<number, number>
+    housingNeeds: Record<number, number>
+    surplusHousing: Record<number, number>
+    additionalHousingForReplacements: Record<number, number>
+  } {
     const { baseYear, periodProjection } = this.context
-    const result: Record<number, number> = {}
-
-    result[baseYear] = initialParc
-
-    for (let year = baseYear + 1; year <= periodProjection; year++) {
-      const previousParc = result[year - 1]
-
-      const additionalHousingForReplacements = this.calculateAdditionalHousingForReplacements(previousParc, epciCode, year - 1)
-      const housingNeeds = this.calculateHousingNeeds(additionalHousingForReplacements, newHousingUnitsToConstruct)
-      const surplusHousing = this.calculateSurplusHousing(additionalHousingForReplacements, newHousingUnitsToConstruct)
-
-      const parcChange = (housingNeeds[year - 1] || 0) - (surplusHousing[year - 1] || 0)
-      result[year] = previousParc + parcChange
-    }
-
-    return result
-  }
-
-  calculateHousingNeedsAndSurplusWithEvolvingParc(
-    newHousingUnitsToConstruct: Record<number, number>,
-    parcEvolution: Record<number, number>,
-    epciCode: string,
-  ): { housingNeeds: Record<number, number>; surplusHousing: Record<number, number> } {
-    const { baseYear, periodProjection } = this.context
+    const parcEvolution: Record<number, number> = {}
     const housingNeeds: Record<number, number> = {}
     const surplusHousing: Record<number, number> = {}
+    const additionalHousingForReplacements: Record<number, number> = {}
 
-    for (let year = baseYear; year <= periodProjection; year++) {
-      const currentParc = parcEvolution[year]
-      const additionalHousingForReplacements = this.calculateAdditionalHousingForReplacements(currentParc, epciCode, year)
+    parcEvolution[baseYear] = initialParc
+    housingNeeds[baseYear] = 0
+    surplusHousing[baseYear] = 0
+    additionalHousingForReplacements[baseYear] = 0
 
-      const value = additionalHousingForReplacements[year] + (newHousingUnitsToConstruct[year] || 0)
+    for (let year = baseYear + 1; year <= periodProjection; year++) {
+      const previousParc = parcEvolution[year - 1]
+      additionalHousingForReplacements[year] = this.calculateAdditionalHousingForReplacements(previousParc, epciCode)
 
-      if (value > 0) {
-        housingNeeds[year] = Math.round(value)
+      const totalValue = additionalHousingForReplacements[year] + (newHousingUnitsToConstruct[year] || 0)
+
+      if (totalValue > 0) {
+        housingNeeds[year] = Math.round(totalValue)
         surplusHousing[year] = 0
       } else {
         housingNeeds[year] = 0
-        surplusHousing[year] = Math.abs(value)
+        surplusHousing[year] = Math.abs(Math.round(totalValue))
       }
+
+      const netChange = housingNeeds[year] - surplusHousing[year]
+      parcEvolution[year] = Math.max(0, previousParc + netChange)
     }
 
-    housingNeeds[baseYear] = 0
-    surplusHousing[baseYear] = 0
-
-    return { housingNeeds, surplusHousing }
+    return { parcEvolution, housingNeeds, surplusHousing, additionalHousingForReplacements }
   }
 
-  async calculateByEpci(epciCode: string): Promise<TNewConstructionsChartData> {
+  async calculateByEpci(epciCode: string): Promise<TFlowRequirementChartData> {
     const { baseYear, simulation } = this.context
     const { scenario } = simulation
     const totalParc = await this.renewalHousingStock.getFilocomFlux(epciCode)
@@ -234,6 +218,7 @@ export class NewConstructionsService extends BaseCalculator {
       epciCode,
       baseYear - 1,
     )
+
     const additionalHousingUnitsForDeficitReduction = this.calculateAdditionalHousingUnitsForDeficitReduction(
       additionalHousingUnitsForNewHouseholds,
       stockByEpci,
@@ -276,20 +261,43 @@ export class NewConstructionsService extends BaseCalculator {
       vacantAccommodationVariation,
       secondaryResidenceVariation,
     )
-
-    const parcEvolution = this.calculateParcEvolutionByYear(totalParc.parctot, newHousingUnitsToConstruct, epciCode)
-
-    const { housingNeeds, surplusHousing } = this.calculateHousingNeedsAndSurplusWithEvolvingParc(
+    const { parcEvolution, housingNeeds, surplusHousing, additionalHousingForReplacements } = this.calculateParcEvolutionAndNeedsSequential(
+      totalParc.parctot,
       newHousingUnitsToConstruct,
-      parcEvolution,
       epciCode,
     )
+
+    const demographicEvolutionTotal = additionalHousingUnitsForNewHouseholds.data
+      .filter(({ year }) => year <= peakYear && year > baseYear)
+      .reduce((sum, { value }) => sum + value, 0)
+    const renewalNeedsTotal = Object.entries(additionalHousingForReplacements)
+      .filter(([year]) => Number(year) <= peakYear && Number(year) > baseYear)
+      .reduce((sum, [, value]) => sum + value, 0)
+    const secondaryResidenceTotal = Object.entries(secondaryResidenceVariation)
+      .filter(([year]) => Number(year) <= peakYear && Number(year) > baseYear)
+      .reduce((sum, [, value]) => sum + value, 0)
+    const housingNeedsTotal = Object.entries(housingNeeds)
+      .filter(([year]) => Number(year) <= peakYear && Number(year) > baseYear)
+      .reduce((sum, [, value]) => sum + value, 0)
+    const surplusHousingTotal = Object.entries(surplusHousing).reduce((sum, [, value]) => sum + value, 0)
+    const vacantAccomodationTotal = Object.entries(vacantAccommodationVariation)
+      .filter(([year]) => Number(year) > baseYear)
+      .reduce((sum, [, value]) => sum + value, 0)
 
     return {
       code: epciCode,
       data: {
+        parcEvolution,
         housingNeeds,
         surplusHousing,
+      },
+      totals: {
+        demographicEvolution: Math.round(demographicEvolutionTotal),
+        renewalNeeds: Math.round(renewalNeedsTotal),
+        secondaryResidenceAccomodationEvolution: Math.round(secondaryResidenceTotal),
+        housingNeeds: Math.round(housingNeedsTotal),
+        surplusHousing: Math.round(surplusHousingTotal),
+        vacantAccomodation: Math.round(vacantAccomodationTotal),
       },
       metadata: {
         max: additionalHousingUnitsForNewHouseholds.metadata.period.endYear,
