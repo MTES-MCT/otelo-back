@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ZCalculationResult, ZChartDataResult, ZNewConstructionsChartDataResult } from '~/schemas/calculator/calculation-result'
+import { ZCalculationResult, ZChartDataResult, ZFlowRequirementChartDataResult } from '~/schemas/calculator/calculation-result'
 
 export const ZStockRequirementsResults = z.object({
   badQuality: ZCalculationResult,
@@ -13,16 +13,13 @@ export const ZStockRequirementsResults = z.object({
 export type TStockRequirementsResults = z.infer<typeof ZStockRequirementsResults>
 
 export const ZResults = ZStockRequirementsResults.extend({
-  demographicEvolution: ZCalculationResult,
   epcisTotals: z.array(z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number() })),
-  newConstructions: ZNewConstructionsChartDataResult,
-  renewalNeeds: ZCalculationResult,
-  secondaryResidenceAccomodationEvolution: ZCalculationResult,
+  flowRequirement: ZFlowRequirementChartDataResult,
   sitadel: ZChartDataResult,
   total: z.number(),
   totalFlux: z.number(),
   totalStock: z.number(),
-  vacantAccomodationEvolution: ZCalculationResult,
+  vacantAccomodation: z.number(),
 })
 
 export type TResults = z.infer<typeof ZResults>

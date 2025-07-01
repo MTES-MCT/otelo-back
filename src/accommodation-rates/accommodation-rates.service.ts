@@ -5,6 +5,8 @@ import { VacancyService } from '~/vacancy/vacancy.service'
 interface AccommodationRatesByEpci {
   [epciCode: string]: {
     txLv: number
+    txLvLD: number
+    txLvCD: number
     txRs: number
     vacancy: {
       nbAccommodation: number
@@ -38,8 +40,14 @@ export class AccommodationRatesService {
     return epcisCodes.reduce<AccommodationRatesByEpci>((acc, epciCode) => {
       const epciVacancy = vacancyData.find((v) => v.epciCode === epciCode)
       const epciFilocom = filocomData.find((f) => f.epciCode === epciCode)
+      const ratioLongGlobalTerm = epciVacancy!.nbLogVac2More / epciVacancy!.nbLogVac2Less
+      const ratioShortGlobalTerm = (epciVacancy!.nbLogVac2Less - epciVacancy!.nbLogVac2More) / epciVacancy!.nbLogVac2Less
+      const txLvLD = (epciFilocom?.txLvParctot ?? 0) * ratioLongGlobalTerm
+      const txLvCD = (epciFilocom?.txLvParctot ?? 0) * ratioShortGlobalTerm
       acc[epciCode] = {
-        txLv: epciFilocom?.txLvParctot ?? 0,
+        txLv: txLvLD + txLvCD,
+        txLvLD,
+        txLvCD,
         txRs: epciFilocom?.txRsParctot ?? 0,
         vacancy: {
           nbAccommodation: (epciVacancy?.nbLogVac2More ?? 0) + (epciVacancy?.nbLogVac5More ?? 0),

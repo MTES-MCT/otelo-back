@@ -2,8 +2,8 @@ import {
   TCalculationResult,
   TChartData,
   TChartDataResult,
-  TNewConstructionsChartData,
-  TNewConstructionsChartDataResult,
+  TFlowRequirementChartData,
+  TFlowRequirementChartDataResult,
 } from '~/schemas/calculator/calculation-result'
 import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
@@ -17,8 +17,8 @@ export interface CalculationContext {
 export abstract class BaseCalculator {
   constructor(protected readonly context: CalculationContext) {}
 
-  abstract calculate(): Promise<TCalculationResult | TChartDataResult | TNewConstructionsChartDataResult>
-  abstract calculateByEpci(epciCode: string): Promise<number | TChartData | TNewConstructionsChartData>
+  abstract calculate(): Promise<TCalculationResult | TChartDataResult | TFlowRequirementChartDataResult>
+  abstract calculateByEpci(epciCode: string): Promise<number | TChartData | TFlowRequirementChartData>
 
   protected applyCoefficient(value: number): number {
     return Math.round(value * this.context.coefficient)
