@@ -17,45 +17,4 @@ export class EpciGroupsController {
   async findAll(@User() user: TUser): Promise<TEpciGroupWithEpcis[]> {
     return this.epciGroupsService.findAll(user.id);
   }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @Get(':id')
-  async findOne(@Param('id') id: string, @User() user: TUser): Promise<TEpciGroupWithEpcis> {
-    return this.epciGroupsService.findOne(id, user.id);
-  }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() data: TCreateEpciGroupDto,
-    @User() user: TUser,
-  ): Promise<TEpciGroupWithEpcis> {
-    return this.epciGroupsService.create(user.id, data);
-  }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() data: TUpdateEpciGroupDto,
-    @User() user: TUser,
-  ): Promise<TEpciGroupWithEpcis> {
-    return this.epciGroupsService.update(id, user.id, data);
-  }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string, @User() user: TUser): Promise<void> {
-    return this.epciGroupsService.remove(id, user.id);
-  }
 }

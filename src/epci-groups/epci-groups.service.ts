@@ -20,25 +20,6 @@ export class EpciGroupsService {
     });
   }
 
-  async findOne(id: string, userId: string): Promise<TEpciGroupWithEpcis> {
-    const epciGroup = await this.prisma.epciGroup.findFirst({
-      where: { id, userId },
-      include: {
-        epciGroupEpcis: {
-          include: {
-            epci: true,
-          },
-        },
-      },
-    });
-
-    if (!epciGroup) {
-      throw new NotFoundException('Groupe EPCI non trouvé');
-    }
-
-    return epciGroup;
-  }
-
   async create(userId: string, data: TCreateEpciGroupDto): Promise<TEpciGroupWithEpcis> {
     const { name, epciCodes } = data;
 
@@ -59,77 +40,6 @@ export class EpciGroupsService {
           },
         },
       },
-    });
-  }
-
-  async update(id: string, userId: string, data: TUpdateEpciGroupDto): Promise<TEpciGroupWithEpcis> {
-    // Check if the group exists and belongs to the user
-    const existingGroup = await this.prisma.epciGroup.findFirst({
-      where: { id, userId },
-    });
-
-    if (!existingGroup) {
-      throw new NotFoundException('Groupe EPCI non trouvé');
-    }
-
-    const { name, epciCodes } = data;
-
-    // If epciCodes is provided, we need to update the relations
-    if (epciCodes) {
-      // Delete existing relations and create new ones
-      await this.prisma.epciGroupEpcis.deleteMany({
-        where: { epciGroupId: id },
-      });
-
-      return this.prisma.epciGroup.update({
-        where: { id },
-        data: {
-          ...(name && { name }),
-          epciGroupEpcis: {
-            create: epciCodes.map((epciCode) => ({
-              epciCode,
-            })),
-          },
-        },
-        include: {
-          epciGroupEpcis: {
-            include: {
-              epci: true,
-            },
-          },
-        },
-      });
-    }
-
-    // If only name is being updated
-    return this.prisma.epciGroup.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-      },
-      include: {
-        epciGroupEpcis: {
-          include: {
-            epci: true,
-          },
-        },
-      },
-    });
-  }
-
-  async remove(id: string, userId: string): Promise<void> {
-    // Check if the group exists and belongs to the user
-    const existingGroup = await this.prisma.epciGroup.findFirst({
-      where: { id, userId },
-    });
-
-    if (!existingGroup) {
-      throw new NotFoundException('Groupe EPCI non trouvé');
-    }
-
-    // The cascade delete will handle removing epciGroupEpcis relations
-    await this.prisma.epciGroup.delete({
-      where: { id },
     });
   }
 }
