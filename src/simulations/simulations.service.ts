@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Simulation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { EpciGroupsService } from '~/epci-groups/epci-groups.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
@@ -11,6 +12,7 @@ export class SimulationsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly scenariosService: ScenariosService,
+    private readonly epciGroupsService: EpciGroupsService,
   ) {}
 
   async hasUserAccessTo(id: string, userId: string): Promise<boolean> {
@@ -79,6 +81,18 @@ export class SimulationsService {
   async create(userId: string, data: TInitSimulation): Promise<Simulation> {
     const scenario = await this.scenariosService.create(userId, data.scenario)
 
+    let epciGroupId = data.epciGroupId
+
+    // Handle EPCI group creation if needed
+    if (data.epciGroupName && !epciGroupId) {
+      // Create a new EPCI group with the provided name
+      const epciGroup = await this.epciGroupsService.create(userId, {
+        name: data.epciGroupName,
+        epciCodes: data.epci.map((epci) => epci.code),
+      })
+      epciGroupId = epciGroup.id
+    }
+
     return this.prismaService.simulation.create({
       data: {
         epcis: {
@@ -87,6 +101,7 @@ export class SimulationsService {
         name: data.name,
         scenario: { connect: { id: scenario.id } },
         user: { connect: { id: userId } },
+        ...(epciGroupId && { epciGroup: { connect: { id: epciGroupId } } }),
       },
     })
   }
@@ -137,6 +152,7 @@ export class SimulationsService {
         },
         scenario: { connect: { id: clonedScenario.id } },
         user: { connect: { id: userId } },
+        ...(originalSimulation.epciGroupId && { epciGroup: { connect: { id: originalSimulation.epciGroupId } } }),
       },
     })
   }

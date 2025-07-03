@@ -225,6 +225,9 @@ model Simulation {
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
 
+  epciGroup   EpciGroup?   @relation(fields: [epciGroupId], references: [id])
+  epciGroupId String? @map("epci_group_id")
+
   epcis Epci[]
 
   scenario   Scenario @relation(fields: [scenarioId], references: [id])
@@ -641,6 +644,7 @@ model EpciGroup {
   userId String @map("user_id")
 
   epciGroupEpcis EpciGroupEpcis[]
+  simulations Simulation[]
 
   @@map("epci_groups")
 }
