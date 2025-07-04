@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '~/db/prisma.service';
-import { TCreateEpciGroupDto, TUpdateEpciGroupDto, TEpciGroupWithEpcis } from '~/schemas/epci-group';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '~/db/prisma.service'
+import { TCreateEpciGroupDto, TEpciGroupWithEpcis } from '~/schemas/epci-group'
 
 @Injectable()
 export class EpciGroupsService {
@@ -17,11 +17,11 @@ export class EpciGroupsService {
         },
       },
       orderBy: { createdAt: 'desc' },
-    });
+    })
   }
 
   async create(userId: string, data: TCreateEpciGroupDto): Promise<TEpciGroupWithEpcis> {
-    const { name, epciCodes } = data;
+    const { name, epciCodes } = data
 
     return this.prisma.epciGroup.create({
       data: {
@@ -40,6 +40,6 @@ export class EpciGroupsService {
           },
         },
       },
-    });
+    })
   }
 }

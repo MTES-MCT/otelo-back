@@ -30,12 +30,16 @@ export class SimulationsService {
         scenario: { select: { b2_scenario: true, projection: true } },
         id: true,
         updatedAt: true,
+        epciGroup: { select: { id: true, name: true } },
       },
       where: { userId },
       orderBy: { updatedAt: 'desc' },
     })
 
-    return simulations
+    return simulations.map((simulation) => ({
+      ...simulation,
+      epciGroup: simulation.epciGroup || undefined,
+    }))
   }
 
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
@@ -241,35 +245,44 @@ export class SimulationsService {
   }
 
   /**
-   * Gets the list of simulations for a user and groups them by their most common bassinName.
+   * Gets the list of simulations for a user and groups them by their epciGroup ID.
    */
   async getDashboardList(userId: string) {
     const simulations = await this.list(userId)
 
-    // Group simulations by their most common bassinName
-    const groupedSimulations: Record<string, TSimulationWithEpci[]> = {}
+    // Group simulations by their epciGroup ID
+    const groupedSimulations: Array<{
+      id: string
+      name: string
+      simulations: TSimulationWithEpci[]
+    }> = []
+
+    // First, group by epciGroup ID or 'autres' for ungrouped
+    const simulationsByGroupId: Record<string, TSimulationWithEpci[]> = {}
 
     simulations.forEach((simulation) => {
-      const bassinNames = simulation.epcis.map(({ bassinName }) => bassinName).filter((name): name is string => Boolean(name))
+      const groupId = simulation.epciGroup?.id || 'autres'
+      simulationsByGroupId[groupId] = simulationsByGroupId[groupId] || []
+      simulationsByGroupId[groupId].push(simulation)
+    })
 
-      // Count occurrences
-      const counts = new Map<string, number>()
-      bassinNames.forEach((name) => {
-        counts.set(name, (counts.get(name) || 0) + 1)
-      })
-
-      // Find the name with the highest count
-      let mostCommon = 'Autres'
-      let maxCount = 0
-
-      counts.forEach((count, name) => {
-        if (count > maxCount) {
-          maxCount = count
-          mostCommon = name
-        }
-      })
-      groupedSimulations[mostCommon] = groupedSimulations[mostCommon] || []
-      groupedSimulations[mostCommon].push(simulation)
+    // Convert to array format with proper structure
+    Object.entries(simulationsByGroupId).forEach(([groupId, sims]) => {
+      if (groupId === 'autres') {
+        groupedSimulations.push({
+          id: 'autres',
+          name: 'Autres',
+          simulations: sims,
+        })
+      } else {
+        // Get the group name from any simulation in this group
+        const groupName = sims[0].epciGroup?.name || 'Unknown'
+        groupedSimulations.push({
+          id: groupId,
+          name: groupName,
+          simulations: sims,
+        })
+      }
     })
 
     return groupedSimulations

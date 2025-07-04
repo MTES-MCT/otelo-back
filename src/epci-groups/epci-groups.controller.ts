@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { User } from '~/common/decorators/authenticated-user';
-import { AccessControl } from '~/common/decorators/control-access.decorator';
-import { TCreateEpciGroupDto, TUpdateEpciGroupDto, TEpciGroupWithEpcis } from '~/schemas/epci-group';
-import { TUser } from '~/schemas/users/user';
-import { EpciGroupsService } from './epci-groups.service';
+import { Controller, Get } from '@nestjs/common'
+import { Role } from '@prisma/client'
+import { User } from '~/common/decorators/authenticated-user'
+import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { TEpciGroupWithEpcis } from '~/schemas/epci-group'
+import { TUser } from '~/schemas/users/user'
+import { EpciGroupsService } from './epci-groups.service'
 
 @Controller('epci-groups')
 export class EpciGroupsController {
@@ -15,6 +15,6 @@ export class EpciGroupsController {
   })
   @Get()
   async findAll(@User() user: TUser): Promise<TEpciGroupWithEpcis[]> {
-    return this.epciGroupsService.findAll(user.id);
+    return this.epciGroupsService.findAll(user.id)
   }
 }
