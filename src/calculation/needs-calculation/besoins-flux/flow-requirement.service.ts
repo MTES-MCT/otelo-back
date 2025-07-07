@@ -232,8 +232,8 @@ export class FlowRequirementService extends BaseCalculator {
     // Calculate the year just before we pass from positive to negative
     const peakYearIndex = additionalHousingUnitsForDeficitAndNewHouseholds.findIndex(({ value }) => value < 0)
     const peakYear = additionalHousingUnitsForDeficitAndNewHouseholds[peakYearIndex - 1]?.year ?? 2050
-
     const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(epciCode, peakYear)
+
     const secondaryResidenceAccomodationEvolution = await this.renewalHousingStock.getSecondaryResidenceAccomodationEvolutionByEpciAndYear(
       epciCode,
       peakYear,
@@ -245,7 +245,6 @@ export class FlowRequirementService extends BaseCalculator {
       vacantAccomodationEvolution,
       secondaryResidenceAccomodationEvolution,
     )
-
     const vacantAccommodationVariation = this.calculateVacantAccommodationVariationByYear(
       accommodationVariation,
       vacantAccomodationEvolution,
@@ -283,7 +282,6 @@ export class FlowRequirementService extends BaseCalculator {
     const vacantAccomodationTotal = Object.entries(vacantAccommodationVariation)
       .filter(([year]) => Number(year) > baseYear)
       .reduce((sum, [, value]) => sum + value, 0)
-
     return {
       code: epciCode,
       data: {

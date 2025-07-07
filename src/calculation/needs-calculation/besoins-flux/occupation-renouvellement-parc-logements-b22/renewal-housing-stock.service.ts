@@ -55,7 +55,7 @@ export class RenewalHousingStockService {
         const rateChange = (targetVacancyRate - defaultVacancyRate) / (minYear - baseYear)
         result[year] = previousYearRate + rateChange
       } else {
-        result[year] = result[peakYear]
+        result[year] = result[peakYear] ?? defaultVacancyRate
       }
     }
 
@@ -82,7 +82,7 @@ export class RenewalHousingStockService {
         const rateChange = (targetSecondaryResidenceRate - defaultSecondaryResidenceRate) / (minYear - baseYear)
         result[year] = previousYearRate + rateChange
       } else {
-        result[year] = result[peakYear]
+        result[year] = result[peakYear] ?? defaultSecondaryResidenceRate
       }
     }
 

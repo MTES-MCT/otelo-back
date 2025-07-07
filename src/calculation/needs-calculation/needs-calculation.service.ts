@@ -47,6 +47,7 @@ export class NeedsCalculationService {
         totalStock: epciTotalStock,
       }
     })
+
     return {
       badQuality,
       flowRequirement,
