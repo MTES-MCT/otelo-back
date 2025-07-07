@@ -21,6 +21,15 @@ export class EpcisController {
     }
   }
 
+  @Get('contiguous')
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+  })
+  async getContiguousEpcis(@Query('codes') codes: string): Promise<Epci[]> {
+    const epciCodes = codes.split(',')
+    return this.epcisService.getContiguousEpcis(epciCodes)
+  }
+
   @AccessControl({
     roles: [Role.ADMIN, Role.USER],
   })
@@ -72,18 +81,12 @@ export class EpcisController {
   }
 
   @AccessControl({
+    paramName: 'epciCode',
     roles: [Role.ADMIN, Role.USER],
   })
   @Get(':epciCode/bassin')
+  @HttpCode(HttpStatus.OK)
   async getEpcisByBassin(@Param('epciCode') epciCode: string): Promise<Epci[]> {
     return this.epcisService.getBassinEpcisByEpciCode(epciCode)
-  }
-
-  @Get(':code/contiguous')
-  @AccessControl({
-    roles: [Role.ADMIN, Role.USER],
-  })
-  async getContiguousEpcis(@Param('code') code: string): Promise<Epci[]> {
-    return this.epcisService.getContiguousEpcis(code)
   }
 }

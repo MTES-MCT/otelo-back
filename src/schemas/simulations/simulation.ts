@@ -26,6 +26,12 @@ export const ZSimulationWithEpci = ZSimulation.pick({
     b2_scenario: true,
     projection: true,
   }).optional(),
+  epciGroup: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .optional(),
 })
 
 export type TSimulationWithEpci = z.infer<typeof ZSimulationWithEpci>

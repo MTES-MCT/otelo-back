@@ -14,6 +14,7 @@ import { CalculationModule } from './calculation/calculation.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
 import { EmailModule } from './email/email.module'
+import { EpciGroupsModule } from './epci-groups/epci-groups.module'
 import { EpcisModule } from './epcis/epcis.module'
 import { FilocomModule } from './filocom/filocom.module'
 import { FinancialInadequationModule } from './financial-inadequation/financial-inadequation.module'
@@ -40,6 +41,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     UsersModule,
     AuthModule,
     EpcisModule,
+    EpciGroupsModule,
     SimulationsModule,
     CalculationModule,
     ResultsModule,

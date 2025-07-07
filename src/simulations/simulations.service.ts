@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Simulation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { EpciGroupsService } from '~/epci-groups/epci-groups.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
@@ -11,6 +12,7 @@ export class SimulationsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly scenariosService: ScenariosService,
+    private readonly epciGroupsService: EpciGroupsService,
   ) {}
 
   async hasUserAccessTo(id: string, userId: string): Promise<boolean> {
@@ -28,12 +30,16 @@ export class SimulationsService {
         scenario: { select: { b2_scenario: true, projection: true } },
         id: true,
         updatedAt: true,
+        epciGroup: { select: { id: true, name: true } },
       },
       where: { userId },
       orderBy: { updatedAt: 'desc' },
     })
 
-    return simulations
+    return simulations.map((simulation) => ({
+      ...simulation,
+      epciGroup: simulation.epciGroup || undefined,
+    }))
   }
 
   async get(id: string): Promise<TSimulationWithEpciAndScenario> {
@@ -79,6 +85,18 @@ export class SimulationsService {
   async create(userId: string, data: TInitSimulation): Promise<Simulation> {
     const scenario = await this.scenariosService.create(userId, data.scenario)
 
+    let epciGroupId = data.epciGroupId
+
+    // Handle EPCI group creation if needed
+    if (data.epciGroupName && !epciGroupId) {
+      // Create a new EPCI group with the provided name
+      const epciGroup = await this.epciGroupsService.create(userId, {
+        name: data.epciGroupName,
+        epciCodes: data.epci.map((epci) => epci.code),
+      })
+      epciGroupId = epciGroup.id
+    }
+
     return this.prismaService.simulation.create({
       data: {
         epcis: {
@@ -87,6 +105,7 @@ export class SimulationsService {
         name: data.name,
         scenario: { connect: { id: scenario.id } },
         user: { connect: { id: userId } },
+        ...(epciGroupId && { epciGroup: { connect: { id: epciGroupId } } }),
       },
     })
   }
@@ -137,6 +156,7 @@ export class SimulationsService {
         },
         scenario: { connect: { id: clonedScenario.id } },
         user: { connect: { id: userId } },
+        ...(originalSimulation.epciGroupId && { epciGroup: { connect: { id: originalSimulation.epciGroupId } } }),
       },
     })
   }
@@ -225,35 +245,44 @@ export class SimulationsService {
   }
 
   /**
-   * Gets the list of simulations for a user and groups them by their most common bassinName.
+   * Gets the list of simulations for a user and groups them by their epciGroup ID.
    */
   async getDashboardList(userId: string) {
     const simulations = await this.list(userId)
 
-    // Group simulations by their most common bassinName
-    const groupedSimulations: Record<string, TSimulationWithEpci[]> = {}
+    // Group simulations by their epciGroup ID
+    const groupedSimulations: Array<{
+      id: string
+      name: string
+      simulations: TSimulationWithEpci[]
+    }> = []
+
+    // First, group by epciGroup ID or 'autres' for ungrouped
+    const simulationsByGroupId: Record<string, TSimulationWithEpci[]> = {}
 
     simulations.forEach((simulation) => {
-      const bassinNames = simulation.epcis.map(({ bassinName }) => bassinName).filter((name): name is string => Boolean(name))
+      const groupId = simulation.epciGroup?.id || 'autres'
+      simulationsByGroupId[groupId] = simulationsByGroupId[groupId] || []
+      simulationsByGroupId[groupId].push(simulation)
+    })
 
-      // Count occurrences
-      const counts = new Map<string, number>()
-      bassinNames.forEach((name) => {
-        counts.set(name, (counts.get(name) || 0) + 1)
-      })
-
-      // Find the name with the highest count
-      let mostCommon = 'Autres'
-      let maxCount = 0
-
-      counts.forEach((count, name) => {
-        if (count > maxCount) {
-          maxCount = count
-          mostCommon = name
-        }
-      })
-      groupedSimulations[mostCommon] = groupedSimulations[mostCommon] || []
-      groupedSimulations[mostCommon].push(simulation)
+    // Convert to array format with proper structure
+    Object.entries(simulationsByGroupId).forEach(([groupId, sims]) => {
+      if (groupId === 'autres') {
+        groupedSimulations.push({
+          id: 'autres',
+          name: 'Autres',
+          simulations: sims,
+        })
+      } else {
+        // Get the group name from any simulation in this group
+        const groupName = sims[0].epciGroup?.name || 'Unknown'
+        groupedSimulations.push({
+          id: groupId,
+          name: groupName,
+          simulations: sims,
+        })
+      }
     })
 
     return groupedSimulations

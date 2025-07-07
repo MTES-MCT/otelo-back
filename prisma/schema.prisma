@@ -31,6 +31,7 @@ model User {
   scenarios   Scenario[]
   simulations Simulation[]
   sessions    Session[]
+  epciGroups  EpciGroup[]
 
   @@map("users")
 }
@@ -208,6 +209,9 @@ model Epci {
   contiguousTo   EPCIContiguity[] @relation("EPCIContiguity")
   contiguousFrom EPCIContiguity[] @relation("ContiguousEPCI")
 
+  // EPCI Groups
+  epciGroupEpcis EpciGroupEpcis[]
+
   @@map("epcis")
 }
 
@@ -220,6 +224,9 @@ model Simulation {
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
+
+  epciGroup   EpciGroup?   @relation(fields: [epciGroupId], references: [id])
+  epciGroupId String? @map("epci_group_id")
 
   epcis Epci[]
 
@@ -624,4 +631,31 @@ model EPCIContiguity {
 
   @@id([epciCode, contiguousEpciCode])
   @@map("epci_contiguity")
+}
+
+model EpciGroup {
+  id   String @id @default(uuid())
+  name String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  epciGroupEpcis EpciGroupEpcis[]
+  simulations Simulation[]
+
+  @@map("epci_groups")
+}
+
+model EpciGroupEpcis {
+  epciGroup   EpciGroup @relation(fields: [epciGroupId], references: [id], onDelete: Cascade)
+  epciGroupId String    @map("epci_group_id")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciGroupId, epciCode])
+  @@map("epci_group_epcis")
 }
