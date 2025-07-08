@@ -7,13 +7,8 @@ export class HostedService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getHostedByEpci(epciCode: string) {
-    const [hostedFilocom, hostedFiness, hostedSne] = await Promise.all([
+    const [hostedFilocom, hostedSne] = await Promise.all([
       this.prismaService.hostedFilocom.findFirst({
-        where: {
-          epciCode,
-        },
-      }),
-      this.prismaService.hostedFiness.findFirst({
         where: {
           epciCode,
         },
@@ -25,14 +20,11 @@ export class HostedService {
       }),
     ])
     const { value: filocom } = hostedFilocom ?? { value: 0 }
-    const finess = Object.entries(hostedFiness ?? {})
-      .filter(([key]) => key !== 'epciCode')
-      .reduce((sum, [_, value]) => sum + (value as number), 0)
     const sne = Object.entries(hostedSne ?? {})
       .filter(([key]) => key !== 'epciCode')
       .reduce((sum, [_, value]) => sum + (value as number), 0)
     return {
-      data: filocom + finess + sne,
+      data: filocom + sne,
     }
   }
 

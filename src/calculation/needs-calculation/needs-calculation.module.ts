@@ -1,6 +1,7 @@
 import { Module, Scope } from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import { Request } from 'express'
+import { AccommodationRatesModule } from '~/accommodation-rates/accommodation-rates.module'
 import { CoefficientCalculationModule } from '~/calculation/coefficient-calculation/coefficient-calculation.module'
 import { CoefficientCalculationService } from '~/calculation/coefficient-calculation/coefficient-calculation.service'
 import { DemographicEvolutionService } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
@@ -29,7 +30,7 @@ interface AuthenticatedRequest extends Request {
 
 @Module({
   exports: [NeedsCalculationService],
-  imports: [PrismaModule, CoefficientCalculationModule, RatioCalculationModule, SimulationsModule, VacancyModule],
+  imports: [PrismaModule, CoefficientCalculationModule, RatioCalculationModule, SimulationsModule, VacancyModule, AccommodationRatesModule],
   providers: [
     {
       inject: [CoefficientCalculationService, SimulationsService, REQUEST],

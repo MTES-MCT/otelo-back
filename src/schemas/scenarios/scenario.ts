@@ -12,7 +12,10 @@ export const ZEpciScenario = z.object({
   b2_tx_restructuration: z.number(),
   b2_tx_rs: z.number(),
   b2_tx_vacance: z.number(),
+  b2_tx_vacance_longue: z.number(),
+  b2_tx_vacance_courte: z.number(),
   epciCode: z.string(),
+  baseEpci: z.boolean(),
 })
 
 export const ZScenario = ZCommonDateFields.extend({
@@ -22,7 +25,6 @@ export const ZScenario = ZCommonDateFields.extend({
   b11_part_etablissement: z.number(),
   b11_sa: z.boolean(),
   b12_cohab_interg_subie: z.number(),
-  b12_heberg_gratuit: z.boolean(),
   b12_heberg_particulier: z.boolean(),
   b12_heberg_temporaire: z.boolean(),
   b13_acc: z.boolean(),
@@ -58,6 +60,7 @@ export const ZInitScenario = ZCommonDateFields.extend({
     z.object({
       b2_tx_rs: z.number().optional(),
       b2_tx_vacance: z.number().optional(),
+      baseEpci: z.boolean(),
     }),
   ),
   projection: z.number(),

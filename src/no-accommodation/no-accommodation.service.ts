@@ -7,7 +7,7 @@ export class NoAccommodationService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getNoAccommodationByEpci(epciCode: string) {
-    const [homeless, hotel, makeShiftHousingRp] = await Promise.all([
+    const [homeless, hotel, makeShiftHousingRp, finess] = await Promise.all([
       this.prismaService.homeless.findFirst({
         where: { epciCode },
       }),
@@ -17,13 +17,22 @@ export class NoAccommodationService {
       this.prismaService.makeShiftHousing_RP.findFirst({
         where: { epciCode },
       }),
+      this.prismaService.hostedFiness.findFirst({
+        where: {
+          epciCode,
+        },
+      }),
     ])
     const homelessRes = homeless?.rp ?? 0
     const hotelRes = hotel?.rp ?? 0
+    const finessRes = Object.entries(finess ?? {})
+      .filter(([key]) => key !== 'epciCode')
+      .reduce((sum, [_, value]) => sum + (value as number), 0)
     return {
       homeless: homelessRes,
       hotel: hotelRes,
       makeShiftHousing: makeShiftHousingRp?.value ?? 0,
+      finess: finessRes,
     }
   }
   async getNoAccommodation(epcis: TEpci[]) {

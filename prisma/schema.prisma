@@ -115,26 +115,25 @@ model Scenario {
   b11_fortune            Boolean            @default(true)
   b11_hotel              Boolean            @default(true)
   source_b11             SourceB11          @default(RP)
-  b11_etablissement      B11Etablissement[] @default([autreCentre, demandeAsile, reinsertion, centreProvisoire, jeuneTravailleur, foyerMigrants, malade, maisonRelai, horsMaisonRelai])
-  b11_part_etablissement Int                @default(100)
-  b12_cohab_interg_subie Int                @default(50)
+  b11_etablissement      B11Etablissement[] @default([autreCentre, demandeAsile, reinsertion, centreProvisoire])
+  b11_part_etablissement Int                @default(50)
+  b12_cohab_interg_subie Int                @default(30)
   b12_heberg_particulier Boolean            @default(true)
-  b12_heberg_gratuit     Boolean            @default(true)
   b12_heberg_temporaire  Boolean            @default(true)
-  b13_acc                Boolean            @default(true)
+  b13_acc                Boolean            @default(false)
   b13_plp                Boolean            @default(true)
   b13_taux_effort        Int                @default(30)
-  b13_taux_reallocation  Int                @default(80)
+  b13_taux_reallocation  Int                @default(90)
   b14_confort            String             @default("RP_abs_sani")
   b14_occupation         String             @default("prop_loc")
   b14_qualite            String?
   source_b14             SourceB14          @default(Filo)
-  b14_taux_reallocation  Int                @default(80)
+  b14_taux_reallocation  Int                @default(50)
   b15_surocc             B15Surocc          @default(Acc)
   b15_proprietaire       Boolean            @default(false)
   b15_loc_hors_hlm       Boolean            @default(true)
   source_b15             SourceB15          @default(Filo)
-  b15_taux_reallocation  Int                @default(80)
+  b15_taux_reallocation  Int                @default(90)
   b17_motif              MotifB17           @default(Tout)
   b2_scenario            String
 
@@ -159,9 +158,12 @@ model Bassin {
 }
 
 model EPCIScenario {
+  baseEpci Boolean @default(false)
   b2_tx_restructuration Float @default(0.0)
   b2_tx_disparition     Float @default(0.0)
   b2_tx_vacance         Float @default(0.0)
+  b2_tx_vacance_longue  Float @default(0.0)
+  b2_tx_vacance_courte  Float @default(0.0)
   b2_tx_rs              Float @default(0.0)
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
