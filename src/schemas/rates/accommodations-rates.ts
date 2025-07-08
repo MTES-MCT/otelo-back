@@ -1,11 +1,13 @@
 import { z } from 'zod'
 
 const AccommodationRateData = z.object({
-  txLv: z.number(),
+  vacancyRate: z.number(),
+  longTermVacancyRate: z.number(),
+  shortTermVacancyRate: z.number(),
   txRs: z.number(),
   vacancy: z.object({
     nbAccommodation: z.number(),
-    txLvLongue: z.number(),
+    year: z.number().optional(),
   }),
 })
 

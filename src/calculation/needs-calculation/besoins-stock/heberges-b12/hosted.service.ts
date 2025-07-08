@@ -37,13 +37,9 @@ export class HostedService extends BaseCalculator {
     const hostedFilocom = await this.getHostedFilocom(epciCode)
     let result = (scenario.b12_cohab_interg_subie / 100) * hostedFilocom.value
 
-    const { free, particular, temporary } = await this.getHostedSne(epciCode)
+    const { particular, temporary } = await this.getHostedSne(epciCode)
     if (scenario.b12_heberg_particulier) {
       result += particular
-    }
-
-    if (scenario.b12_heberg_gratuit) {
-      result += free
     }
 
     if (scenario.b12_heberg_temporaire) {

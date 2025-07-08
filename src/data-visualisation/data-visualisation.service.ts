@@ -26,24 +26,27 @@ export class DataVisualisationService {
   ) {}
 
   async getInadequateHousing(epcis: TEpci[]): Promise<TInadequateHousing> {
-    const hosted = await this.hostedService.getHosted(epcis)
-    const noAccommodation = await this.noAccommodationService.getNoAccommodation(epcis)
-    const badQuality = await this.badQualityService.getBadQuality(epcis)
-    const financialInadequation = await this.financialInadequationService.getFinancialInadequation(epcis)
-    const physicalInadequation = await this.physicalInadequationService.getPhysicalInadequation(epcis)
+    const { hosted } = await this.hostedService.getHosted(epcis)
+    const { noAccommodation } = await this.noAccommodationService.getNoAccommodation(epcis)
+    const { badQuality } = await this.badQualityService.getBadQuality(epcis)
+    const { financialInadequation } = await this.financialInadequationService.getFinancialInadequation(epcis)
+    const { physicalInadequation } = await this.physicalInadequationService.getPhysicalInadequation(epcis)
 
     return epcis.reduce((acc, epci) => {
-      const hostedData = hosted.hosted.find((h) => h.epci.code === epci.code)
-      const noAccommodationData = noAccommodation.noAccommodation.find((n) => n.epci.code === epci.code)
-      const badQualityData = badQuality.badQuality.find((b) => b.epci.code === epci.code)
-      const financialInadequationData = financialInadequation.financialInadequation.find((f) => f.epci.code === epci.code)
-      const physicalInadequationData = physicalInadequation.physicalInadequation.find((p) => p.epci.code === epci.code)
+      const hostedData = hosted.find((h) => h.epci.code === epci.code)
+      const noAccommodationData = noAccommodation.find((n) => n.epci.code === epci.code)
+      const badQualityData = badQuality.find((b) => b.epci.code === epci.code)
+      const financialInadequationData = financialInadequation.find((f) => f.epci.code === epci.code)
+      const physicalInadequationData = physicalInadequation.find((p) => p.epci.code === epci.code)
 
       acc[epci.code] = {
         name: epci.name,
         hosted: hostedData?.data || 0,
         noAccommodation: Math.round(
-          (noAccommodationData?.homeless || 0) + (noAccommodationData?.hotel || 0) + (noAccommodationData?.makeShiftHousing || 0),
+          (noAccommodationData?.homeless || 0) +
+            (noAccommodationData?.hotel || 0) +
+            (noAccommodationData?.makeShiftHousing || 0) +
+            (noAccommodationData?.finess || 0),
         ),
         badQuality: badQualityData?.data || 0,
         financialInadequation: financialInadequationData?.data || 0,

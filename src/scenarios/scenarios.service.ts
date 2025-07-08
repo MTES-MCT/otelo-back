@@ -13,9 +13,22 @@ export class ScenariosService {
   }
 
   async get(id: string) {
-    return this.prisma.scenario.findUniqueOrThrow({
+    const scenario = await this.prisma.scenario.findUniqueOrThrow({
+      include: {
+        epciScenarios: true,
+      },
       where: { id },
     })
+
+    const sortedEpciScenarios = scenario.epciScenarios.sort((a, b) => {
+      if (a.baseEpci === b.baseEpci) return 0
+      return a.baseEpci ? -1 : 1
+    })
+
+    return {
+      ...scenario,
+      epciScenarios: sortedEpciScenarios,
+    }
   }
 
   async list(userId: string) {
@@ -24,15 +37,35 @@ export class ScenariosService {
 
   async create(userId: string, data: TInitScenario) {
     const { epcis, ...scenario } = data
+
+    const epciCodes = Object.keys(epcis)
+    const filocomFluxData = await this.prisma.filocomFlux.findMany({
+      where: {
+        epciCode: { in: epciCodes },
+      },
+    })
+
+    const filocomFluxMap = new Map(filocomFluxData.map((flux) => [flux.epciCode, flux]))
+    const epciScenariosData = Object.entries(epcis).map(([code, epciScenario]) => {
+      const filocomFlux = filocomFluxMap.get(code)
+      if (!filocomFlux) {
+        throw new Error(`FilocomFlux not found for EPCI code: ${code}`)
+      }
+
+      return {
+        epciCode: code,
+        ...epciScenario,
+        b2_tx_restructuration: filocomFlux.txRestParctot / 6,
+        b2_tx_disparition: filocomFlux.txDispParctot / 6,
+      }
+    })
+
     return this.prisma.scenario.create({
       data: {
         ...scenario,
         epciScenarios: {
           createMany: {
-            data: Object.entries(epcis).map(([code, epciScenario]) => ({
-              epciCode: code,
-              ...epciScenario,
-            })),
+            data: epciScenariosData,
           },
         },
         user: { connect: { id: userId } },
@@ -49,7 +82,10 @@ export class ScenariosService {
           ? {
               epciScenarios: {
                 updateMany: Object.entries(epciScenarios).map(
-                  ([epciCode, { b2_tx_disparition, b2_tx_restructuration, b2_tx_rs, b2_tx_vacance }]) => ({
+                  ([
+                    epciCode,
+                    { b2_tx_disparition, b2_tx_restructuration, b2_tx_rs, b2_tx_vacance, b2_tx_vacance_longue, b2_tx_vacance_courte },
+                  ]) => ({
                     where: {
                       scenarioId: id,
                       epciCode,
@@ -58,6 +94,8 @@ export class ScenariosService {
                       b2_tx_restructuration,
                       b2_tx_disparition,
                       b2_tx_vacance,
+                      b2_tx_vacance_longue,
+                      b2_tx_vacance_courte,
                       b2_tx_rs,
                     },
                   }),
