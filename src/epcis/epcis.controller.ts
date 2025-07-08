@@ -13,9 +13,9 @@ export class EpcisController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getEpcis(@Query('epcis') epcis: string): Promise<Epci[]> {
+  async getEpcis(@Query('epcis') epcis: string, @Query('baseEpci') baseEpci?: string): Promise<Epci[]> {
     try {
-      return await this.epcisService.getList(epcis)
+      return await this.epcisService.getList(epcis, baseEpci)
     } catch (error) {
       throw new NotFoundException(`EPCI with code ${epcis} not found`, { cause: error })
     }

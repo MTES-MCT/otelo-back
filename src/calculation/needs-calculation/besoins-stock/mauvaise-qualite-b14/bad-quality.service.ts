@@ -107,6 +107,9 @@ export class BadQualityService extends BaseCalculator {
       },
     }
     const result = (await sourceCalculators[source_b14]?.()) || 0
+
+    // todo - renovation + total
+    // renovation = result - total
     return this.applyCoefficient(result * (1 - b14_taux_reallocation / 100.0))
   }
 

@@ -15,12 +15,21 @@ export class EpcisService {
     })
   }
 
-  getList(epcis: string): Promise<Epci[]> {
-    return this.prisma.epci.findMany({
+  async getList(epcis: string, baseEpci?: string): Promise<Epci[]> {
+    const epcisList = await this.prisma.epci.findMany({
       where: {
         code: { in: epcis.split(',') },
       },
     })
+
+    if (baseEpci) {
+      const baseEpciItem = epcisList.find((epci) => epci.code === baseEpci)
+      const otherEpcis = epcisList.filter((epci) => epci.code !== baseEpci)
+
+      return baseEpciItem ? [baseEpciItem, ...otherEpcis] : epcisList
+    }
+
+    return epcisList
   }
 
   create(data: TEpci): Promise<Epci> {

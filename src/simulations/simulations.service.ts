@@ -46,17 +46,27 @@ export class SimulationsService {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: {
         epcis: { select: { code: true, name: true, bassinName: true } },
-        scenario: { include: { epciScenarios: true } },
+        scenario: { select: { id: true } },
       },
       where: { id },
+    })
+    const scenario = await this.scenariosService.get(simulation.scenario.id)
+
+    const sortedEpcis = simulation.epcis.sort((a, b) => {
+      const aScenario = scenario.epciScenarios.find((s) => s.epciCode === a.code)
+      const bScenario = scenario.epciScenarios.find((s) => s.epciCode === b.code)
+
+      if (!aScenario || !bScenario) return 0
+      if (aScenario.baseEpci === bScenario.baseEpci) return 0
+      return aScenario.baseEpci ? -1 : 1
     })
 
     return {
       name: simulation.name,
       createdAt: simulation.createdAt,
-      epcis: simulation.epcis,
+      epcis: sortedEpcis,
       id: simulation.id,
-      scenario: simulation.scenario as TSimulationWithEpciAndScenario['scenario'],
+      scenario: scenario as TSimulationWithEpciAndScenario['scenario'],
       updatedAt: simulation.updatedAt,
     }
   }
@@ -87,9 +97,7 @@ export class SimulationsService {
 
     let epciGroupId = data.epciGroupId
 
-    // Handle EPCI group creation if needed
     if (data.epciGroupName && !epciGroupId) {
-      // Create a new EPCI group with the provided name
       const epciGroup = await this.epciGroupsService.create(userId, {
         name: data.epciGroupName,
         epciCodes: data.epci.map((epci) => epci.code),
@@ -122,7 +130,6 @@ export class SimulationsService {
   }
 
   async clone(userId: string, originalId: string, data: TCloneSimulationDto): Promise<Simulation> {
-    // Get the original simulation with scenario and epcis
     const originalSimulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: {
         scenario: { include: { epciScenarios: true } },
@@ -133,21 +140,22 @@ export class SimulationsService {
 
     const { userId: _, id, ...scenarioData } = originalSimulation.scenario
 
-    // Clone the scenario (deep copy)
     const clonedScenario = await this.scenariosService.create(userId, {
       ...scenarioData,
       epcis: originalSimulation.scenario.epciScenarios.reduce((acc, epciScenario) => {
         acc[epciScenario.epciCode] = {
           b2_tx_rs: epciScenario.b2_tx_rs,
           b2_tx_vacance: epciScenario.b2_tx_vacance,
+          b2_tx_vacance_longue: epciScenario.b2_tx_vacance_longue,
+          b2_tx_vacance_courte: epciScenario.b2_tx_vacance_courte,
           b2_tx_disparition: epciScenario.b2_tx_disparition,
           b2_tx_restructuration: epciScenario.b2_tx_restructuration,
+          baseEpci: epciScenario.baseEpci,
         }
         return acc
       }, {}),
     })
 
-    // Create the new simulation
     return this.prismaService.simulation.create({
       data: {
         name: data.name,
@@ -216,7 +224,6 @@ export class SimulationsService {
         simulation.scenario.b11_part_etablissement,
         simulation.scenario.b12_cohab_interg_subie,
         [
-          simulation.scenario.b12_heberg_gratuit ? 'Logés à titre gratuit' : null,
           simulation.scenario.b12_heberg_particulier ? 'Logés chez un particulier' : null,
           simulation.scenario.b12_heberg_temporaire ? 'Logés temporairement' : null,
         ]
