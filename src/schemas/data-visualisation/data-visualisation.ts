@@ -155,8 +155,18 @@ export type TVacancyAccommodationEvolution = z.infer<typeof ZVacancyAccommodatio
 
 export const ZInadequateHousing = z.record(
   z.object({
-    hosted: z.number(),
-    noAccommodation: z.number(),
+    hosted: z.object({
+      filocom: z.number(),
+      sne: z.number(),
+      total: z.number(),
+    }),
+    noAccommodation: z.object({
+      total: z.number(),
+      hotel: z.number(),
+      homeless: z.number(),
+      makeShiftHousing: z.number(),
+      finess: z.number(),
+    }),
     badQuality: z.number(),
     financialInadequation: z.number(),
     physicalInadequation: z.number(),

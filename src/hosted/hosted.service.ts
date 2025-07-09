@@ -24,7 +24,11 @@ export class HostedService {
       .filter(([key]) => key !== 'epciCode')
       .reduce((sum, [_, value]) => sum + (value as number), 0)
     return {
-      data: filocom + sne,
+      data: {
+        filocom,
+        sne,
+        total: filocom + sne,
+      },
     }
   }
 

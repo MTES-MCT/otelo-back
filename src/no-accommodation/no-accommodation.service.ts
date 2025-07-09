@@ -29,10 +29,10 @@ export class NoAccommodationService {
       .filter(([key]) => key !== 'epciCode')
       .reduce((sum, [_, value]) => sum + (value as number), 0)
     return {
-      homeless: homelessRes,
-      hotel: hotelRes,
-      makeShiftHousing: makeShiftHousingRp?.value ?? 0,
-      finess: finessRes,
+      homeless: Math.round(homelessRes),
+      hotel: Math.round(hotelRes),
+      makeShiftHousing: Math.round(makeShiftHousingRp?.value ?? 0),
+      finess: Math.round(finessRes),
     }
   }
   async getNoAccommodation(epcis: TEpci[]) {

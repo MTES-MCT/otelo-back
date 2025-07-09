@@ -41,13 +41,23 @@ export class DataVisualisationService {
 
       acc[epci.code] = {
         name: epci.name,
-        hosted: hostedData?.data || 0,
-        noAccommodation: Math.round(
-          (noAccommodationData?.homeless || 0) +
-            (noAccommodationData?.hotel || 0) +
-            (noAccommodationData?.makeShiftHousing || 0) +
-            (noAccommodationData?.finess || 0),
-        ),
+        hosted: {
+          filocom: hostedData?.data?.filocom || 0,
+          sne: hostedData?.data?.sne || 0,
+          total: hostedData?.data?.total || 0,
+        },
+        noAccommodation: {
+          total: Math.round(
+            (noAccommodationData?.homeless || 0) +
+              (noAccommodationData?.hotel || 0) +
+              (noAccommodationData?.makeShiftHousing || 0) +
+              (noAccommodationData?.finess || 0),
+          ),
+          hotel: noAccommodationData?.hotel || 0,
+          homeless: noAccommodationData?.homeless || 0,
+          makeShiftHousing: noAccommodationData?.makeShiftHousing || 0,
+          finess: noAccommodationData?.finess || 0,
+        },
         badQuality: badQualityData?.data || 0,
         financialInadequation: financialInadequationData?.data || 0,
         physicalInadequation: physicalInadequationData?.data || 0,
