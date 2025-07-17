@@ -15,6 +15,7 @@ import { BadQualityModule } from './bad-quality/bad-quality.module'
 import { CalculationModule } from './calculation/calculation.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
+import { DemographicEvolutionCustomModule } from './demographic-evolution-custom/demographic-evolution-custom.module'
 import { EmailModule } from './email/email.module'
 import { EpciGroupsModule } from './epci-groups/epci-groups.module'
 import { EpcisModule } from './epcis/epcis.module'
@@ -48,6 +49,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     CalculationModule,
     ResultsModule,
     DemographicEvolutionModule,
+    DemographicEvolutionCustomModule,
     AccommodationRatesModule,
     VacancyModule,
     BassinModule,
