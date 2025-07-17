@@ -2,6 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -31,11 +35,12 @@ model User {
   updatedAt   DateTime @updatedAt @map("updated_at")
   lastLoginAt DateTime @default(now()) @map("last_login_at")
 
-  accounts    Account[]
-  scenarios   Scenario[]
-  simulations Simulation[]
-  sessions    Session[]
-  epciGroups  EpciGroup[]
+  accounts                          Account[]
+  scenarios                         Scenario[]
+  simulations                       Simulation[]
+  sessions                          Session[]
+  epciGroups                        EpciGroup[]
+  demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
 
   @@map("users")
 }
@@ -144,6 +149,9 @@ model Scenario {
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
 
+  demographicEvolutionOmphaleCustom   DemographicEvolutionOmphaleCustom? @relation(fields: [demographicEvolutionOmphaleCustomId], references: [id])
+  demographicEvolutionOmphaleCustomId String?                            @map("demographic_evolution_omphale_custom_id")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -162,13 +170,13 @@ model Bassin {
 }
 
 model EPCIScenario {
-  baseEpci Boolean @default(false)
-  b2_tx_restructuration Float @default(0.0)
-  b2_tx_disparition     Float @default(0.0)
-  b2_tx_vacance         Float @default(0.0)
-  b2_tx_vacance_longue  Float @default(0.0)
-  b2_tx_vacance_courte  Float @default(0.0)
-  b2_tx_rs              Float @default(0.0)
+  baseEpci              Boolean @default(false)
+  b2_tx_restructuration Float   @default(0.0)
+  b2_tx_disparition     Float   @default(0.0)
+  b2_tx_vacance         Float   @default(0.0)
+  b2_tx_vacance_longue  Float   @default(0.0)
+  b2_tx_vacance_courte  Float   @default(0.0)
+  b2_tx_rs              Float   @default(0.0)
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
@@ -216,7 +224,8 @@ model Epci {
   contiguousFrom EPCIContiguity[] @relation("ContiguousEPCI")
 
   // EPCI Groups
-  epciGroupEpcis EpciGroupEpcis[]
+  epciGroupEpcis                    EpciGroupEpcis[]
+  demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
 
   @@map("epcis")
 }
@@ -231,8 +240,8 @@ model Simulation {
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
 
-  epciGroup   EpciGroup?   @relation(fields: [epciGroupId], references: [id])
-  epciGroupId String? @map("epci_group_id")
+  epciGroup   EpciGroup? @relation(fields: [epciGroupId], references: [id])
+  epciGroupId String?    @map("epci_group_id")
 
   epcis Epci[]
 
@@ -629,10 +638,10 @@ model RP {
 }
 
 model EPCIContiguity {
-  epciCode          String @map("epci_code")
+  epciCode           String @map("epci_code")
   contiguousEpciCode String @map("contiguous_epci_code")
 
-  epci          Epci @relation("EPCIContiguity", fields: [epciCode], references: [code])
+  epci           Epci @relation("EPCIContiguity", fields: [epciCode], references: [code])
   contiguousEpci Epci @relation("ContiguousEPCI", fields: [contiguousEpciCode], references: [code])
 
   @@id([epciCode, contiguousEpciCode])
@@ -650,7 +659,7 @@ model EpciGroup {
   userId String @map("user_id")
 
   epciGroupEpcis EpciGroupEpcis[]
-  simulations Simulation[]
+  simulations    Simulation[]
 
   @@map("epci_groups")
 }
@@ -664,4 +673,23 @@ model EpciGroupEpcis {
 
   @@id([epciGroupId, epciCode])
   @@map("epci_group_epcis")
+}
+
+model DemographicEvolutionOmphaleCustom {
+  id   String @id @default(uuid())
+  /// [OmphaleCustomData]
+  data Json
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @map("user_id")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  scenarios Scenario[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("demographic_evolution_omphale_custom")
 }
