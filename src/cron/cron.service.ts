@@ -213,7 +213,6 @@ export class CronService {
                 in: Array.from(acceptedEmails),
               },
               engaged: false,
-              hasAccess: false,
             },
           ],
         },
