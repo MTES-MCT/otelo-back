@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { PrismaService } from '~/db/prisma.service'
 import { TCreateUser } from '~/schemas/users/create-user'
 import { TUser, TUserList } from '~/schemas/users/user'
@@ -22,6 +22,16 @@ export class UsersService {
       userCount,
       users,
     }
+  }
+
+  async updateAccess(id: string, hasAccess: boolean): Promise<TUser> {
+    if (!hasAccess) {
+      await this.prisma.session.deleteMany({ where: { userId: id } })
+    }
+    return this.prisma.user.update({
+      data: { hasAccess },
+      where: { id },
+    })
   }
 
   async search(query: string): Promise<{ userCount: number; users: TUserList[] }> {
@@ -81,13 +91,7 @@ export class UsersService {
     })
   }
 
-  async delete(userId: string, id: string): Promise<void> {
-    if (userId === id) {
-      throw new ForbiddenException('You cannot delete yourself.')
-    }
-
-    await this.prisma.user.delete({
-      where: { id },
-    })
+  async delete(id: string): Promise<void> {
+    await Promise.all([this.prisma.session.deleteMany({ where: { userId: id } }), this.prisma.user.delete({ where: { id } })])
   }
 }

@@ -8,6 +8,8 @@ import envRessources from '~/config/environment'
 import { CronModule } from '~/cron/cron.module'
 import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
+import { AdminController } from './admin/admin.controller'
+import { AdminModule } from './admin/admin.module'
 import { AuthModule } from './auth/auth.module'
 import { BadQualityModule } from './bad-quality/bad-quality.module'
 import { CalculationModule } from './calculation/calculation.module'
@@ -30,7 +32,7 @@ import { UsersModule } from './users/users.module'
 import { VacancyModule } from './vacancy/vacancy.module'
 
 @Module({
-  controllers: [HealthController],
+  controllers: [HealthController, AdminController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -59,6 +61,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     PhysicalInadequationModule,
     EmailModule,
     CronModule,
+    AdminModule,
   ],
   providers: [
     AuthenticationGuard,

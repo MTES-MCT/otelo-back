@@ -27,7 +27,23 @@ const query = `
                 usager {
                  email
                 }
-             }
+                champs {
+                  id
+                  label
+                  ... on TextChamp {
+                    value
+                  }
+                  ... on RepetitionChamp {
+                      champs {
+                        id
+                        label
+                        ... on TextChamp {
+                          value
+                        }
+                      }
+                  }
+                }
+              }
             }
         }
     }
@@ -110,11 +126,51 @@ export class CronService {
 
   private processDossiersPage(nodes: DossierNode[], acceptedEmails: Set<string>): void {
     for (const dossier of nodes) {
-      if (dossier.state === 'accepte' && dossier.usager?.email) {
-        acceptedEmails.add(dossier.usager.email.toLowerCase())
-        this.logger.debug(`Found accepted dossier for email: ${this.anonymizeEmail(dossier.usager.email)}`)
+      if (dossier.state === 'accepte') {
+        const emails = this.extractEmailsFromDossier(dossier)
+        emails.forEach((email) => {
+          acceptedEmails.add(email.toLowerCase())
+          this.logger.debug(`Found accepted dossier for email: ${this.anonymizeEmail(email)}`)
+        })
       }
     }
+  }
+
+  private extractEmailsFromDossier(dossier: DossierNode): string[] {
+    const emails: string[] = []
+
+    // Add main usager email
+    if (dossier.usager?.email) {
+      emails.push(dossier.usager.email)
+    }
+
+    // Extract mail_referent and mails from champs
+    for (const champ of dossier.champs || []) {
+      if (champ.label === 'Adresse email' && champ.value) {
+        emails.push(champ.value)
+      }
+
+      // Additional emails (repetition field or simple text field)
+      if (champ.label === 'Adresses email des utilisateurs au sein de votre structure (en plus du référent Otelo)') {
+        if (champ.champs) {
+          // RepetitionChamp case
+          champ.champs.forEach((subChamp) => {
+            if (subChamp.value) {
+              emails.push(subChamp.value)
+            }
+          })
+        } else if (champ.value) {
+          // Simple text field case - split by comma/newline
+          const additionalEmails = champ.value
+            .split(/[,\n;]+/)
+            .map((email) => email.trim())
+            .filter((email) => email)
+          emails.push(...additionalEmails)
+        }
+      }
+    }
+
+    return [...new Set(emails.filter((email) => email && email.includes('@')))]
   }
 
   private async fetchDossiers(cursor: string | null = null): Promise<GraphQLResponse> {
@@ -156,11 +212,13 @@ export class CronService {
               email: {
                 in: Array.from(acceptedEmails),
               },
+              engaged: false,
               hasAccess: false,
             },
           ],
         },
         data: {
+          engaged: true,
           hasAccess: true,
         },
       })
