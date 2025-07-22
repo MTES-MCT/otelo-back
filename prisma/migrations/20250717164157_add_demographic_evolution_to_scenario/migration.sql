@@ -3,7 +3,7 @@ ALTER TABLE "scenarios" ADD COLUMN     "demographic_evolution_omphale_custom_id"
 
 -- CreateTable
 CREATE TABLE "demographic_evolution_omphale_custom" (
-    "id" TEXT NO∑T NULL,
+    "id" TEXT NOT NULL,
     "data" JSONB NOT NULL,
     "user_id" TEXT NOT NULL,
     "epci_code" TEXT NOT NULL,

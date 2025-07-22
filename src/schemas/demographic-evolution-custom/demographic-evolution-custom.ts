@@ -9,6 +9,7 @@ export const ZOmphaleYearData = z.object({
 // Schema for creating DemographicEvolutionOmphaleCustom
 export const ZCreateDemographicEvolutionCustomDto = z.object({
   epciCode: z.string(),
+  scenarioId: z.string().uuid().optional(),
   data: z.array(ZOmphaleYearData).min(1),
 })
 
@@ -20,6 +21,7 @@ export const ZDemographicEvolutionOmphaleCustom = z.object({
   data: z.array(ZOmphaleYearData),
   userId: z.string().uuid(),
   epciCode: z.string(),
+  scenarioId: z.string().uuid().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

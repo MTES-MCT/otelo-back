@@ -2,8 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors
@@ -31,8 +34,9 @@ export class DemographicEvolutionCustomController {
   @HttpCode(HttpStatus.CREATED)
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body('epciCode') epciCode: string,
     @User() {id: userId}: TUser,
+    @Body('epciCode') epciCode: string,
+    @Body('scenarioId') scenarioId?: string,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded')
@@ -47,11 +51,78 @@ export class DemographicEvolutionCustomController {
 
     const validatedData = ZCreateDemographicEvolutionCustomDto.parse({
       epciCode,
+      scenarioId,
       data,
     })
 
-    const result = await this.demographicEvolutionCustomService.create(userId, validatedData)
+    const result = await this.demographicEvolutionCustomService.upsert(userId, validatedData)
 
     return {id: result.id}
+  }
+
+  @AccessControl({
+    roles: [Role.USER, Role.ADMIN],
+  })
+  @Get(':id')
+  async findOne(
+    @Param('id') id: string,
+    @User() { id: userId }: TUser,
+  ) {
+    const hasAccess = await this.demographicEvolutionCustomService.hasUserAccessTo(id, userId)
+    
+    if (!hasAccess) {
+      throw new BadRequestException('You do not have access to this custom demographic evolution data')
+    }
+    
+    const result = await this.demographicEvolutionCustomService.findOne(id)
+    
+    return {
+      id: result.id,
+      epciCode: result.epciCode,
+      scenarioId: result.scenarioId,
+      data: result.data,
+      createdAt: result.createdAt,
+    }
+  }
+
+  @AccessControl({
+    roles: [Role.USER, Role.ADMIN],
+  })
+  @Post('find-many')
+  async findMany(
+    @Body('ids') ids: string[],
+    @User() { id: userId }: TUser,
+  ) {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return []
+    }
+    
+    const results = await this.demographicEvolutionCustomService.findManyByUser(ids, userId)
+    
+    return results.map(result => ({
+      id: result.id,
+      epciCode: result.epciCode,
+      scenarioId: result.scenarioId,
+      data: result.data,
+      createdAt: result.createdAt,
+    }))
+  }
+
+  @AccessControl({
+    roles: [Role.USER, Role.ADMIN],
+  })
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(
+    @Param('id') id: string,
+    @User() { id: userId }: TUser,
+  ) {
+    const hasAccess = await this.demographicEvolutionCustomService.hasUserAccessTo(id, userId)
+    
+    if (!hasAccess) {
+      throw new BadRequestException('You do not have access to delete this custom demographic evolution data')
+    }
+    
+    await this.demographicEvolutionCustomService.delete(id, userId)
   }
 }

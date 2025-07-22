@@ -46,7 +46,7 @@ export class SimulationsService {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: {
         epcis: { select: { code: true, name: true, bassinName: true } },
-        scenario: { select: { id: true } },
+        scenario: { include: { demographicEvolutionOmphaleCustom: true} },
       },
       where: { id },
     })
@@ -75,7 +75,7 @@ export class SimulationsService {
     const simulations = await this.prismaService.simulation.findMany({
       include: {
         epcis: { select: { code: true, name: true, bassinName: true } },
-        scenario: { include: { epciScenarios: true } },
+        scenario: { include: { epciScenarios: true, demographicEvolutionOmphaleCustom: true } },
       },
       where: { id: { in: ids } },
     })

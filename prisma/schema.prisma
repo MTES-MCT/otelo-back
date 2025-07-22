@@ -149,8 +149,7 @@ model Scenario {
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id")
 
-  demographicEvolutionOmphaleCustom   DemographicEvolutionOmphaleCustom? @relation(fields: [demographicEvolutionOmphaleCustomId], references: [id])
-  demographicEvolutionOmphaleCustomId String?                            @map("demographic_evolution_omphale_custom_id")
+  demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -686,10 +685,12 @@ model DemographicEvolutionOmphaleCustom {
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
 
-  scenarios Scenario[]
+  scenario   Scenario? @relation(fields: [scenarioId], references: [id])
+  scenarioId String?   @map("scenario_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([epciCode, scenarioId])
   @@map("demographic_evolution_omphale_custom")
 }
