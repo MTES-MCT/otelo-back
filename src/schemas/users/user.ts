@@ -13,6 +13,7 @@ export const ZUser = ZCommonDateFields.extend({
   role: z.enum([Role.ADMIN, Role.USER]),
   sub: z.string().nullable(),
   hasAccess: z.boolean(),
+  password: z.string().nullish(),
 })
 
 export type TUser = z.infer<typeof ZUser>

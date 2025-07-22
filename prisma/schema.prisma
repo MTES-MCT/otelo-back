@@ -18,6 +18,7 @@ model User {
   firstname     String
   lastname      String
   emailVerified DateTime?
+  password      String?
   sub           String?
   provider      String?
   role          Role      @default(USER)

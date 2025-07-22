@@ -120,7 +120,6 @@ export class CronService {
         break
       }
     }
-
     await this.updateUserAccess(acceptedEmails)
   }
 

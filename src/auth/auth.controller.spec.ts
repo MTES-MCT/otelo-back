@@ -55,7 +55,7 @@ describe('AuthController', () => {
       ;(ZSignupCallback.parse as jest.Mock).mockReturnValue({})
 
       controller.validate({} as TSignupCallback)
-      expect(authService.validateSignIn).toHaveBeenCalled()
+      expect(authService.validateProConnectSignIn).toHaveBeenCalled()
     })
   })
 

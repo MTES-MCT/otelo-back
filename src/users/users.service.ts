@@ -1,7 +1,23 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { TCreateUser } from '~/schemas/users/create-user'
 import { TUser, TUserList } from '~/schemas/users/user'
+
+const fieldsWithoutPassword = {
+  email: true,
+  firstname: true,
+  id: true,
+  lastLoginAt: true,
+  lastname: true,
+  createdAt: true,
+  updatedAt: true,
+  emailVerified: true,
+  provider: true,
+  role: true,
+  sub: true,
+  hasAccess: true,
+}
 
 @Injectable()
 export class UsersService {
@@ -31,6 +47,7 @@ export class UsersService {
     return this.prisma.user.update({
       data: { hasAccess },
       where: { id },
+      select: fieldsWithoutPassword,
     })
   }
 
@@ -64,15 +81,17 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<TUser | null> {
+  async findByEmail(email: string, select?: Prisma.UserSelect): Promise<TUser | null> {
     return this.prisma.user.findUnique({
       where: { email },
+      select: { ...fieldsWithoutPassword, ...select },
     })
   }
 
   async update(id: string, data: Partial<TUser>): Promise<TUser> {
     return this.prisma.user.update({
       data,
+      select: fieldsWithoutPassword,
       where: { id },
     })
   }
@@ -80,11 +99,13 @@ export class UsersService {
   async create(user: TCreateUser): Promise<TUser> {
     return this.prisma.user.create({
       data: user,
+      select: fieldsWithoutPassword,
     })
   }
 
   async getByToken(accessToken: string): Promise<TUser> {
     return this.prisma.user.findFirstOrThrow({
+      select: fieldsWithoutPassword,
       where: {
         sessions: { some: { accessToken } },
       },
