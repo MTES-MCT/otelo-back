@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { TInitScenario, TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
-import { PrismaService } from '../db/prisma.service'
+import { PrismaService } from '~/db/prisma.service'
 
 @Injectable()
 export class ScenariosService {
@@ -16,6 +16,7 @@ export class ScenariosService {
     const scenario = await this.prisma.scenario.findUniqueOrThrow({
       include: {
         epciScenarios: true,
+        demographicEvolutionOmphaleCustom: true,
       },
       where: { id },
     })
@@ -36,7 +37,7 @@ export class ScenariosService {
   }
 
   async create(userId: string, data: TInitScenario) {
-    const { epcis, ...scenario } = data
+    const { epcis, demographicEvolutionOmphaleCustomIds, ...scenario } = data
 
     const epciCodes = Object.keys(epcis)
     const filocomFluxData = await this.prisma.filocomFlux.findMany({
@@ -60,7 +61,7 @@ export class ScenariosService {
       }
     })
 
-    return this.prisma.scenario.create({
+    const createdScenario = await this.prisma.scenario.create({
       data: {
         ...scenario,
         epciScenarios: {
@@ -71,6 +72,22 @@ export class ScenariosService {
         user: { connect: { id: userId } },
       },
     })
+
+    // If there are custom demographic evolution IDs, assign the scenario ID to them
+    if (demographicEvolutionOmphaleCustomIds && demographicEvolutionOmphaleCustomIds.length > 0) {
+      await this.prisma.demographicEvolutionOmphaleCustom.updateMany({
+        where: {
+          id: { in: demographicEvolutionOmphaleCustomIds },
+          userId: userId,
+          scenarioId: null, // Only update if not already assigned to a scenario
+        },
+        data: {
+          scenarioId: createdScenario.id,
+        },
+      })
+    }
+
+    return createdScenario
   }
 
   async update(id: string, data: TUpdateSimulationDto) {
