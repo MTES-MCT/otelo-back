@@ -50,19 +50,26 @@ export class FinancialInadequationService extends BaseCalculator {
   }
 
   async calculate(): Promise<TCalculationResult> {
-    const { simulation } = this.context
-    const { epcis } = simulation
-
+    const { simulation, baseYear } = this.context
+    const { epcis, scenario } = simulation
+    const { projection, b1_horizon_resorption: horizon } = scenario
     const results = await Promise.all(
-      epcis.map(async (epci) => ({
-        epciCode: epci.code,
-        value: await this.calculateByEpci(epci.code),
-      })),
+      epcis.map(async (epci) => {
+        const value = await this.calculateByEpci(epci.code)
+        const prorataValue = Math.round((value * (projection - baseYear)) / (horizon - baseYear))
+        return {
+          epciCode: epci.code,
+          value,
+          prorataValue,
+        }
+      }),
     )
     const total = results.reduce((sum, result) => sum + result.value, 0)
+    const prorataTotal = results.reduce((sum, result) => sum + result.prorataValue, 0)
     return {
       epcis: results,
       total,
+      prorataTotal,
     }
   }
 }

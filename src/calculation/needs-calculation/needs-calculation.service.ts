@@ -19,7 +19,7 @@ export class NeedsCalculationService {
   async calculate(): Promise<TResults> {
     const flowRequirement = await this.flowRequirementService.calculate()
     const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock()
-    const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality, socialParc } = stockRequirementsNeeds
+    const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality } = stockRequirementsNeeds
     const sitadel = await this.sitadelService.calculate()
     let total = 0
     let totalStock = 0
@@ -33,12 +33,12 @@ export class NeedsCalculationService {
         epciFlowRequirement.totals.secondaryResidenceAccomodationEvolution +
         epciFlowRequirement.totals.vacantAccomodation
 
-      const epciTotalStock = this.stockRequirementsService.calculateStockByEpci(epci.code, stockRequirementsNeeds)
+      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds)
 
       total += epciTotalFlux + epciTotalStock
       totalFlux += epciTotalFlux
       totalStock += epciTotalStock
-      vacantAccomodation += epciFlowRequirement.totals.vacantAccomodation
+      vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
 
       return {
         epciCode: epci.code,
@@ -57,7 +57,6 @@ export class NeedsCalculationService {
       noAccomodation,
       physicalInadequation,
       sitadel,
-      socialParc,
       total,
       totalFlux,
       totalStock,

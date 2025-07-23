@@ -7,7 +7,6 @@ import { CoefficientCalculationService } from '~/calculation/coefficient-calcula
 import { DemographicEvolutionService } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
 import { FlowRequirementService } from '~/calculation/needs-calculation/besoins-flux/flow-requirement.service'
 import { RenewalHousingStockService } from '~/calculation/needs-calculation/besoins-flux/occupation-renouvellement-parc-logements-b22/renewal-housing-stock.service'
-import { SocialParcService } from '~/calculation/needs-calculation/besoins-stock/besoins-menages-social-b17/social-parc.service'
 import { HostedService } from '~/calculation/needs-calculation/besoins-stock/heberges-b12/hosted.service'
 import { NoAccomodationService } from '~/calculation/needs-calculation/besoins-stock/hors-logement-b11/no-accomodation.service'
 import { FinancialInadequationService } from '~/calculation/needs-calculation/besoins-stock/inadequation-financiere-b13/financial-inadequation.service'
@@ -63,7 +62,6 @@ interface AuthenticatedRequest extends Request {
     FinancialInadequationService,
     BadQualityService,
     PhysicalInadequationService,
-    SocialParcService,
     DemographicEvolutionService,
     RenewalHousingStockService,
     SitadelService,

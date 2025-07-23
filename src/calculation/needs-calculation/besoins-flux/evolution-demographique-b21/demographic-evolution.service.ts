@@ -29,10 +29,6 @@ export class DemographicEvolutionService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  private applyCoefficient(value: number): number {
-    return Math.round(value * this.context.coefficient)
-  }
-
   async getProjectionByYearAndOmphale(query: TGetDemographicEvolutionByYearAndOmphaleQuery): Promise<TGetDemographicEvolution> {
     const { epciCode } = query
     const { omphale, year } = query
@@ -60,13 +56,19 @@ export class DemographicEvolutionService {
     }
   }
 
-  async getProjectionsByOmphale(query: TGetDemographicEvolutionByOmphaleQuery): Promise<TGetDemographicEvolution[]> {
+  async getProjectionsByOmphale(
+    query: TGetDemographicEvolutionByOmphaleQuery,
+    yearProjection: number,
+  ): Promise<TGetDemographicEvolution[]> {
     const { epciCode, omphale } = query
 
     const demographicEvolutions = await this.prismaService.demographicEvolutionOmphale.findMany({
       select: { epciCode: true, [omphale]: true, year: true },
       where: {
         epciCode,
+        year: {
+          lte: yearProjection,
+        },
       },
     })
 
@@ -80,13 +82,17 @@ export class DemographicEvolutionService {
   async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear?: number): Promise<TDemographicEvolution> {
     const { simulation, baseYear: baseYearContext } = this.context
     const { scenario } = simulation
+    const { projection } = scenario
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const omphaleBaseYear = baseYear ?? baseYearContext
-    const futureProjections = await this.getProjectionsByOmphale({
-      epciCode,
-      omphale,
-    })
+    const futureProjections = await this.getProjectionsByOmphale(
+      {
+        epciCode,
+        omphale,
+      },
+      projection,
+    )
 
     const sortedProjections = futureProjections.sort((a, b) => a.year - b.year).filter(({ year }) => year >= omphaleBaseYear)
 
@@ -94,7 +100,7 @@ export class DemographicEvolutionService {
       (acc, projection, index) => {
         const currentValue = projection[omphale]
         const previousValue = index > 0 ? sortedProjections[index - 1][omphale] : projection[omphale]
-        const value = this.applyCoefficient(currentValue - previousValue)
+        const value = currentValue - previousValue
 
         return {
           max: Math.max(acc.max, value),

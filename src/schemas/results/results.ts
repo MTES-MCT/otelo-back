@@ -6,7 +6,6 @@ export const ZStockRequirementsResults = z.object({
   financialInadequation: ZCalculationResult,
   hosted: ZCalculationResult,
   physicalInadequation: ZCalculationResult,
-  socialParc: ZCalculationResult,
   noAccomodation: ZCalculationResult,
 })
 

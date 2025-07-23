@@ -58,7 +58,7 @@ export class RenewalHousingStockService {
   ): Promise<Record<number, number>> {
     const { simulation, baseYear, periodProjection } = this.context
     const { scenario } = simulation
-    const { b1_horizon_resorption } = scenario
+    const { projection } = scenario
     const accommodationRates = await this.accommodationRatesService.getAccommodationRates(epciCode)
     const longTermVacancyRate = accommodationRates[epciCode].longTermVacancyRate
     const shortTermVacancyRate = accommodationRates[epciCode].shortTermVacancyRate
@@ -73,7 +73,7 @@ export class RenewalHousingStockService {
 
     const result: Record<number, number> = {}
 
-    const minYear = Math.min(peakYear, b1_horizon_resorption)
+    const minYear = Math.min(peakYear, projection)
     result[baseYear] = defaultVacancyRate
 
     for (let year = baseYear + 1; year <= periodProjection; year++) {
@@ -92,7 +92,7 @@ export class RenewalHousingStockService {
   async getSecondaryResidenceAccomodationEvolutionByEpciAndYear(epciCode: string, peakYear: number): Promise<Record<number, number>> {
     const { simulation, baseYear, periodProjection } = this.context
     const { scenario } = simulation
-    const { b1_horizon_resorption } = scenario
+    const { projection } = scenario
     const data = await this.getFilocomFlux(epciCode)
 
     const defaultSecondaryResidenceRate = data.txRsParctot
@@ -100,7 +100,7 @@ export class RenewalHousingStockService {
 
     const result: Record<number, number> = {}
 
-    const minYear = Math.min(peakYear, b1_horizon_resorption)
+    const minYear = Math.min(peakYear, projection)
 
     result[baseYear] = defaultSecondaryResidenceRate
     for (let year = baseYear + 1; year <= periodProjection; year++) {
