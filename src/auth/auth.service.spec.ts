@@ -66,7 +66,7 @@ describe('AuthService', () => {
       }
       userService.findByEmail = jest.fn().mockResolvedValueOnce(mockUser)
 
-      await service.validateSignIn(mockSignInData)
+      await service.validateProConnectSignIn(mockSignInData)
       expect(sessionService.upsert).toHaveBeenCalledWith(mockUser)
     })
   })
