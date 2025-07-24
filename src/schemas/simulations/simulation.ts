@@ -37,7 +37,7 @@ export const ZSimulationWithEpci = ZSimulation.pick({
 export type TSimulationWithEpci = z.infer<typeof ZSimulationWithEpci>
 
 export const ZSimulationWithEpciAndScenario = ZSimulationWithEpci.extend({
-  scenario: ZScenario
+  scenario: ZScenario,
 })
 
 export type TSimulationWithEpciAndScenario = z.infer<typeof ZSimulationWithEpciAndScenario>

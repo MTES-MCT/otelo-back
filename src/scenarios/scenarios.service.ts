@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { TInitScenario, TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { PrismaService } from '~/db/prisma.service'
+import { TInitScenario, TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 
 @Injectable()
 export class ScenariosService {
