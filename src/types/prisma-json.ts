@@ -5,10 +5,10 @@ declare global {
   namespace PrismaJson {
     // Type for DemographicEvolutionOmphaleCustom.data field
     type OmphaleCustomData = {
-      year: number;
-      value: number;
-    }[];
+      year: number
+      value: number
+    }[]
   }
 }
 
-export {};
+export {}
