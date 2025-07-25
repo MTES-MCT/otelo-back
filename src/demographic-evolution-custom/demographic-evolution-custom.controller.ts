@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
@@ -60,30 +61,8 @@ export class DemographicEvolutionCustomController {
   @AccessControl({
     roles: [Role.USER, Role.ADMIN],
   })
-  @Get(':id')
-  async findOne(@Param('id') id: string, @User() { id: userId }: TUser) {
-    const hasAccess = await this.demographicEvolutionCustomService.hasUserAccessTo(id, userId)
-
-    if (!hasAccess) {
-      throw new BadRequestException('You do not have access to this custom demographic evolution data')
-    }
-
-    const result = await this.demographicEvolutionCustomService.findOne(id)
-
-    return {
-      id: result.id,
-      epciCode: result.epciCode,
-      scenarioId: result.scenarioId,
-      data: result.data,
-      createdAt: result.createdAt,
-    }
-  }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @Post('find-many')
-  async findMany(@Body('ids') ids: string[], @User() { id: userId }: TUser) {
+  @Get('find-many')
+  async findMany(@Query('ids') ids: string[], @User() { id: userId }: TUser) {
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return []
     }

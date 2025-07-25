@@ -45,17 +45,20 @@ export class DemographicEvolutionCustomService {
     }))
   }
 
-  async findOne(id: string) {
-    return this.prisma.demographicEvolutionOmphaleCustom.findUniqueOrThrow({
-      where: { id },
-    })
-  }
-
   async findManyByUser(ids: string[], userId: string) {
     return this.prisma.demographicEvolutionOmphaleCustom.findMany({
       where: {
         id: { in: ids },
         userId: userId,
+      },
+    })
+  }
+
+  async findManyByScenarioAndEpci(scenarioId: string, epciCode: string) {
+    return this.prisma.demographicEvolutionOmphaleCustom.findFirst({
+      where: {
+        scenarioId,
+        epciCode,
       },
     })
   }
