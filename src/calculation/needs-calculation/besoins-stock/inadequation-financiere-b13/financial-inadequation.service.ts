@@ -56,7 +56,7 @@ export class FinancialInadequationService extends BaseCalculator {
     const results = await Promise.all(
       epcis.map(async (epci) => {
         const value = await this.calculateByEpci(epci.code)
-        const prorataValue = Math.round((value * (projection - baseYear)) / (horizon - baseYear))
+        const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
         return {
           epciCode: epci.code,
           value,

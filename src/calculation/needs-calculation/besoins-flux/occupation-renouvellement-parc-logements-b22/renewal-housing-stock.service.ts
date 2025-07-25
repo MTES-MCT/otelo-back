@@ -29,17 +29,17 @@ export class RenewalHousingStockService {
     const { simulation } = this.context
     const { scenario } = simulation
     const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
-    const shortTermRate = epciScenario?.b2_tx_vacance_courte ?? defaultVacancyRate
-    const longTermRate = epciScenario?.b2_tx_vacance_longue ?? defaultVacancyRate
+    const shortTermRate = epciScenario?.b2_tx_vacance_courte !== undefined ? epciScenario.b2_tx_vacance_courte : defaultVacancyRate
+    const longTermRate = epciScenario?.b2_tx_vacance_longue !== undefined ? epciScenario.b2_tx_vacance_longue : defaultVacancyRate
 
     switch (type) {
       case 'short':
-        return shortTermRate || defaultVacancyRate
+        return shortTermRate
       case 'long':
-        return longTermRate || defaultVacancyRate
+        return longTermRate
       case 'total':
       default:
-        return shortTermRate + longTermRate || defaultVacancyRate
+        return shortTermRate + longTermRate
     }
   }
 
