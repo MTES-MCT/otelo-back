@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { HostedFilocom, HostedSne } from '@prisma/client'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 
 @Injectable()
 export class HostedService extends BaseCalculator {
@@ -29,28 +30,48 @@ export class HostedService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
+  async calculateByEpci(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode } = epci
+    const { scenario } = simulation
 
     const hostedFilocom = await this.getHostedFilocom(epciCode)
-
     let result = (scenario.b12_cohab_interg_subie / 100) * hostedFilocom.value
 
-    const { free, particular, temporary } = await this.getHostedSne(epciCode)
+    const { particular, temporary } = await this.getHostedSne(epciCode)
     if (scenario.b12_heberg_particulier) {
       result += particular
-    }
-
-    if (scenario.b12_heberg_gratuit) {
-      result += free
     }
 
     if (scenario.b12_heberg_temporaire) {
       result += temporary
     }
-
     return this.applyCoefficient(result)
+  }
+
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation, baseYear } = this.context
+    const { epcis, scenario } = simulation
+    const { projection, b1_horizon_resorption: horizon } = scenario
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => {
+        const value = await this.calculateByEpci(epci.code)
+
+        const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
+
+        return {
+          epciCode: epci.code,
+          value,
+          prorataValue,
+        }
+      }),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    const prorataTotal = results.reduce((sum, result) => sum + result.prorataValue, 0)
+    return {
+      epcis: results,
+      total,
+      prorataTotal,
+    }
   }
 }

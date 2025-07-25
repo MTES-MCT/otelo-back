@@ -4,11 +4,14 @@ import { CalculationContext } from '~/calculation/needs-calculation/base-calcula
 import { DemographicEvolutionService } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
 import { RenewalHousingStockService } from '~/calculation/needs-calculation/besoins-flux/occupation-renouvellement-parc-logements-b22/renewal-housing-stock.service'
 import { PrismaService } from '~/db/prisma.service'
+import { VacancyService } from '~/vacancy/vacancy.service'
 
 describe('RenewalHousingStock', () => {
   let service: RenewalHousingStockService
   let mockCalculationContext: jest.Mocked<CalculationContext>
   let mockEvolutionDemographiqueService: jest.Mocked<DemographicEvolutionService>
+  const mockPrismaService = createMock<PrismaService>()
+  const mockVacancyService = createMock<VacancyService>()
 
   beforeEach(async () => {
     mockCalculationContext = createMock<CalculationContext>({
@@ -21,6 +24,7 @@ describe('RenewalHousingStock', () => {
           b2_tx_restructuration: 1,
           b2_tx_rs: 1,
           b2_tx_vacance: 1,
+          b2_tx_vacance_longue: 1,
         },
       },
     })
@@ -34,7 +38,11 @@ describe('RenewalHousingStock', () => {
         RenewalHousingStockService,
         {
           provide: PrismaService,
-          useValue: createMock<PrismaService>(),
+          useValue: mockPrismaService,
+        },
+        {
+          provide: VacancyService,
+          useValue: mockVacancyService,
         },
         {
           provide: 'CalculationContext',

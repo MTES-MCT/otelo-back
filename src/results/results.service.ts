@@ -13,7 +13,6 @@ export class ResultsService {
   async getResults(simulationId: string): Promise<TSimulationWithResults> {
     const simulation = await this.simulationsService.get(simulationId)
     const results = await this.needsCalculationService.calculate()
-
     return { ...simulation, results }
   }
 }

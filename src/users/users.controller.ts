@@ -1,8 +1,6 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Query } from '@nestjs/common'
 import { Role } from '@prisma/client'
-import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
-import { TUser } from '~/schemas/users/user'
 import { UsersService } from '~/users/users.service'
 
 @Controller('users')
@@ -32,7 +30,7 @@ export class UsersController {
   })
   @HttpCode(HttpStatus.OK)
   @Delete(':id')
-  async delete(@User() { id: userId }: TUser, @Param('id') id: string) {
-    return this.usersService.delete(userId, id)
+  async delete(@Param('id') id: string) {
+    return this.usersService.delete(id)
   }
 }

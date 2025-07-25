@@ -1,16 +1,33 @@
-import { ForbiddenException, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { TCreateUser } from '~/schemas/users/create-user'
 import { TUser, TUserList } from '~/schemas/users/user'
+
+const fieldsWithoutPassword = {
+  email: true,
+  firstname: true,
+  id: true,
+  lastLoginAt: true,
+  lastname: true,
+  createdAt: true,
+  updatedAt: true,
+  emailVerified: true,
+  provider: true,
+  role: true,
+  sub: true,
+  hasAccess: true,
+}
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async hasUserAccessTo(id: string): Promise<boolean> {
-    return !!(await this.prisma.user.findFirst({
-      where: { id },
-    }))
+  async hasUserAccessTo(email: string): Promise<boolean> {
+    const user = await this.prisma.user.findFirst({
+      where: { email },
+    })
+    return !!user && (user.role === 'ADMIN' || user.hasAccess)
   }
 
   async list(): Promise<{ userCount: number; users: TUser[] }> {
@@ -21,6 +38,17 @@ export class UsersService {
       userCount,
       users,
     }
+  }
+
+  async updateAccess(id: string, hasAccess: boolean): Promise<TUser> {
+    if (!hasAccess) {
+      await this.prisma.session.deleteMany({ where: { userId: id } })
+    }
+    return this.prisma.user.update({
+      data: { hasAccess },
+      where: { id },
+      select: fieldsWithoutPassword,
+    })
   }
 
   async search(query: string): Promise<{ userCount: number; users: TUserList[] }> {
@@ -53,15 +81,17 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<TUser | null> {
+  async findByEmail(email: string, select?: Prisma.UserSelect): Promise<TUser | null> {
     return this.prisma.user.findUnique({
       where: { email },
+      select: { ...fieldsWithoutPassword, ...select },
     })
   }
 
   async update(id: string, data: Partial<TUser>): Promise<TUser> {
     return this.prisma.user.update({
       data,
+      select: fieldsWithoutPassword,
       where: { id },
     })
   }
@@ -69,24 +99,20 @@ export class UsersService {
   async create(user: TCreateUser): Promise<TUser> {
     return this.prisma.user.create({
       data: user,
+      select: fieldsWithoutPassword,
     })
   }
 
   async getByToken(accessToken: string): Promise<TUser> {
     return this.prisma.user.findFirstOrThrow({
+      select: fieldsWithoutPassword,
       where: {
         sessions: { some: { accessToken } },
       },
     })
   }
 
-  async delete(userId: string, id: string): Promise<void> {
-    if (userId === id) {
-      throw new ForbiddenException('You cannot delete yourself.')
-    }
-
-    await this.prisma.user.delete({
-      where: { id },
-    })
+  async delete(id: string): Promise<void> {
+    await Promise.all([this.prisma.session.deleteMany({ where: { userId: id } }), this.prisma.user.delete({ where: { id } })])
   }
 }

@@ -5,6 +5,8 @@ import { FinancialInadequationService } from '~/calculation/needs-calculation/be
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
+import { TEpci } from '~/schemas/epcis/epci'
 
 @Injectable()
 export class PhysicalInadequationService extends BaseCalculator {
@@ -32,24 +34,28 @@ export class PhysicalInadequationService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
+  async calculateByEpci(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode, region } = epci
+    const { epcis, scenario } = simulation
+    const epci = epcis.find((epci) => epci.code === epciCode) as TEpci
+    const region = epci.region
 
     const sourceCalculators = {
       Filo: async (): Promise<number> => {
-        const surocc = scenario.b15_surocc === 'Mod' ? 'leg' : 'lourde'
+        const physicalInadequation = await this.getPhysicalInadequationFilo(epciCode)
+        const surocc = scenario.b15_surocc === 'Mod' ? 'Leg' : 'Lourde'
+
         return [
-          (scenario.b15_proprietaire && (await this.getPhysicalInadequationFilo('epciCode'))[`surocc_${surocc}_po`]) || 0,
-          (scenario.b15_loc_hors_hlm && (await this.getPhysicalInadequationFilo('epciCode'))[`surocc_${surocc}_lp`]) || 0,
+          (scenario.b15_proprietaire && physicalInadequation[`surocc${surocc}Po`]) || 0,
+          (scenario.b15_loc_hors_hlm && physicalInadequation[`surocc${surocc}Lp`]) || 0,
         ].reduce((sum, value) => sum + (value || 0), 0)
       },
       RP: async (): Promise<number> => {
-        const surocc = scenario.b15_surocc.toLowerCase()
+        const surocc = scenario.b15_surocc
+        const physicalInadequation = await this.getPhysicalInadequationRP(epciCode)
         return [
-          scenario.b15_proprietaire && (await this.getPhysicalInadequationRP(epciCode))[`nb_men_${surocc}_ppT`],
-          scenario.b15_loc_hors_hlm && (await this.getPhysicalInadequationRP(epciCode))[`nb_men_${surocc}_loc_nonHLM`],
+          scenario.b15_proprietaire && physicalInadequation[`nbMen${surocc}PpT`],
+          scenario.b15_loc_hors_hlm && physicalInadequation[`nbMen${surocc}LocNonHLM`],
         ].reduce((sum, value) => sum + (value || 0), 0)
       },
     }
@@ -57,12 +63,38 @@ export class PhysicalInadequationService extends BaseCalculator {
     let result = await sourceCalculators[scenario.source_b15]?.()
 
     result +=
-      -1 * this.ratioCalculationService.getRatio25(region) * (await this.hostedService.calculate()) +
-      -1 * this.ratioCalculationService.getRatio35(scenario, region) * (await this.financialInadequationService.calculate()) +
-      -1 * this.ratioCalculationService.getRatio45(region) * (await this.badQualityService.calculate())
+      -1 * this.ratioCalculationService.getRatio25(region) * (await this.hostedService.calculateByEpci(epciCode)) +
+      -1 * this.ratioCalculationService.getRatio35(scenario, region) * (await this.financialInadequationService.calculateByEpci(epciCode)) +
+      -1 * this.ratioCalculationService.getRatio45(region) * (await this.badQualityService.calculateByEpci(epciCode))
 
     result = (1 - scenario.b15_taux_reallocation / 100.0) * result
 
     return this.applyCoefficient(result)
+  }
+
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation, baseYear } = this.context
+    const { epcis, scenario } = simulation
+    const { projection, b1_horizon_resorption: horizon } = scenario
+
+    const results = await Promise.all(
+      epcis.map(async (epci) => {
+        const value = await this.calculateByEpci(epci.code)
+        const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
+        return {
+          epciCode: epci.code,
+          value,
+          prorataValue,
+        }
+      }),
+    )
+
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    const prorataTotal = results.reduce((sum, result) => sum + result.prorataValue, 0)
+    return {
+      epcis: results,
+      total,
+      prorataTotal,
+    }
   }
 }

@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put } from '@nestjs/common'
-import { Epci, Prisma, Role } from '@prisma/client'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, Query } from '@nestjs/common'
+import { Epci, Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { EpcisService } from '~/epcis/epcis.service'
 import { TEpci } from '~/schemas/epcis/epci'
@@ -9,7 +9,28 @@ export class EpcisController {
   constructor(private readonly epcisService: EpcisService) {}
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async getEpcis(@Query('epcis') epcis: string, @Query('baseEpci') baseEpci?: string): Promise<Epci[]> {
+    try {
+      return await this.epcisService.getList(epcis, baseEpci)
+    } catch (error) {
+      throw new NotFoundException(`EPCI with code ${epcis} not found`, { cause: error })
+    }
+  }
+
+  @Get('contiguous')
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+  })
+  async getContiguousEpcis(@Query('codes') codes: string): Promise<Epci[]> {
+    const epciCodes = codes.split(',')
+    return this.epcisService.getContiguousEpcis(epciCodes)
+  }
+
+  @AccessControl({
     roles: [Role.ADMIN, Role.USER],
   })
   @Get(':code')
@@ -23,7 +44,6 @@ export class EpcisController {
   }
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     roles: [Role.ADMIN],
   })
   @Post()
@@ -33,7 +53,6 @@ export class EpcisController {
   }
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     paramName: 'code',
     roles: [Role.ADMIN],
   })
@@ -48,7 +67,6 @@ export class EpcisController {
   }
 
   @AccessControl({
-    entity: Prisma.ModelName.Epci,
     paramName: 'code',
     roles: [Role.ADMIN],
   })
@@ -60,5 +78,15 @@ export class EpcisController {
     } catch (error) {
       throw new NotFoundException(`EPCI with code ${code} not found`, { cause: error })
     }
+  }
+
+  @AccessControl({
+    paramName: 'epciCode',
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get(':epciCode/bassin')
+  @HttpCode(HttpStatus.OK)
+  async getEpcisByBassin(@Param('epciCode') epciCode: string): Promise<Epci[]> {
+    return this.epcisService.getBassinEpcisByEpciCode(epciCode)
   }
 }

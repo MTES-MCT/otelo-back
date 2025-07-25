@@ -4,6 +4,8 @@ import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculat
 import { BadQualityService } from '~/calculation/needs-calculation/besoins-stock/mauvaise-qualite-b14/bad-quality.service'
 import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
 import { PrismaService } from '~/db/prisma.service'
+import { TCalculationResult } from '~/schemas/calculator/calculation-result'
+import { TEpci } from '~/schemas/epcis/epci'
 
 @Injectable()
 export class FinancialInadequationService extends BaseCalculator {
@@ -23,30 +25,51 @@ export class FinancialInadequationService extends BaseCalculator {
     })
   }
 
-  async calculate(): Promise<number> {
+  async calculateByEpci(epciCode: string): Promise<number> {
     const { simulation } = this.context
-    const { epci, scenario } = simulation
-    const { code: epciCode, region } = epci
+    const { epcis, scenario } = simulation
+    const epci = epcis.find((epci) => epci.code === epciCode) as TEpci
+    const region = epci.region
+
     let result = 0
-
-    let column: string = ''
-
-    if (scenario.b13_acc) {
-      column = `nbAllPlus${scenario.b13_taux_effort}AccessionPropriete`
-    }
-
-    if (scenario.b13_plp) {
-      column = `nbAllPlus${scenario.b13_taux_effort}ParcLocatifPrive`
-    }
 
     const financialInadequation = await this.getFinancialInadequation(epciCode)
 
-    const badQuality = await this.badQualityService.calculate()
+    const badQuality = await this.badQualityService.calculateByEpci(epciCode)
 
-    result += financialInadequation[column]
+    if (scenario.b13_acc) {
+      result += financialInadequation[`nbAllPlus${scenario.b13_taux_effort}AccessionPropriete`]
+    }
+    if (scenario.b13_plp) {
+      result += financialInadequation[`nbAllPlus${scenario.b13_taux_effort}ParcLocatifPrive`]
+    }
     result += this.ratioCalculationService.getRatio43(scenario, region) * badQuality * -1
     result = (1 - scenario.b13_taux_reallocation / 100.0) * result
 
     return this.applyCoefficient(result)
+  }
+
+  async calculate(): Promise<TCalculationResult> {
+    const { simulation, baseYear } = this.context
+    const { epcis, scenario } = simulation
+    const { projection, b1_horizon_resorption: horizon } = scenario
+    const results = await Promise.all(
+      epcis.map(async (epci) => {
+        const value = await this.calculateByEpci(epci.code)
+        const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
+        return {
+          epciCode: epci.code,
+          value,
+          prorataValue,
+        }
+      }),
+    )
+    const total = results.reduce((sum, result) => sum + result.value, 0)
+    const prorataTotal = results.reduce((sum, result) => sum + result.prorataValue, 0)
+    return {
+      epcis: results,
+      total,
+      prorataTotal,
+    }
   }
 }

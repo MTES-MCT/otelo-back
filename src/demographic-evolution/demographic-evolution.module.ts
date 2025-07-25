@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common'
-import { PrismaService } from '~/db/prisma.service'
+import { PrismaModule } from '~/db/prisma.module'
 import { DemographicEvolutionController } from '~/demographic-evolution/demographic-evolution.controller'
 import { DemographicEvolutionService } from './demographic-evolution.service'
 
 @Module({
   controllers: [DemographicEvolutionController],
-  providers: [DemographicEvolutionService, PrismaService],
+  exports: [DemographicEvolutionService],
+  imports: [PrismaModule],
+  providers: [DemographicEvolutionService],
 })
 export class DemographicEvolutionModule {}
