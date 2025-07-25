@@ -1,6 +1,7 @@
 import { B11Etablissement, B15Surocc } from '@prisma/client'
 import { z } from 'zod'
 import { ZCommonDateFields } from '~/schemas/common-date-fields'
+import { ZDemographicEvolutionOmphaleCustom } from '~/schemas/demographic-evolution-custom/demographic-evolution-custom'
 
 export enum ESourceB11 {
   RP = 'RP',
@@ -49,6 +50,7 @@ export const ZScenario = ZCommonDateFields.extend({
   source_b11: z.nativeEnum(ESourceB11),
   source_b14: z.union([z.literal('RP'), z.literal('Filo'), z.literal('FF')]),
   source_b15: z.union([z.literal('RP'), z.literal('Filo')]),
+  demographicEvolutionOmphaleCustom: z.array(ZDemographicEvolutionOmphaleCustom),
 })
 
 export type TScenario = z.infer<typeof ZScenario>
@@ -64,6 +66,7 @@ export const ZInitScenario = ZCommonDateFields.extend({
     }),
   ),
   projection: z.number(),
+  demographicEvolutionOmphaleCustomIds: z.array(z.string().uuid()).optional(),
 })
 
 export type TInitScenario = z.infer<typeof ZInitScenario>
@@ -73,6 +76,7 @@ export const ZUpdateSimulationDto = ZScenario.omit({
   createdAt: true,
   isConfidential: true,
   updatedAt: true,
+  demographicEvolutionOmphaleCustom: true,
 })
 
 export type TUpdateSimulationDto = z.infer<typeof ZUpdateSimulationDto>
