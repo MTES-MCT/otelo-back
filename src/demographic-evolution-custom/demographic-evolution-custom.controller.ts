@@ -28,7 +28,13 @@ export class DemographicEvolutionCustomController {
     roles: [Role.USER, Role.ADMIN],
   })
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB max file size
+      },
+    }),
+  )
   @HttpCode(HttpStatus.CREATED)
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
@@ -62,12 +68,13 @@ export class DemographicEvolutionCustomController {
     roles: [Role.USER, Role.ADMIN],
   })
   @Get('find-many')
-  async findMany(@Query('ids') ids: string[], @User() { id: userId }: TUser) {
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+  async findMany(@Query('ids') ids: string | string[], @User() { id: userId }: TUser) {
+    if (!ids) {
       return []
     }
 
-    const results = await this.demographicEvolutionCustomService.findManyByUser(ids, userId)
+    const idsArray = Array.isArray(ids) ? ids : [ids]
+    const results = await this.demographicEvolutionCustomService.findManyByUser(idsArray, userId)
 
     return results.map((result) => ({
       id: result.id,

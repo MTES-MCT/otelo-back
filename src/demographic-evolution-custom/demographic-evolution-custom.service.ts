@@ -106,17 +106,33 @@ export class DemographicEvolutionCustomService {
 
         const year = parseInt(yearMatch[1], 10)
 
+        // Validate year range
+        const currentYear = new Date().getFullYear()
+        if (year < currentYear - 50 || year > currentYear + 100) {
+          throw new BadRequestException(`Year ${year} is out of valid range (${currentYear - 50} to ${currentYear + 100})`)
+        }
+
         // Sum all values in this column
         let sum = 0
         for (const row of data) {
           const value = row[column]
           if (typeof value === 'number' && !isNaN(value)) {
+            // Validate individual values
+            if (value < 0) {
+              throw new BadRequestException(
+                `Negative population value (${value}) found in column ${column}. Population values must be non-negative.`,
+              )
+            }
             sum += value
           }
         }
 
         // Only include columns where sum is not zero
         if (sum !== 0) {
+          // Final validation of sum
+          if (sum < 0) {
+            throw new BadRequestException(`Negative total population (${sum}) for year ${year}. Population values must be non-negative.`)
+          }
           yearData.push({ year, value: sum })
         }
       }
@@ -127,6 +143,20 @@ export class DemographicEvolutionCustomService {
 
       // Sort by year
       yearData.sort((a, b) => a.year - b.year)
+
+      // Check for reasonable year-over-year changes (warn if > 50% change)
+      for (let i = 1; i < yearData.length; i++) {
+        const prevYear = yearData[i - 1]
+        const currYear = yearData[i]
+        const percentChange = Math.abs((currYear.value - prevYear.value) / prevYear.value) * 100
+
+        if (percentChange > 50) {
+          throw new BadRequestException(
+            `Unrealistic population change detected: ${percentChange.toFixed(1)}% change between ${prevYear.year} and ${currYear.year}. ` +
+              `Population changes of more than 50% between consecutive years are unusual and may indicate data errors.`,
+          )
+        }
+      }
 
       return yearData
     }
