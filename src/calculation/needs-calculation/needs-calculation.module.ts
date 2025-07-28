@@ -16,6 +16,7 @@ import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-c
 import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { RatioCalculationModule } from '~/calculation/ratio-calculation/ratio-calculation.module'
 import { PrismaModule } from '~/db/prisma.module'
+import { DemographicEvolutionCustomService } from '~/demographic-evolution-custom/demographic-evolution-custom.service'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { SimulationsService } from '~/simulations/simulations.service'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
@@ -63,6 +64,7 @@ interface AuthenticatedRequest extends Request {
     BadQualityService,
     PhysicalInadequationService,
     DemographicEvolutionService,
+    DemographicEvolutionCustomService,
     RenewalHousingStockService,
     SitadelService,
     FlowRequirementService,
