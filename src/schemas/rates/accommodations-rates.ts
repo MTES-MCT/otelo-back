@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const AccommodationRateData = z.object({
+const ZAccommodationRates = z.object({
   vacancyRate: z.number(),
   longTermVacancyRate: z.number(),
   shortTermVacancyRate: z.number(),
@@ -9,8 +9,12 @@ const AccommodationRateData = z.object({
     nbAccommodation: z.number(),
     year: z.number().optional(),
   }),
+  restructuringRate: z.number(),
+  disappearanceRate: z.number(),
 })
 
-export const ZEpcisAccommodationRates = z.record(z.string(), AccommodationRateData)
+export type TAccommodationRates = z.infer<typeof ZAccommodationRates>
+
+export const ZEpcisAccommodationRates = z.record(z.string(), ZAccommodationRates)
 
 export type TEpcisAccommodationRates = z.infer<typeof ZEpcisAccommodationRates>
