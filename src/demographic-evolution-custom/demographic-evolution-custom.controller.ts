@@ -74,15 +74,9 @@ export class DemographicEvolutionCustomController {
     }
 
     const idsArray = Array.isArray(ids) ? ids : [ids]
-    const results = await this.demographicEvolutionCustomService.findManyByUser(idsArray, userId)
+    const results = await this.demographicEvolutionCustomService.findManyAndRecalibrate(userId, idsArray)
 
-    return results.map((result) => ({
-      id: result.id,
-      epciCode: result.epciCode,
-      scenarioId: result.scenarioId,
-      data: result.data,
-      createdAt: result.createdAt,
-    }))
+    return results
   }
 
   @AccessControl({
