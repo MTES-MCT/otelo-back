@@ -219,7 +219,7 @@ export class FlowRequirementService extends BaseCalculator {
   }
 
   formatDemographicEvolutionCustom(
-    demographicEvolutionCustom: NonNullable<Awaited<ReturnType<DemographicEvolutionCustomService['findManyByScenarioAndEpci']>>>,
+    demographicEvolutionCustom: NonNullable<Awaited<ReturnType<DemographicEvolutionCustomService['findFirstByScenarioAndEpci']>>>,
     omphale: EOmphale,
   ): TGetDemographicEvolution[] {
     const data = demographicEvolutionCustom.data as Array<{ year: number; value: number }>
@@ -239,7 +239,7 @@ export class FlowRequirementService extends BaseCalculator {
   ): Promise<TGetDemographicEvolution[]> {
     let menagesEvolution: TGetDemographicEvolution[] = []
 
-    const demographicEvolutionCustom = await this.demographicEvolutionCustomService.findManyByScenarioAndEpci(scenarioId, epciCode)
+    const demographicEvolutionCustom = await this.demographicEvolutionCustomService.findFirstByScenarioAndEpci(scenarioId, epciCode)
     if (demographicEvolutionCustom) {
       menagesEvolution = this.formatDemographicEvolutionCustom(demographicEvolutionCustom, omphale)
     }

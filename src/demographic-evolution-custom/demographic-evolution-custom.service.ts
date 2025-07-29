@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { DemographicEvolutionOmphaleCustom } from '@prisma/client'
+import { DemographicEvolutionOmphaleCustom, Prisma } from '@prisma/client'
 import * as Papa from 'papaparse'
 import { z } from 'zod'
 import { PrismaService } from '~/db/prisma.service'
 import {
   TCreateDemographicEvolutionCustomDto,
+  TDemographicEvolutionOmphaleCustom,
   ZDemographicEvolutionCustomFile,
 } from '~/schemas/demographic-evolution-custom/demographic-evolution-custom'
 
@@ -50,22 +51,60 @@ export class DemographicEvolutionCustomService {
     }))
   }
 
-  async findManyByUser(ids: string[], userId: string) {
-    return this.prisma.demographicEvolutionOmphaleCustom.findMany({
-      where: {
-        id: { in: ids },
-        userId: userId,
-      },
-    })
+  async findManyAndRecalibrate(userId: string, ids: string[]) {
+    const condition = Prisma.sql`AND id IN (${Prisma.join(ids)})
+          AND deoc.user_id = ${userId}`
+    return this.findAndRecalibrate(condition)
   }
 
-  async findManyByScenarioAndEpci(scenarioId: string, epciCode: string) {
-    return this.prisma.demographicEvolutionOmphaleCustom.findFirst({
-      where: {
-        scenarioId,
-        epciCode,
-      },
-    })
+  async findFirstByScenarioAndEpci(scenarioId: string, epciCode: string) {
+    const condition = Prisma.sql`AND deoc.scenario_id = ${scenarioId} AND deoc.epci_code = ${epciCode}`
+    const results = await this.findAndRecalibrate(condition)
+
+    // There should be only one result, given a scenarioId and epciCode
+    if (results.length > 1) {
+      throw new BadRequestException('More than one record found')
+    }
+    return results[0]
+  }
+
+  /**
+   * Recalibrate values to 2021
+   * @param sqlCondition
+   */
+  async findAndRecalibrate(sqlCondition: Prisma.Sql) {
+    return this.prisma.$queryRaw<Array<TDemographicEvolutionOmphaleCustom>>`
+      WITH
+        raw_data AS (
+          SELECT 
+            deoc.*,
+            deo.central_c AS reference_insee_2021,
+            elem ->> 'value' AS reference_custom_2021
+          FROM demographic_evolution_omphale_custom deoc
+          LEFT JOIN demographic_evolution_omphale deo ON deoc.epci_code = deo.epci_code AND deo.year = 2021,
+          LATERAL jsonb_array_elements(deoc.data) AS elem
+          WHERE elem ->> 'year' = '2021'
+          ${sqlCondition}
+        )
+      SELECT
+        rd.id,
+        rd.epci_code AS "epciCode",
+        rd.scenario_id AS "scenarioId",
+        jsonb_agg(
+          jsonb_set(
+            element, '{value}',
+            to_jsonb(
+              ROUND((element ->> 'value')::numeric / rd.reference_custom_2021::numeric * rd.reference_insee_2021::numeric)
+            )
+          )
+        ) AS data,
+        rd.user_id AS "userId",
+        rd.created_at AS "createdAt",
+        rd.updated_at AS "updatedAt"
+      FROM raw_data rd,
+      LATERAL jsonb_array_elements(data) AS element
+      GROUP BY rd.id, rd.epci_code, rd.scenario_id, rd.user_id, rd.created_at, rd.updated_at
+    `
   }
 
   async delete(id: string, userId: string) {
