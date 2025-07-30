@@ -5,6 +5,7 @@ import {
   omphaleMap,
 } from '~/calculation/needs-calculation/besoins-flux/evolution-demographique-b21/demographic-evolution.service'
 import { RenewalHousingStockService } from '~/calculation/needs-calculation/besoins-flux/occupation-renouvellement-parc-logements-b22/renewal-housing-stock.service'
+import { DemographicEvolutionCustomService } from '~/demographic-evolution-custom/demographic-evolution-custom.service'
 import { TFlowRequirementChartData, TFlowRequirementChartDataResult } from '~/schemas/calculator/calculation-result'
 import { EOmphale, TDemographicEvolution, TGetDemographicEvolution } from '~/schemas/demographic-evolution/demographic-evolution'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
@@ -16,6 +17,7 @@ export class FlowRequirementService extends BaseCalculator {
     protected readonly context: CalculationContext,
     private readonly renewalHousingStock: RenewalHousingStockService,
     private readonly demographicEvolutionService: DemographicEvolutionService,
+    private readonly demographicEvolutionCustomService: DemographicEvolutionCustomService,
     private readonly stockRequirementsService: StockRequirementsService,
   ) {
     super(context)
@@ -216,22 +218,55 @@ export class FlowRequirementService extends BaseCalculator {
     return { parcEvolution, housingNeeds, surplusHousing, additionalHousingForReplacements }
   }
 
+  formatDemographicEvolutionCustom(
+    demographicEvolutionCustom: NonNullable<Awaited<ReturnType<DemographicEvolutionCustomService['findFirstByScenarioAndEpci']>>>,
+    omphale: EOmphale,
+  ): TGetDemographicEvolution[] {
+    const data = demographicEvolutionCustom.data as Array<{ year: number; value: number }>
+
+    return data.map(({ year, value }) => ({
+      epciCode: demographicEvolutionCustom.epciCode,
+      [omphale]: value,
+      year,
+    }))
+  }
+
+  async getEpciMenageEvolution(
+    epciCode: string,
+    scenarioId: string,
+    scenarioProjection: number,
+    omphale: EOmphale,
+  ): Promise<TGetDemographicEvolution[]> {
+    let menagesEvolution: TGetDemographicEvolution[] = []
+
+    const demographicEvolutionCustom = await this.demographicEvolutionCustomService.findFirstByScenarioAndEpci(scenarioId, epciCode)
+    if (demographicEvolutionCustom) {
+      menagesEvolution = this.formatDemographicEvolutionCustom(demographicEvolutionCustom, omphale)
+    }
+
+    if (!demographicEvolutionCustom) {
+      menagesEvolution = await this.demographicEvolutionService.getProjectionsByOmphale(
+        {
+          epciCode,
+          omphale,
+        },
+        scenarioProjection,
+      )
+    }
+
+    return menagesEvolution
+  }
+
   async calculateByEpci(epciCode: string): Promise<TFlowRequirementChartData> {
     const { baseYear, simulation } = this.context
     const { scenario } = simulation
-    const { projection } = scenario
     const totalParc = await this.renewalHousingStock.getFilocomFlux(epciCode)
     const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock()
-    const stockByEpci = await this.stockRequirementsService.calculateStockByEpci(epciCode, stockRequirementsNeeds)
+    const stockByEpci = this.stockRequirementsService.calculateStockByEpci(epciCode, stockRequirementsNeeds)
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
-    const menagesEvolution = await this.demographicEvolutionService.getProjectionsByOmphale(
-      {
-        epciCode,
-        omphale,
-      },
-      projection,
-    )
+
+    const menagesEvolution = await this.getEpciMenageEvolution(epciCode, scenario.id, scenario.projection, omphale)
 
     // We want to get value from 2021, so we start the calculation one year before, i.e. 2020
     const additionalHousingUnitsForNewHouseholds = await this.demographicEvolutionService.calculateOmphaleProjectionsByYearAndEpci(
