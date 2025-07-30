@@ -39,27 +39,10 @@ export class ScenariosService {
   async create(userId: string, data: TInitScenario) {
     const { epcis, demographicEvolutionOmphaleCustomIds, ...scenario } = data
 
-    const epciCodes = Object.keys(epcis)
-    const filocomFluxData = await this.prisma.filocomFlux.findMany({
-      where: {
-        epciCode: { in: epciCodes },
-      },
-    })
-
-    const filocomFluxMap = new Map(filocomFluxData.map((flux) => [flux.epciCode, flux]))
-    const epciScenariosData = Object.entries(epcis).map(([code, epciScenario]) => {
-      const filocomFlux = filocomFluxMap.get(code)
-      if (!filocomFlux) {
-        throw new Error(`FilocomFlux not found for EPCI code: ${code}`)
-      }
-
-      return {
-        epciCode: code,
-        ...epciScenario,
-        b2_tx_restructuration: filocomFlux.txRestParctot / 6,
-        b2_tx_disparition: filocomFlux.txDispParctot / 6,
-      }
-    })
+    const epciScenariosData = Object.entries(epcis).map(([code, epciScenario]) => ({
+      epciCode: code,
+      ...epciScenario,
+    }))
 
     const createdScenario = await this.prisma.scenario.create({
       data: {

@@ -1,19 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '~/db/prisma.service'
+import { TEpcisAccommodationRates } from '~/schemas/rates/accommodations-rates'
 import { VacancyService } from '~/vacancy/vacancy.service'
-
-interface AccommodationRatesByEpci {
-  [epciCode: string]: {
-    vacancyRate: number
-    longTermVacancyRate: number
-    shortTermVacancyRate: number
-    txRs: number
-    vacancy: {
-      year?: number
-      nbAccommodation: number
-    }
-  }
-}
 
 @Injectable()
 export class AccommodationRatesService {
@@ -22,7 +10,7 @@ export class AccommodationRatesService {
     private readonly vacancyService: VacancyService,
   ) {}
 
-  async getAccommodationRates(epcis: string): Promise<AccommodationRatesByEpci> {
+  async getAccommodationRates(epcis: string): Promise<TEpcisAccommodationRates> {
     const epcisCodes = epcis.split(',')
 
     const [filocomData, vacancyData] = await Promise.all([
@@ -34,7 +22,7 @@ export class AccommodationRatesService {
       this.vacancyService.getNewestVacancy(epcisCodes),
     ])
 
-    return epcisCodes.reduce<AccommodationRatesByEpci>((acc, epciCode) => {
+    return epcisCodes.reduce<TEpcisAccommodationRates>((acc, epciCode) => {
       const epciVacancy = vacancyData.find((v) => v.epciCode === epciCode)
       const epciFilocom = filocomData.find((f) => f.epciCode === epciCode)
       const ratioLongGlobalTerm = epciVacancy!.nbLogVac2More / epciVacancy!.nbLogVac2Less
@@ -51,8 +39,9 @@ export class AccommodationRatesService {
           nbAccommodation: (epciVacancy?.nbLogVac2More ?? 0) + (epciVacancy?.nbLogVac5More ?? 0),
           year: epciVacancy?.year,
         },
+        restructuringRate: (epciFilocom?.txRestParctot ?? 0) / 6,
+        disappearanceRate: (epciFilocom?.txDispParctot ?? 0) / 6,
       }
-
       return acc
     }, {})
   }
