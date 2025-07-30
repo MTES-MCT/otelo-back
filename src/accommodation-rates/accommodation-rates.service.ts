@@ -35,6 +35,7 @@ export class AccommodationRatesService {
         longTermVacancyRate,
         shortTermVacancyRate,
         txRs: epciFilocom?.txRsParctot ?? 0,
+        urbanRenewal: epciFilocom?.parctot ?? 0,
         vacancy: {
           nbAccommodation: (epciVacancy?.nbLogVac2More ?? 0) + (epciVacancy?.nbLogVac5More ?? 0),
           year: epciVacancy?.year,
