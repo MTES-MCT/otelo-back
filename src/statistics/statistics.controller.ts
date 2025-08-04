@@ -22,9 +22,9 @@ export class StatisticsController {
       totalScenarios,
       averageScenariosPerUser,
       activeEpcisCount,
-      totalHousingNeedsExported: exportedStats.totalHousingNeeds,
-      totalPoorHousingCommitmentsExported: exportedStats.totalPoorHousingCommitments,
-      totalVacantHousingRemobilizationExported: exportedStats.totalVacantHousingRemobilization,
+      totalHousingNeedsSum: exportedStats.totalHousingNeedsSum,
+      totalStockSum: exportedStats.totalStockSum,
+      totalVacantSum: exportedStats.totalVacantSum,
       usersWithExportedScenarios,
     }
   }

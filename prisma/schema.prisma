@@ -225,6 +225,7 @@ model Epci {
   // EPCI Groups
   epciGroupEpcis                    EpciGroupEpcis[]
   demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
+  SimulationResults                 SimulationResults[]
 
   @@map("epcis")
 }
@@ -246,8 +247,9 @@ model Simulation {
 
   epcis Epci[]
 
-  scenario   Scenario @relation(fields: [scenarioId], references: [id])
-  scenarioId String   @map("scenario_id")
+  scenario          Scenario            @relation(fields: [scenarioId], references: [id])
+  scenarioId        String              @map("scenario_id")
+  SimulationResults SimulationResults[]
 
   @@map("simulations")
 }
@@ -695,4 +697,21 @@ model DemographicEvolutionOmphaleCustom {
 
   @@unique([epciCode, scenarioId])
   @@map("demographic_evolution_omphale_custom")
+}
+
+model SimulationResults {
+  id String @id @default(uuid())
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  simulation   Simulation @relation(fields: [simulationId], references: [id])
+  simulationId String     @map("simulation_id")
+
+  totalFlux          Int @default(0)
+  totalStock         Int @default(0)
+  vacantAccomodation Int @default(0)
+
+  @@unique([epciCode, simulationId])
+  @@map("simulation_results")
 }
