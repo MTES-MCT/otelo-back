@@ -7,11 +7,25 @@ import { StatisticsService } from './statistics.service'
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 
-  // Add statistics endpoints here
   @AccessControl({ roles: [Role.ADMIN] })
   @Get()
   async getStatistics() {
-    // Implement statistics retrieval
-    return { message: 'Statistics endpoint' }
+    const [totalScenarios, averageScenariosPerUser, activeEpcisCount, exportedStats, usersWithExportedScenarios] = await Promise.all([
+      this.statisticsService.getTotalScenariosCount(),
+      this.statisticsService.getAverageScenariosPerUser(),
+      this.statisticsService.getActiveEpcisCount(),
+      this.statisticsService.getExportedScenariosStatistics(),
+      this.statisticsService.getUsersWithExportedScenariosCount(),
+    ])
+
+    return {
+      totalScenarios,
+      averageScenariosPerUser,
+      activeEpcisCount,
+      totalHousingNeedsExported: exportedStats.totalHousingNeeds,
+      totalPoorHousingCommitmentsExported: exportedStats.totalPoorHousingCommitments,
+      totalVacantHousingRemobilizationExported: exportedStats.totalVacantHousingRemobilization,
+      usersWithExportedScenarios,
+    }
   }
 }

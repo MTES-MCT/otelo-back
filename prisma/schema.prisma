@@ -27,9 +27,9 @@ model User {
   provider      String?
   role          Role      @default(USER)
   hasAccess     Boolean   @default(false)
-  
+
   // Has an accepted dossier on DS
-  engaged       Boolean   @default(false)
+  engaged Boolean @default(false)
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -241,6 +241,8 @@ model Simulation {
 
   epciGroup   EpciGroup? @relation(fields: [epciGroupId], references: [id])
   epciGroupId String?    @map("epci_group_id")
+
+  exported Boolean @default(false)
 
   epcis Epci[]
 

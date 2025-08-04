@@ -9,5 +9,6 @@ import { ResultsService } from './results.service'
   controllers: [ResultsController],
   imports: [NeedsCalculationModule, CoefficientCalculationModule, SimulationsModule],
   providers: [ResultsService],
+  exports: [ResultsService],
 })
 export class ResultsModule {}
