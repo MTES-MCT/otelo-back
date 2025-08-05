@@ -24,8 +24,9 @@ export class ResultsService {
   async upsertSimulationResults(simulationId: string, results: TResults) {
     const { epcisTotals } = results
 
-    const upsertOperations = epcisTotals.map((epciTotal) =>
-      this.prisma.simulationResults.upsert({
+    const upsertOperations = epcisTotals.map((epciTotal) => {
+      const vacantAccomodation = epciTotal.vacantAccomodation < 0 ? Math.abs(epciTotal.vacantAccomodation) : 0
+      return this.prisma.simulationResults.upsert({
         where: {
           epciCode_simulationId: {
             epciCode: epciTotal.epciCode,
@@ -35,17 +36,17 @@ export class ResultsService {
         update: {
           totalFlux: epciTotal.totalFlux,
           totalStock: epciTotal.totalStock,
-          vacantAccomodation: epciTotal.vacantAccomodation || 0,
+          vacantAccomodation,
         },
         create: {
           epciCode: epciTotal.epciCode,
           simulationId,
           totalFlux: epciTotal.totalFlux,
           totalStock: epciTotal.totalStock,
-          vacantAccomodation: epciTotal.vacantAccomodation || 0,
+          vacantAccomodation,
         },
-      }),
-    )
+      })
+    })
 
     await Promise.all(upsertOperations)
   }
