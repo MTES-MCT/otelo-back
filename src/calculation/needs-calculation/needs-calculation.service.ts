@@ -45,6 +45,7 @@ export class NeedsCalculationService {
         total: epciTotalFlux + epciTotalStock,
         totalFlux: epciTotalFlux,
         totalStock: epciTotalStock,
+        vacantAccomodation: epciFlowRequirement.totals.longTermVacantAccomodation,
       }
     })
 

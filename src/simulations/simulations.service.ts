@@ -294,4 +294,17 @@ export class SimulationsService {
 
     return groupedSimulations
   }
+
+  async markAsExported(simulationIds: string[]): Promise<void> {
+    await this.prismaService.simulation.updateMany({
+      where: {
+        id: {
+          in: simulationIds,
+        },
+      },
+      data: {
+        exported: true,
+      },
+    })
+  }
 }

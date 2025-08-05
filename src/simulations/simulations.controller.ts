@@ -121,6 +121,7 @@ export class SimulationsController {
     const { nextStep, resultDate, selectedSimulations } = data
 
     const simulations = await this.simulationsService.getMany(selectedSimulations)
+    await this.simulationsService.markAsExported(selectedSimulations)
 
     // Prepare email content
     const htmlContent = `
