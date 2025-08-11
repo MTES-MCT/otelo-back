@@ -27,9 +27,9 @@ model User {
   provider      String?
   role          Role      @default(USER)
   hasAccess     Boolean   @default(false)
-  
+
   // Has an accepted dossier on DS
-  engaged       Boolean   @default(false)
+  engaged Boolean @default(false)
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -225,6 +225,7 @@ model Epci {
   // EPCI Groups
   epciGroupEpcis                    EpciGroupEpcis[]
   demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
+  SimulationResults                 SimulationResults[]
 
   @@map("epcis")
 }
@@ -242,10 +243,13 @@ model Simulation {
   epciGroup   EpciGroup? @relation(fields: [epciGroupId], references: [id])
   epciGroupId String?    @map("epci_group_id")
 
+  exported Boolean @default(false)
+
   epcis Epci[]
 
-  scenario   Scenario @relation(fields: [scenarioId], references: [id])
-  scenarioId String   @map("scenario_id")
+  scenario          Scenario            @relation(fields: [scenarioId], references: [id])
+  scenarioId        String              @map("scenario_id")
+  SimulationResults SimulationResults[]
 
   @@map("simulations")
 }
@@ -693,4 +697,21 @@ model DemographicEvolutionOmphaleCustom {
 
   @@unique([epciCode, scenarioId])
   @@map("demographic_evolution_omphale_custom")
+}
+
+model SimulationResults {
+  id String @id @default(uuid())
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  simulation   Simulation @relation(fields: [simulationId], references: [id])
+  simulationId String     @map("simulation_id")
+
+  totalFlux          Int @default(0)
+  totalStock         Int @default(0)
+  vacantAccomodation Int @default(0)
+
+  @@unique([epciCode, simulationId])
+  @@map("simulation_results")
 }
