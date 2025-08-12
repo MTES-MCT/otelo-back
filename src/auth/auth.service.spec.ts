@@ -1,6 +1,8 @@
 import { createMock } from '@golevelup/ts-jest'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Prisma } from '@prisma/client'
+import { Request } from 'express'
+import { CronService } from '~/cron/cron.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TSignupCallback } from '~/schemas/auth/sign-in-callback'
 import { TUser } from '~/schemas/users/user'
@@ -15,6 +17,22 @@ describe('AuthService', () => {
   const sessionService: jest.Mocked<SessionsService> = createMock<SessionsService>()
   const simulationService: jest.Mocked<SimulationsService> = createMock<SimulationsService>()
   const scenarioService: jest.Mocked<ScenariosService> = createMock<ScenariosService>()
+  const cronService: jest.Mocked<CronService> = createMock<CronService>()
+
+  const mockUser: TUser = {
+    createdAt: new Date(),
+    email: 'email',
+    firstname: 'firstname',
+    id: 'user-123',
+    lastLoginAt: new Date(),
+    lastname: 'lastname',
+    provider: 'provider',
+    role: 'USER',
+    sub: 'sub',
+    updatedAt: new Date(),
+    emailVerified: null,
+    hasAccess: false,
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -36,6 +54,10 @@ describe('AuthService', () => {
           provide: ScenariosService,
           useValue: scenarioService,
         },
+        {
+          provide: CronService,
+          useValue: cronService,
+        },
       ],
     }).compile()
 
@@ -49,41 +71,40 @@ describe('AuthService', () => {
   describe('validateSignIn', () => {
     const mockSignInData: TSignupCallback = {
       email: 'email',
+      firstname: '',
+      lastname: '',
+      id: '',
+      provider: 'proconnect',
     }
 
     it('should upsert a session if the user exists', async () => {
-      const mockUser: TUser = {
-        createdAt: new Date(),
-        email: 'email',
-        firstname: 'firstname',
-        id: 'user-123',
-        lastLoginAt: new Date(),
-        lastname: 'lastname',
-        provider: 'provider',
-        role: 'USER',
-        sub: 'sub',
-        updatedAt: new Date(),
-      }
       userService.findByEmail = jest.fn().mockResolvedValueOnce(mockUser)
 
       await service.validateProConnectSignIn(mockSignInData)
       expect(sessionService.upsert).toHaveBeenCalledWith(mockUser)
     })
+
+    it('should call handleUserAccessUpdate when signing up', async () => {
+      userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      await service.signUp({ email: 'email', firstname: 'firstname', lastname: 'lastname', password: 'password' })
+      expect(cronService.handleUserAccessUpdate).toHaveBeenCalled()
+    })
+
+    it('should call handleUserAccessUpdate when signing in with proconnect', async () => {
+      userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      await service.validateProConnectSignIn({
+        email: 'email',
+        firstname: 'firstname',
+        lastname: 'lastname',
+        sub: 'sub',
+        id: 'id',
+        provider: 'proconnect',
+      })
+      expect(cronService.handleUserAccessUpdate).toHaveBeenCalled()
+    })
   })
 
   describe('hasRole', () => {
-    const mockUser: TUser = {
-      createdAt: new Date(),
-      email: 'email',
-      firstname: 'firstname',
-      id: 'user-123',
-      lastLoginAt: new Date(),
-      lastname: 'lastname',
-      provider: 'provider',
-      role: 'USER',
-      sub: 'sub',
-      updatedAt: new Date(),
-    }
     it('should return true if the user has the role', () => {
       expect(service.hasRole(mockUser, ['USER'])).toBe(true)
     })
@@ -94,24 +115,11 @@ describe('AuthService', () => {
   })
 
   describe('canAccessEntity', () => {
-    const mockUser: TUser = {
-      createdAt: new Date(),
-      email: 'email',
-      firstname: 'firstname',
-      id: 'user-123',
-      lastLoginAt: new Date(),
-      lastname: 'lastname',
-      provider: 'provider',
-      role: 'USER',
-      sub: 'sub',
-      updatedAt: new Date(),
-    }
-
     const request = {
       params: {
         id: 'id',
       },
-    }
+    } as unknown as Request
 
     it('should return false if the user is undefined', async () => {
       const result = await service.canAccessEntity(Prisma.ModelName.Scenario, 'id', undefined, request)

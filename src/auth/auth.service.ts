@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import * as argon2 from 'argon2'
 import { Request } from 'express'
+import { CronService } from '~/cron/cron.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TSignIn } from '~/schemas/auth/sign-in'
 import { TSignupCallback } from '~/schemas/auth/sign-in-callback'
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly simulationsService: SimulationsService,
     private readonly sessionsService: SessionsService,
     private readonly scenariosService: ScenariosService,
+    private readonly cronService: CronService,
   ) {}
 
   private async hashPassword(password: string): Promise<string> {
@@ -44,6 +46,7 @@ export class AuthService {
         lastname: signInData.lastname,
         emailVerified: new Date(),
       })
+      await this.cronService.handleUserAccessUpdate()
     }
     const session = await this.sessionsService.upsert(user)
     await this.usersService.update(user.id, {
@@ -66,6 +69,7 @@ export class AuthService {
       provider: 'credentials',
       password: await this.hashPassword(signUpData.password),
     })
+    await this.cronService.handleUserAccessUpdate()
     const session = await this.sessionsService.upsert(user)
     await this.usersService.update(user.id, {
       lastLoginAt: new Date(),
