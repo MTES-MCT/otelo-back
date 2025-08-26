@@ -38,6 +38,9 @@ export class AuthService {
     let user = await this.usersService.findByEmail(email)
 
     if (!user) {
+      // Check if email is in whitelist to determine hasAccess
+      const isInWhitelist = await this.usersService.isEmailInWhitelist(email)
+
       user = await this.usersService.create({
         email,
         firstname: signInData.firstname,
@@ -45,6 +48,7 @@ export class AuthService {
         sub: signInData.sub ?? null,
         lastname: signInData.lastname,
         emailVerified: new Date(),
+        hasAccess: isInWhitelist,
       })
       await this.cronService.handleUserAccessUpdate()
     }
@@ -60,6 +64,9 @@ export class AuthService {
   }
 
   async signUp(signUpData: TSignUp) {
+    // Check if email is in whitelist to determine hasAccess
+    const isInWhitelist = await this.usersService.isEmailInWhitelist(signUpData.email)
+
     const user = await this.usersService.create({
       email: signUpData.email,
       sub: null,
@@ -68,6 +75,7 @@ export class AuthService {
       emailVerified: null,
       provider: 'credentials',
       password: await this.hashPassword(signUpData.password),
+      hasAccess: isInWhitelist,
     })
     await this.cronService.handleUserAccessUpdate()
     const session = await this.sessionsService.upsert(user)

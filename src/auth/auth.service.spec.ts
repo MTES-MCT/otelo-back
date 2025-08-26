@@ -86,12 +86,14 @@ describe('AuthService', () => {
 
     it('should call handleUserAccessUpdate when signing up', async () => {
       userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      userService.isEmailInWhitelist = jest.fn().mockResolvedValueOnce(false)
       await service.signUp({ email: 'email', firstname: 'firstname', lastname: 'lastname', password: 'password' })
       expect(cronService.handleUserAccessUpdate).toHaveBeenCalled()
     })
 
     it('should call handleUserAccessUpdate when signing in with proconnect', async () => {
       userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      userService.isEmailInWhitelist = jest.fn().mockResolvedValueOnce(false)
       await service.validateProConnectSignIn({
         email: 'email',
         firstname: 'firstname',
@@ -101,6 +103,78 @@ describe('AuthService', () => {
         provider: 'proconnect',
       })
       expect(cronService.handleUserAccessUpdate).toHaveBeenCalled()
+    })
+
+    it('should set hasAccess to true when email is in whitelist during signup', async () => {
+      userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      userService.isEmailInWhitelist = jest.fn().mockResolvedValueOnce(true)
+
+      await service.signUp({ email: 'whitelisted@example.com', firstname: 'firstname', lastname: 'lastname', password: 'password' })
+
+      expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('whitelisted@example.com')
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: true,
+        }),
+      )
+    })
+
+    it('should set hasAccess to false when email is not in whitelist during signup', async () => {
+      userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      userService.isEmailInWhitelist = jest.fn().mockResolvedValueOnce(false)
+
+      await service.signUp({ email: 'notwhitelisted@example.com', firstname: 'firstname', lastname: 'lastname', password: 'password' })
+
+      expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('notwhitelisted@example.com')
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: false,
+        }),
+      )
+    })
+
+    it('should set hasAccess to true when email is in whitelist during ProConnect signin', async () => {
+      userService.findByEmail = jest.fn().mockResolvedValueOnce(null) // User doesn't exist
+      userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      userService.isEmailInWhitelist = jest.fn().mockResolvedValueOnce(true)
+
+      await service.validateProConnectSignIn({
+        email: 'whitelisted@example.com',
+        firstname: 'firstname',
+        lastname: 'lastname',
+        sub: 'sub',
+        id: 'id',
+        provider: 'proconnect',
+      })
+
+      expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('whitelisted@example.com')
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: true,
+        }),
+      )
+    })
+
+    it('should set hasAccess to false when email is not in whitelist during ProConnect signin', async () => {
+      userService.findByEmail = jest.fn().mockResolvedValueOnce(null) // User doesn't exist
+      userService.create = jest.fn().mockResolvedValueOnce(mockUser)
+      userService.isEmailInWhitelist = jest.fn().mockResolvedValueOnce(false)
+
+      await service.validateProConnectSignIn({
+        email: 'notwhitelisted@example.com',
+        firstname: 'firstname',
+        lastname: 'lastname',
+        sub: 'sub',
+        id: 'id',
+        provider: 'proconnect',
+      })
+
+      expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('notwhitelisted@example.com')
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: false,
+        }),
+      )
     })
   })
 
