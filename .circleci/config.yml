@@ -81,6 +81,9 @@ commands:
       - restore_cache:
           keys:
             - << pipeline.parameters.cache_version >>-pnpm-{{ checksum "<< pipeline.parameters.lockfile >>" }}
+      - run:
+          name: 'Install dependencies'
+          command: pnpm install --virtual-store-dir << pipeline.parameters.virtual_store_dir >> --frozen-lockfile
 
   prisma_generate:
     steps:

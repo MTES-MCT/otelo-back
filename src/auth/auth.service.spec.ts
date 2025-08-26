@@ -112,9 +112,11 @@ describe('AuthService', () => {
       await service.signUp({ email: 'whitelisted@example.com', firstname: 'firstname', lastname: 'lastname', password: 'password' })
 
       expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('whitelisted@example.com')
-      expect(userService.create).toHaveBeenCalledWith(expect.objectContaining({
-        hasAccess: true,
-      }))
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: true,
+        }),
+      )
     })
 
     it('should set hasAccess to false when email is not in whitelist during signup', async () => {
@@ -124,9 +126,11 @@ describe('AuthService', () => {
       await service.signUp({ email: 'notwhitelisted@example.com', firstname: 'firstname', lastname: 'lastname', password: 'password' })
 
       expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('notwhitelisted@example.com')
-      expect(userService.create).toHaveBeenCalledWith(expect.objectContaining({
-        hasAccess: false,
-      }))
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: false,
+        }),
+      )
     })
 
     it('should set hasAccess to true when email is in whitelist during ProConnect signin', async () => {
@@ -144,9 +148,11 @@ describe('AuthService', () => {
       })
 
       expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('whitelisted@example.com')
-      expect(userService.create).toHaveBeenCalledWith(expect.objectContaining({
-        hasAccess: true,
-      }))
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: true,
+        }),
+      )
     })
 
     it('should set hasAccess to false when email is not in whitelist during ProConnect signin', async () => {
@@ -164,9 +170,11 @@ describe('AuthService', () => {
       })
 
       expect(userService.isEmailInWhitelist).toHaveBeenCalledWith('notwhitelisted@example.com')
-      expect(userService.create).toHaveBeenCalledWith(expect.objectContaining({
-        hasAccess: false,
-      }))
+      expect(userService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasAccess: false,
+        }),
+      )
     })
   })
 
