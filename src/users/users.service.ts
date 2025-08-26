@@ -30,6 +30,13 @@ export class UsersService {
     return !!user && (user.role === 'ADMIN' || user.hasAccess)
   }
 
+  async isEmailInWhitelist(email: string): Promise<boolean> {
+    const whitelistEntry = await this.prisma.userWhitelist.findUnique({
+      where: { email },
+    })
+    return !!whitelistEntry
+  }
+
   async list(): Promise<{ userCount: number; users: TUser[] }> {
     const users = await this.prisma.user.findMany()
     const userCount = await this.prisma.user.count()
