@@ -45,6 +45,12 @@ model User {
   @@map("users")
 }
 
+model UserWhitelist {
+  email String @id @unique
+
+  @@map("users_whitelist")
+}
+
 model Account {
   userId            String
   type              String

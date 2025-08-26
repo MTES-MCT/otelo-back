@@ -7,7 +7,6 @@ export const ZCreateUser = ZUser.omit({
   lastLoginAt: true,
   role: true,
   updatedAt: true,
-  hasAccess: true,
 })
 
 export type TCreateUser = z.infer<typeof ZCreateUser>
