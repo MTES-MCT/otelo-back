@@ -7,12 +7,12 @@ import { SessionsService } from './sessions.service'
 @Module({
   exports: [SessionsService],
   imports: [
+    UsersModule,
+    PrismaModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { algorithm: 'HS256' },
     }),
-    UsersModule,
-    PrismaModule,
   ],
   providers: [SessionsService],
 })

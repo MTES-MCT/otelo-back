@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common'
+import { EmailVerificationModule } from '~/common/exceptions/email-verification/email-verification.module'
 import { CronModule } from '~/cron/cron.module'
+import { EmailModule } from '~/email/email.module'
 import { ScenariosModule } from '~/scenarios/scenarios.module'
 import { SessionsModule } from '~/sessions/sessions.module'
 import { SimulationsModule } from '~/simulations/simulations.module'
@@ -10,7 +12,7 @@ import { AuthService } from './auth.service'
 @Module({
   controllers: [AuthController],
   exports: [AuthService],
-  imports: [UsersModule, SessionsModule, ScenariosModule, SimulationsModule, CronModule],
+  imports: [UsersModule, SessionsModule, ScenariosModule, SimulationsModule, EmailModule, EmailVerificationModule, CronModule],
   providers: [AuthService],
 })
 export class AuthModule {}

@@ -13,6 +13,7 @@ import { AdminModule } from './admin/admin.module'
 import { AuthModule } from './auth/auth.module'
 import { BadQualityModule } from './bad-quality/bad-quality.module'
 import { CalculationModule } from './calculation/calculation.module'
+import { EmailVerificationModule } from './common/exceptions/email-verification/email-verification.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
 import { DemographicEvolutionCustomModule } from './demographic-evolution-custom/demographic-evolution-custom.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
@@ -66,6 +67,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     CronModule,
     AdminModule,
     StatisticsModule,
+    EmailVerificationModule,
   ],
   providers: [
     AuthenticationGuard,

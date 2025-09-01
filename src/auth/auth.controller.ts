@@ -42,6 +42,27 @@ export class AuthController {
     return this.authService.hasAccess(email)
   }
 
+  @Public()
+  @Post('confirmation-mail')
+  @HttpCode(HttpStatus.OK)
+  async resendConfirmationMail(@Body() { email }: { email: string }) {
+    return this.authService.resendConfirmationMail(email)
+  }
+
+  @Public()
+  @Post('confirmation-code-mail')
+  @HttpCode(HttpStatus.OK)
+  async resendConfirmationCodeEmail(@Body() { code }: { code: string }) {
+    return this.authService.resendConfirmationCodeEmail(code)
+  }
+
+  @Public()
+  @Post('verify-mail')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() { code }: { code: string }) {
+    return this.authService.verifyEmail(code)
+  }
+
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @Public()
