@@ -711,7 +711,7 @@ model SimulationResults {
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
 
-  simulation   Simulation @relation(fields: [simulationId], references: [id])
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
   simulationId String     @map("simulation_id")
 
   totalFlux          Int @default(0)
