@@ -118,17 +118,20 @@ export class SimulationsController {
   @Post('request-powerpoint')
   @HttpCode(HttpStatus.OK)
   async requestPowerpoint(@User() { email }: TUser, @Body() data: TRequestPowerpoint) {
-    const { nextStep, resultDate, selectedSimulations } = data
+    const { nextStep, resultDate, selectedSimulations, privilegedSimulation } = data
 
     const simulations = await this.simulationsService.getMany(selectedSimulations)
     await this.simulationsService.markAsExported(selectedSimulations)
 
     // Prepare email content
+    const privilegedSim = privilegedSimulation ? simulations.find((sim) => sim.id === privilegedSimulation) : null
+
     const htmlContent = `
       <h1>Demande de PowerPoint</h1>
       <p><strong>Email de l'utilisateur:</strong> ${email}</p>
       <p><strong>Prochaine étape:</strong> ${nextStep}</p>
       <p><strong>Date du résultat:</strong> ${resultDate}</p>
+      ${privilegedSim ? `<p><strong>Scénario privilégié:</strong> ${privilegedSim.name}</p>` : ''}
       <p><strong>Simulations sélectionnées:</strong></p>
       <ul>
         ${simulations.map((sim) => `<li>${sim.name}</li>`).join('')}
@@ -141,7 +144,7 @@ export class SimulationsController {
         to: this.receiverEmail,
         subject: 'Nouvelle demande de PowerPoint',
         html: htmlContent,
-        text: `Demande de PowerPoint\n\nEmail de l'utilisateur: ${email}\nProchaine étape: ${nextStep}\nDate du résultat: ${resultDate}\nSimulations sélectionnées: ${selectedSimulations.join(', ')}`,
+        text: `Demande de PowerPoint\n\nEmail de l'utilisateur: ${email}\nProchaine étape: ${nextStep}\nDate du résultat: ${resultDate}${privilegedSim ? `\nScénario privilégié: ${privilegedSim.name}` : ''}\nSimulations sélectionnées:\n${simulations.map((sim) => `- ${sim.name}`).join('\n')}`,
       })
 
       return { success: true, message: 'Email sent successfully' }
