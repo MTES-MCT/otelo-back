@@ -67,13 +67,15 @@ export class UsersService {
         id: true,
         lastLoginAt: true,
         lastname: true,
+        hasAccess: true,
+        engaged: true,
         role: true,
       },
       where: {
         OR: [{ firstname: { contains: query } }, { lastname: { contains: query } }, { email: { contains: query } }],
       },
     })
-    const users = foundUsers.map(({ createdAt, email, firstname, id, lastLoginAt, lastname, role }) => ({
+    const users = foundUsers.map(({ createdAt, hasAccess, engaged, email, firstname, id, lastLoginAt, lastname, role }) => ({
       createdAt,
       email,
       firstname,
@@ -81,6 +83,8 @@ export class UsersService {
       lastLoginAt,
       lastname,
       role,
+      hasAccess,
+      engaged,
     }))
     return {
       userCount: users.length,
