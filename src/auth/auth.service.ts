@@ -1,7 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import * as argon2 from 'argon2'
 import { Request } from 'express'
+import {
+  EmailNotVerifiedException,
+  InvalidPasswordException,
+  UserHasNoAccessException,
+  UserNotFoundException,
+} from '~/common/exceptions/auth.exceptions'
+import { EmailVerificationService } from '~/common/exceptions/email-verification/email-verification.service'
 import { CronService } from '~/cron/cron.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TSignIn } from '~/schemas/auth/sign-in'
@@ -21,6 +28,7 @@ export class AuthService {
     private readonly sessionsService: SessionsService,
     private readonly scenariosService: ScenariosService,
     private readonly cronService: CronService,
+    private readonly emailVerificationService: EmailVerificationService,
   ) {}
 
   private async hashPassword(password: string): Promise<string> {
@@ -30,6 +38,18 @@ export class AuthService {
       timeCost: 3,
       parallelism: 1,
     })
+  }
+
+  async resendConfirmationMail(email: string) {
+    return this.emailVerificationService.resendConfirmationMail(email)
+  }
+
+  async resendConfirmationCodeEmail(code: string) {
+    return this.emailVerificationService.resendConfirmationCodeEmail(code)
+  }
+
+  async verifyEmail(code: string) {
+    return this.emailVerificationService.verifyEmail(code)
   }
 
   async validateProConnectSignIn(signInData: TSignupCallback) {
@@ -47,6 +67,7 @@ export class AuthService {
         provider: 'proconnect',
         sub: signInData.sub ?? null,
         lastname: signInData.lastname,
+        lastLoginAt: new Date(),
         emailVerified: new Date(),
         hasAccess: isInWhitelist,
       })
@@ -74,14 +95,14 @@ export class AuthService {
       lastname: signUpData.lastname,
       emailVerified: null,
       provider: 'credentials',
+      lastLoginAt: new Date(),
       password: await this.hashPassword(signUpData.password),
       hasAccess: isInWhitelist,
     })
     await this.cronService.handleUserAccessUpdate()
     const session = await this.sessionsService.upsert(user)
-    await this.usersService.update(user.id, {
-      lastLoginAt: new Date(),
-    })
+    await this.emailVerificationService.handleSignUpConfirmation(user)
+
     return {
       session,
       user,
@@ -95,8 +116,7 @@ export class AuthService {
 
     try {
       return await argon2.verify(hash, password)
-    } catch (error) {
-      console.error(error)
+    } catch {
       return false
     }
   }
@@ -104,12 +124,20 @@ export class AuthService {
   async signIn(signInData: TSignIn) {
     const user = await this.usersService.findByEmail(signInData.email, { password: true })
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials')
+      throw new UserNotFoundException()
+    }
+
+    if (!user.emailVerified) {
+      throw new EmailNotVerifiedException()
     }
 
     const isPasswordValid = await this.verifyPassword(user.password, signInData.password)
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials')
+      throw new InvalidPasswordException()
+    }
+
+    if (!user.hasAccess) {
+      throw new UserHasNoAccessException()
     }
 
     await this.sessionsService.upsert(user)

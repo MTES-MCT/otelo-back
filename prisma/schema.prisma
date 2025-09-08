@@ -41,6 +41,7 @@ model User {
   sessions                          Session[]
   epciGroups                        EpciGroup[]
   demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
+  emailVerifications                EmailVerification[]
 
   @@map("users")
 }
@@ -78,6 +79,18 @@ model Session {
   userId String @map("user_id")
 
   @@map("sessions")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+
+  @@map("email_verifications")
 }
 
 enum SourceB11 {
