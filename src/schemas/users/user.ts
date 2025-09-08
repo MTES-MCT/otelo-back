@@ -14,6 +14,7 @@ export const ZUser = ZCommonDateFields.extend({
   sub: z.string().nullable(),
   hasAccess: z.boolean(),
   password: z.string().nullish(),
+  engaged: z.boolean().optional(),
 })
 
 export type TUser = z.infer<typeof ZUser>
@@ -25,6 +26,7 @@ export const ZUserList = ZUser.pick({
   id: true,
   lastLoginAt: true,
   lastname: true,
+  hasAccess: true,
 })
 
 export type TUserList = z.infer<typeof ZUserList>
