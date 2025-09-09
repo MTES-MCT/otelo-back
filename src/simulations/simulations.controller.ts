@@ -105,11 +105,12 @@ export class SimulationsController {
   @Get(':id/scenario/export')
   @HttpCode(HttpStatus.OK)
   async exportScenario(@Param('id') id: string, @Res() res: Response) {
-    const { csvData, simulation } = await this.simulationsService.exportScenario(id)
+    const workbook = await this.simulationsService.exportScenario(id)
+    const buffer = await workbook.xlsx.writeBuffer()
 
-    res.setHeader('Content-Type', 'text/csv')
-    res.setHeader('Content-Disposition', `attachment; filename=${new Date(simulation.createdAt).toISOString()}-otelo-scenario.csv`)
-    res.send(csvData)
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="Votre scenario Otelo.xlsx"`)
+    res.send(buffer)
   }
 
   @AccessControl({

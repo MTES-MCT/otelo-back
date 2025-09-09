@@ -24,30 +24,30 @@ export class ResultsService {
   async upsertSimulationResults(simulationId: string, results: TResults) {
     const { epcisTotals } = results
 
-    const upsertOperations = epcisTotals.map((epciTotal) => {
-      const vacantAccomodation = epciTotal.vacantAccomodation < 0 ? Math.abs(epciTotal.vacantAccomodation) : 0
-      return this.prisma.simulationResults.upsert({
-        where: {
-          epciCode_simulationId: {
+    await this.prisma.$transaction(async (tx) => {
+      for (const epciTotal of epcisTotals) {
+        const vacantAccomodation = epciTotal.vacantAccomodation < 0 ? Math.abs(epciTotal.vacantAccomodation) : 0
+        await tx.simulationResults.upsert({
+          where: {
+            epciCode_simulationId: {
+              epciCode: epciTotal.epciCode,
+              simulationId,
+            },
+          },
+          update: {
+            totalFlux: epciTotal.totalFlux,
+            totalStock: epciTotal.totalStock,
+            vacantAccomodation,
+          },
+          create: {
             epciCode: epciTotal.epciCode,
             simulationId,
+            totalFlux: epciTotal.totalFlux,
+            totalStock: epciTotal.totalStock,
+            vacantAccomodation,
           },
-        },
-        update: {
-          totalFlux: epciTotal.totalFlux,
-          totalStock: epciTotal.totalStock,
-          vacantAccomodation,
-        },
-        create: {
-          epciCode: epciTotal.epciCode,
-          simulationId,
-          totalFlux: epciTotal.totalFlux,
-          totalStock: epciTotal.totalStock,
-          vacantAccomodation,
-        },
-      })
+        })
+      }
     })
-
-    await Promise.all(upsertOperations)
   }
 }
