@@ -757,6 +757,8 @@ model SimulationResults {
   totalStock         Int @default(0)
   vacantAccomodation Int @default(0)
 
+  exported Boolean @default(false)
+
   @@unique([epciCode, simulationId])
   @@map("simulation_results")
 }

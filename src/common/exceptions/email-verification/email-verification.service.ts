@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { ExpiredCodeException, InvalidCodeException, UserNotFoundException } from '~/common/exceptions'
+import { ExpiredCodeException, InvalidCodeException, UserNotFoundException } from '~/common/exceptions/auth.exceptions'
 import { PrismaService } from '~/db/prisma.service'
 import { EmailService } from '~/email/email.service'
 import { TUser } from '~/schemas/users/user'
