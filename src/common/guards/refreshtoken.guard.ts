@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { InvalidRefreshTokenException } from '~/common/exceptions'
+import { InvalidRefreshTokenException } from '~/common/exceptions/auth.exceptions'
 import { SessionsService } from '~/sessions/sessions.service'
 
 @Injectable()

@@ -34,7 +34,9 @@
     "@types/papaparse": "^5.3.16",
     "argon2": "^0.43.1",
     "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
+    "puppeteer": "^24.19.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "zod": "^3.23.8"

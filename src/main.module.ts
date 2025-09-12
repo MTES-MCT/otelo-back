@@ -21,6 +21,7 @@ import { DemographicEvolutionModule } from './demographic-evolution/demographic-
 import { EmailModule } from './email/email.module'
 import { EpciGroupsModule } from './epci-groups/epci-groups.module'
 import { EpcisModule } from './epcis/epcis.module'
+import { ExportPowerpointModule } from './export-powerpoint/export-powerpoint.module'
 import { FilocomModule } from './filocom/filocom.module'
 import { FinancialInadequationModule } from './financial-inadequation/financial-inadequation.module'
 import { HealthController } from './health/health.controller'
@@ -70,6 +71,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     StatisticsModule,
     EmailVerificationModule,
     ExportExcelModule,
+    ExportPowerpointModule,
   ],
   providers: [
     AuthenticationGuard,
