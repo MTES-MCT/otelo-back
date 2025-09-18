@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { Simulation } from '@prisma/client'
-import * as ExcelJS from 'exceljs'
 import { PrismaService } from '~/db/prisma.service'
 import { EpciGroupsService } from '~/epci-groups/epci-groups.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
@@ -167,87 +166,6 @@ export class SimulationsService {
         ...(originalSimulation.epciGroupId && { epciGroup: { connect: { id: originalSimulation.epciGroupId } } }),
       },
     })
-  }
-
-  async exportScenario(id: string) {
-    const workbook = new ExcelJS.Workbook()
-
-    const simulation = await this.prismaService.simulation.findUniqueOrThrow({
-      include: { scenario: { include: { epciScenarios: true } } },
-      where: { id },
-    })
-
-    const globalWorksheet = workbook.addWorksheet('Parametrage global', { properties: { defaultColWidth: 30 } })
-    globalWorksheet.columns = [
-      { header: 'Période de projection', key: 'projection' },
-      { header: 'Horizon de résorption (en années)', key: 'b1_horizon_resorption' },
-      { header: 'Scénario démographique Omphale', key: 'b2_scenario' },
-      { header: 'Source - hors logement', key: 'source_b11' },
-      { header: "Type d'hébergement - hors logement", key: 'b11_etablissement' },
-      { header: 'Part prise en compte - hors logement', key: 'b11_part_etablissement' },
-      { header: 'Source - Inadéquation financière', key: 'source_b14' },
-      { header: 'Confort - Inadéquation financière', key: 'b14_confort' },
-      { header: "Statut d'occupation - Inadéquation financière", key: 'b14_occupation' },
-      { header: 'Part de logements réallouées - Inadéquation financière', key: 'b14_taux_reallocation' },
-      { header: 'Source - Mauvaise qualité', key: 'source_b15' },
-      { header: 'Niveau de suroccupation - Mauvaise qualité', key: 'b15_surocc' },
-      { header: 'Catégories - Mauvaise qualité', key: 'b15_loc_hors_hlm' },
-      { header: 'Part de logements réallouées - Mauvaise qualité', key: 'b15_taux_reallocation' },
-      { header: 'Source - Suroccupation', key: 'source_b15' },
-      { header: 'Niveau de suroccupation - Suroccupation', key: 'b15_surocc' },
-      { header: 'Catégories - Suroccupation', key: 'b15_loc_hors_hlm' },
-      { header: 'Part de logements réallouées - Suroccupation', key: 'b15_taux_reallocation' },
-    ]
-
-    globalWorksheet.addRow({
-      projection: simulation.scenario.projection,
-      b1_horizon_resorption: simulation.scenario.b1_horizon_resorption,
-      b2_scenario: simulation.scenario.b2_scenario,
-      source_b11: simulation.scenario.source_b11,
-      b11_etablissement: simulation.scenario.b11_etablissement?.join(','),
-      b11_part_etablissement: simulation.scenario.b11_part_etablissement,
-      source_b14: simulation.scenario.source_b14,
-      b14_confort: simulation.scenario.b14_confort,
-      b14_occupation: simulation.scenario.b14_occupation,
-      b14_taux_reallocation: simulation.scenario.b14_taux_reallocation,
-      source_b15: simulation.scenario.source_b15,
-      b15_surocc: simulation.scenario.b15_surocc,
-      b15_loc_hors_hlm: simulation.scenario.b15_loc_hors_hlm,
-      b15_taux_reallocation: simulation.scenario.b15_taux_reallocation,
-    })
-
-    for (const epciScenario of simulation.scenario.epciScenarios) {
-      const simulationResults = await this.prismaService.simulationResults.findUniqueOrThrow({
-        where: { epciCode_simulationId: { epciCode: epciScenario.epciCode, simulationId: id } },
-      })
-      const epciWorksheet = workbook.addWorksheet(epciScenario.epciCode, { properties: { defaultColWidth: 30 } })
-      epciWorksheet.columns = [
-        { header: 'Taux cible de logement vacants', key: 'b2_tx_vacance' },
-        { header: 'Taux cible de residences secondaires', key: 'b2_tx_rs' },
-        { header: 'Taux cible de disparition', key: 'b2_tx_disparition' },
-        { header: 'Taux cible de restructuration', key: 'b2_tx_restructuration' },
-      ]
-
-      epciWorksheet.addRow({
-        b2_tx_vacance: epciScenario.b2_tx_vacance,
-        b2_tx_rs: epciScenario.b2_tx_rs,
-        b2_tx_disparition: epciScenario.b2_tx_disparition,
-        b2_tx_restructuration: epciScenario.b2_tx_restructuration,
-      })
-
-      // we skip 2 rows
-      epciWorksheet.addRow({})
-      epciWorksheet.addRow({})
-
-      epciWorksheet.addRow({
-        b2_tx_vacance: 'Besoin en constructions neuves',
-        b2_tx_rs: simulationResults.totalFlux + simulationResults.totalStock,
-      })
-      epciWorksheet.addRow({ b2_tx_vacance: 'Besoin en remobilisation', b2_tx_rs: simulationResults.vacantAccomodation })
-      epciWorksheet.addRow({ b2_tx_vacance: 'Besoin en mal-logement', b2_tx_rs: simulationResults.totalStock })
-    }
-
-    return workbook
   }
 
   /**

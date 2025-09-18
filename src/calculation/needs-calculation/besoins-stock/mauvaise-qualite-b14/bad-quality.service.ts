@@ -52,7 +52,7 @@ export class BadQualityService extends BaseCalculator {
             FF_abs_wc_sani: 'WcSdb',
             FF_abs_wc_sani_chauf: '3elts',
           }
-          const prefix = qualityMap[b14_qualite]
+          const prefix = qualityMap[b14_qualite as string]
           const comfort = comfortMap[b14_confort]
           return `${prefix}${comfort}`
         }

@@ -1,0 +1,25 @@
+import { Controller, Get, HttpCode, HttpStatus, Param, Res } from '@nestjs/common'
+import { Prisma, Role } from '@prisma/client'
+import { Response } from 'express'
+import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { ExportExcelService } from '~/export-excel/export-excel.service'
+
+@Controller('export-excel')
+export class ExportExcelController {
+  constructor(private readonly exportExcelService: ExportExcelService) {}
+
+  @AccessControl({
+    entity: Prisma.ModelName.Simulation,
+    paramName: 'simulationId',
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @Get(':simulationId')
+  @HttpCode(HttpStatus.OK)
+  async exportScenario(@Param('simulationId') simulationId: string, @Res() res: Response) {
+    const workbook = await this.exportExcelService.exportScenario(simulationId)
+    const buffer = await workbook.xlsx.writeBuffer()
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', `attachment; filename="Votre scenario Otelo.xlsx"`)
+    res.send(buffer)
+  }
+}

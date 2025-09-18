@@ -6,6 +6,7 @@ import { AuthenticationGuard } from '~/common/guards/authentication.guard'
 import { AuthorizationGuard } from '~/common/guards/authorization.guard'
 import envRessources from '~/config/environment'
 import { CronModule } from '~/cron/cron.module'
+import { ExportExcelModule } from '~/export-excel/export-excel.module'
 import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
 import { AdminController } from './admin/admin.controller'
@@ -68,6 +69,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     AdminModule,
     StatisticsModule,
     EmailVerificationModule,
+    ExportExcelModule,
   ],
   providers: [
     AuthenticationGuard,
