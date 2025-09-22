@@ -152,6 +152,20 @@ export class ExportExcelService {
     return (value * 100).toFixed(2)
   }
 
+  private sanitizeWorksheetName(name: string): string {
+    // Remove invalid characters for Excel worksheet names
+    let sanitized = name.replace(/[\\\/\?\*\[\]]/g, '')
+
+    // Remove single quotes from the beginning and end
+    sanitized = sanitized.replace(/^'+|'+$/g, '')
+
+    if (sanitized.length > 31) {
+      sanitized = sanitized.substring(0, 31)
+    }
+
+    return sanitized
+  }
+
   async createSyntheseSheet(workbook: ExcelJS.Workbook, simulation: TSimulationWithEpciAndScenario, results: TResults) {
     const syntheseWorksheet = workbook.addWorksheet('Ensemble des EPCI', {
       properties: { defaultColWidth: 25 },
@@ -324,8 +338,9 @@ export class ExportExcelService {
     simulation: TSimulationWithEpciAndScenario,
     epciScenario: TEpciScenario,
   ): ExcelJS.Worksheet {
-    const epciName = simulation.epcis.find((epci) => epci.code === epciScenario.epciCode)?.name
-    return workbook.addWorksheet(epciName, {
+    const epciName = simulation.epcis.find((epci) => epci.code === epciScenario.epciCode)?.name!
+    const sanitizedName = this.sanitizeWorksheetName(epciName)
+    return workbook.addWorksheet(sanitizedName, {
       properties: { defaultColWidth: 35 },
     })
   }
