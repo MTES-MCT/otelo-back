@@ -34,7 +34,7 @@ export const ZScenario = ZCommonDateFields.extend({
   b13_taux_reallocation: z.number(),
   b14_confort: z.string(),
   b14_occupation: z.string(),
-  b14_qualite: z.string(),
+  b14_qualite: z.string().optional(),
   b14_taux_reallocation: z.number(),
   b15_loc_hors_hlm: z.boolean(),
   b15_proprietaire: z.boolean(),
@@ -50,7 +50,7 @@ export const ZScenario = ZCommonDateFields.extend({
   source_b11: z.nativeEnum(ESourceB11),
   source_b14: z.union([z.literal('RP'), z.literal('Filo'), z.literal('FF')]),
   source_b15: z.union([z.literal('RP'), z.literal('Filo')]),
-  demographicEvolutionOmphaleCustom: z.array(ZDemographicEvolutionOmphaleCustom),
+  demographicEvolutionOmphaleCustom: z.array(ZDemographicEvolutionOmphaleCustom).optional(),
 })
 
 export type TScenario = z.infer<typeof ZScenario>
@@ -80,3 +80,5 @@ export const ZUpdateSimulationDto = ZScenario.omit({
 })
 
 export type TUpdateSimulationDto = z.infer<typeof ZUpdateSimulationDto>
+
+export type TEpciScenario = z.infer<typeof ZEpciScenario>

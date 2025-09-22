@@ -1,7 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Put, Res } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Put } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Prisma, Role } from '@prisma/client'
-import { Response } from 'express'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { EmailService } from '~/email/email.service'
@@ -95,22 +94,6 @@ export class SimulationsController {
   @HttpCode(HttpStatus.CREATED)
   async cloneSimulation(@Param('id') id: string, @Body() data: TCloneSimulationDto, @User() { id: userId }: TUser) {
     return this.simulationsService.clone(userId, id, data)
-  }
-
-  @AccessControl({
-    entity: Prisma.ModelName.Simulation,
-    paramName: 'id',
-    roles: [Role.ADMIN, Role.USER],
-  })
-  @Get(':id/scenario/export')
-  @HttpCode(HttpStatus.OK)
-  async exportScenario(@Param('id') id: string, @Res() res: Response) {
-    const workbook = await this.simulationsService.exportScenario(id)
-    const buffer = await workbook.xlsx.writeBuffer()
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    res.setHeader('Content-Disposition', `attachment; filename="Votre scenario Otelo.xlsx"`)
-    res.send(buffer)
   }
 
   @AccessControl({
