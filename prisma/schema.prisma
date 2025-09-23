@@ -16,6 +16,15 @@ enum Role {
   ADMIN
 }
 
+enum UserType {
+  DDT
+  AgenceUrbanisme
+  Collectivite
+  DREAL
+  BureauEtudes
+  Autre
+}
+
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
@@ -27,6 +36,7 @@ model User {
   provider      String?
   role          Role      @default(USER)
   hasAccess     Boolean   @default(false)
+  type          UserType? 
 
   // Has an accepted dossier on DS
   engaged Boolean @default(false)
