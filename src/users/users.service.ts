@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { TCreateUser } from '~/schemas/users/create-user'
+import { TUpdateUserType } from '~/schemas/users/update-user'
 import { TUser, TUserList } from '~/schemas/users/user'
 
 const fieldsWithoutPassword = {
@@ -17,7 +18,8 @@ const fieldsWithoutPassword = {
   role: true,
   sub: true,
   hasAccess: true,
-}
+  type: true,
+} satisfies Prisma.UserSelect
 
 @Injectable()
 export class UsersService {
@@ -35,6 +37,13 @@ export class UsersService {
       where: { email },
     })
     return !!whitelistEntry
+  }
+
+  async getMe(id: string): Promise<TUser | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: fieldsWithoutPassword,
+    })
   }
 
   async list(): Promise<{ userCount: number; users: TUser[] }> {
@@ -125,5 +134,13 @@ export class UsersService {
 
   async delete(id: string): Promise<void> {
     await Promise.all([this.prisma.session.deleteMany({ where: { userId: id } }), this.prisma.user.delete({ where: { id } })])
+  }
+
+  async updateType(id: string, { type }: TUpdateUserType): Promise<TUser> {
+    return this.prisma.user.update({
+      data: { type },
+      where: { id },
+      select: fieldsWithoutPassword,
+    })
   }
 }

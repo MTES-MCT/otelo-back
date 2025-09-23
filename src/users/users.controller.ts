@@ -1,6 +1,9 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Query } from '@nestjs/common'
-import { Role } from '@prisma/client'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common'
+import { Prisma, Role } from '@prisma/client'
+import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { TUpdateUserType } from '~/schemas/users/update-user'
+import { TUser } from '~/schemas/users/user'
 import { UsersService } from '~/users/users.service'
 
 @Controller('users')
@@ -14,6 +17,15 @@ export class UsersController {
   @Get()
   async list() {
     return this.usersService.list()
+  }
+
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+  })
+  @HttpCode(HttpStatus.OK)
+  @Get('/me')
+  async getConnectedUser(@User() user: TUser) {
+    return this.usersService.getMe(user.id)
   }
 
   @AccessControl({
@@ -32,5 +44,16 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
     return this.usersService.delete(id)
+  }
+
+  @AccessControl({
+    roles: [Role.ADMIN, Role.USER],
+    paramName: 'id',
+    entity: Prisma.ModelName.User,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Patch(':id')
+  async updateType(@User() user: TUser, @Body() userType: TUpdateUserType) {
+    return this.usersService.updateType(user.id, userType)
   }
 }
