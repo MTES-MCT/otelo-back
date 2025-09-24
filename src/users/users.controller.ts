@@ -48,8 +48,6 @@ export class UsersController {
 
   @AccessControl({
     roles: [Role.ADMIN, Role.USER],
-    paramName: 'id',
-    entity: Prisma.ModelName.User,
   })
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
