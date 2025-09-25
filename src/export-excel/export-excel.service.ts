@@ -325,7 +325,7 @@ export class ExportExcelService {
     const epciWorksheet = this.initializeWorksheet(workbook, simulation, epciScenario)
 
     await this.createTitlesSection(epciWorksheet, simulation, epciScenario)
-    await this.createParameterSection(epciWorksheet, simulation, epciScenario)
+    await this.createParameterSection(epciWorksheet, simulation, epciScenario, results)
     await this.createResultsSection(epciWorksheet, simulation, epciScenario, results)
     await this.createAnnualizedNeedsSection(epciWorksheet, simulation, epciScenario, results)
 
@@ -377,23 +377,35 @@ export class ExportExcelService {
     epciWorksheet: ExcelJS.Worksheet,
     simulation: TSimulationWithEpciAndScenario,
     epciScenario: TEpciScenario,
+    results: TResults,
   ): Promise<void> {
-    await this.createTimeHorizonSection(epciWorksheet, simulation)
+    await this.createTimeHorizonSection(epciWorksheet, simulation, epciScenario, results)
     await this.createDemographicSection(epciWorksheet, simulation, epciScenario)
     await this.createVacantHousingSection(epciWorksheet, simulation, epciScenario)
     await this.createSecondaryResidencesSection(epciWorksheet, simulation, epciScenario)
     await this.createUrbanRenewalSection(epciWorksheet, epciScenario)
     await this.createBadHousingSection(epciWorksheet, simulation)
   }
-  private async createTimeHorizonSection(epciWorksheet: ExcelJS.Worksheet, simulation: TSimulationWithEpciAndScenario): Promise<void> {
+  private async createTimeHorizonSection(
+    epciWorksheet: ExcelJS.Worksheet,
+    simulation: TSimulationWithEpciAndScenario,
+    epciScenario: TEpciScenario,
+    results: TResults,
+  ): Promise<void> {
     const headerConfig: SectionConfig = {
-      headers: [{ cell: 'D4', value: 'Valeur', style: 'resultHeader' }],
+      headers: [{ cell: 'D3', value: 'Valeur', style: 'resultHeader' }],
       data: [
-        { cell: 'A5', value: 'Horizon de temps', style: 'sectionHeader' },
-        { cell: 'A6', value: 'Horizon de projection', style: 'standardBorder' },
-        { cell: 'D6', value: simulation.scenario.projection, style: 'standardBorder' },
-        { cell: 'A7', value: 'Horizon de résorption du mal-logement', style: 'standardBorder' },
-        { cell: 'D7', value: simulation.scenario.b1_horizon_resorption, style: 'standardBorder' },
+        { cell: 'A4', value: 'Horizon de temps', style: 'sectionHeader' },
+        { cell: 'A5', value: 'Horizon de projection', style: 'standardBorder' },
+        { cell: 'D5', value: simulation.scenario.projection, style: 'standardBorder' },
+        { cell: 'A6', value: 'Horizon de résorption du mal-logement', style: 'standardBorder' },
+        { cell: 'D6', value: simulation.scenario.b1_horizon_resorption, style: 'standardBorder' },
+        { cell: 'A7', value: 'Année du max', style: 'standardBorder' },
+        {
+          cell: 'D7',
+          value: results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear,
+          style: 'standardBorder',
+        },
       ],
     }
 
@@ -1373,6 +1385,6 @@ export class ExportExcelService {
       await this.createEpciSheet(workbook, simulation as TSimulationWithEpciAndScenario, epciScenario, resultsData.results)
     }
 
-    return workbook
+    return { simulation, workbook }
   }
 }

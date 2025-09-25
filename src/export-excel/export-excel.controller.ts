@@ -16,10 +16,14 @@ export class ExportExcelController {
   @Get(':simulationId')
   @HttpCode(HttpStatus.OK)
   async exportScenario(@Param('simulationId') simulationId: string, @Res() res: Response) {
-    const workbook = await this.exportExcelService.exportScenario(simulationId)
+    const { workbook, simulation } = await this.exportExcelService.exportScenario(simulationId)
     const buffer = await workbook.xlsx.writeBuffer()
+
+    const mainEpciCode = simulation.scenario.epciScenarios.find((e) => e.baseEpci)?.epciCode
+    const filename = `Votre scenario Otelo - ${simulation.epcis.find((e) => e.code === mainEpciCode)?.name} - ${simulation.name}.xlsx`
+
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    res.setHeader('Content-Disposition', `attachment; filename="Votre scenario Otelo.xlsx"`)
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`)
     res.send(buffer)
   }
 }
