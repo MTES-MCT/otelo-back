@@ -364,7 +364,7 @@ export class ExportExcelService {
 
     CellStyleHelper.applyCellConfig(epciWorksheet, {
       cell: 'A2',
-      value: 'Nom du scenario :',
+      value: 'Nom du scenario',
       style: 'sectionHeader',
     })
     CellStyleHelper.applyCellConfig(epciWorksheet, {
@@ -606,8 +606,8 @@ export class ExportExcelService {
       headers: [
         { cell: 'A34', value: 'Mal-logement', style: 'sectionHeader' },
         { cell: 'B34', value: 'Modalités', style: 'standardBorder' },
-        { cell: 'C34', value: '%', style: 'standardBorder' },
-        { cell: 'D34', value: 'Volume', style: 'standardBorder' },
+        { cell: 'C34', value: 'Part retenue', style: 'standardBorder' },
+        { cell: 'D34', value: 'Ménages concernés', style: 'standardBorder' },
       ],
     }
 
@@ -633,7 +633,7 @@ export class ExportExcelService {
       },
       {
         row: 38,
-        label: 'Héberges - SNE',
+        label: 'Hébergés - SNE',
         value: getHostedLabel(simulation.scenario.b12_heberg_temporaire, simulation.scenario.b12_heberg_particulier),
       },
       {
@@ -644,13 +644,13 @@ export class ExportExcelService {
       },
       {
         row: 40,
-        label: `Mauvaise qualité - ${getSource(simulation.scenario.source_b14)}`,
+        label: `Mauvaise qualité - ${getSource(simulation.scenario.source_b14, true)}`,
         percentage: `${simulation.scenario.b14_taux_reallocation} %`,
         value: null,
       },
       {
         row: 41,
-        label: `Logements suroccupés - ${getSource(simulation.scenario.source_b15)}`,
+        label: `Logements suroccupés - ${getSource(simulation.scenario.source_b15, false)}`,
         percentage: `${simulation.scenario.b15_taux_reallocation} %`,
         value: `${getBadHousingCategoryLabel(simulation.scenario.b15_proprietaire, simulation.scenario.b15_loc_hors_hlm)} - Niveau : ${getSurroccLabel(simulation.scenario.b15_surocc)}`,
       },
@@ -691,17 +691,14 @@ export class ExportExcelService {
 
     await this.createResultsHeaders(epciWorksheet)
     await this.populateMainResults(epciWorksheet, simulationResults)
-    await this.populateFlowRequirementResults(epciWorksheet, epciScenario, results, simulationResults)
+    await this.populateFlowRequirementResults(epciWorksheet, epciScenario, results)
     await this.populateBadHousingResults(epciWorksheet, epciScenario, results, simulationResults)
     await this.populateFilocomResults(epciWorksheet, epciScenario, simulation)
   }
 
   private async createResultsHeaders(epciWorksheet: ExcelJS.Worksheet): Promise<void> {
     const headersConfig: SectionConfig = {
-      headers: [
-        { cell: 'G4', value: 'Valeur', style: 'resultHeader' },
-        { cell: 'H4', value: '% du total', style: 'resultHeader' },
-      ],
+      headers: [{ cell: 'G3', value: 'Valeur', style: 'resultHeader' }],
     }
 
     CellStyleHelper.applySectionConfig(epciWorksheet, headersConfig)
@@ -712,10 +709,10 @@ export class ExportExcelService {
 
     const mainResultsConfig: SectionConfig = {
       data: [
-        { cell: 'F6', value: 'Besoin total en construction neuves', style: 'sectionHeader' },
-        { cell: 'G6', value: totalNeed, style: 'importantValue' },
-        { cell: 'F7', value: 'Besoin en remobilisation', style: 'sectionHeader' },
-        { cell: 'G7', value: simulationResults.vacantAccomodation, style: 'importantValue' },
+        { cell: 'F5', value: 'Besoin total en construction neuves', style: 'sectionHeader' },
+        { cell: 'G5', value: totalNeed, style: 'importantValue' },
+        { cell: 'F6', value: 'Besoin en remobilisation', style: 'sectionHeader' },
+        { cell: 'G6', value: simulationResults.vacantAccomodation, style: 'importantValue' },
       ],
     }
 
@@ -726,18 +723,15 @@ export class ExportExcelService {
     epciWorksheet: ExcelJS.Worksheet,
     epciScenario: TEpciScenario,
     results: TResults,
-    simulationResults: TSimulationsResults,
   ): Promise<void> {
-    const totalNeed = simulationResults.totalFlux + simulationResults.totalStock
-
     const flowSectionConfig: SectionConfig = {
       data: [
-        { cell: 'F9', value: "Besoin lié à la démographie et l'évolution du parc", style: 'sectionHeader' },
-        { cell: 'F10', value: 'Démographique', style: 'standardBorder' },
-        { cell: 'F11', value: 'Logements vacants de court terme', style: 'standardBorder' },
-        { cell: 'F12', value: 'Logements vacants de long terme', style: 'standardBorder' },
-        { cell: 'F13', value: 'Résidences secondaires', style: 'standardBorder' },
-        { cell: 'F14', value: 'Renouvellement urbain (disparition et restructuration)', style: 'standardBorder' },
+        { cell: 'F8', value: "Besoin lié à la démographie et l'évolution du parc", style: 'sectionHeader' },
+        { cell: 'F9', value: 'Démographique', style: 'standardBorder' },
+        { cell: 'F10', value: 'Logements vacants de court terme', style: 'standardBorder' },
+        { cell: 'F11', value: 'Logements vacants de long terme', style: 'standardBorder' },
+        { cell: 'F12', value: 'Résidences secondaires', style: 'standardBorder' },
+        { cell: 'F13', value: 'Renouvellement urbain (disparition et restructuration)', style: 'standardBorder' },
       ],
     }
 
@@ -748,41 +742,11 @@ export class ExportExcelService {
       if (epciFlowData) {
         const flowDataConfig: SectionConfig = {
           data: [
-            { cell: 'G10', value: epciFlowData.totals.demographicEvolution, style: 'standardBorder' },
-            {
-              cell: 'H10',
-              value: totalNeed > 0 ? epciFlowData.totals.demographicEvolution / totalNeed : 0,
-              style: 'standardBorder',
-              numFmt: '0.00%',
-            },
-            { cell: 'G11', value: epciFlowData.totals.shortTermVacantAccomodation, style: 'standardBorder' },
-            {
-              cell: 'H11',
-              value: totalNeed > 0 ? epciFlowData.totals.shortTermVacantAccomodation / totalNeed : 0,
-              style: 'standardBorder',
-              numFmt: '0.00%',
-            },
-            { cell: 'G12', value: epciFlowData.totals.longTermVacantAccomodation, style: 'standardBorder' },
-            {
-              cell: 'H12',
-              value: totalNeed > 0 ? epciFlowData.totals.longTermVacantAccomodation / totalNeed : 0,
-              style: 'standardBorder',
-              numFmt: '0.00%',
-            },
-            { cell: 'G13', value: epciFlowData.totals.secondaryResidenceAccomodationEvolution, style: 'standardBorder' },
-            {
-              cell: 'H13',
-              value: totalNeed > 0 ? epciFlowData.totals.secondaryResidenceAccomodationEvolution / totalNeed : 0,
-              style: 'standardBorder',
-              numFmt: '0.00%',
-            },
-            { cell: 'G14', value: epciFlowData.totals.renewalNeeds, style: 'standardBorder' },
-            {
-              cell: 'H14',
-              value: totalNeed > 0 ? epciFlowData.totals.renewalNeeds / totalNeed : 0,
-              style: 'standardBorder',
-              numFmt: '0.00%',
-            },
+            { cell: 'G9', value: epciFlowData.totals.demographicEvolution, style: 'standardBorder' },
+            { cell: 'G10', value: epciFlowData.totals.shortTermVacantAccomodation, style: 'standardBorder' },
+            { cell: 'G11', value: epciFlowData.totals.longTermVacantAccomodation, style: 'standardBorder' },
+            { cell: 'G12', value: epciFlowData.totals.secondaryResidenceAccomodationEvolution, style: 'standardBorder' },
+            { cell: 'G13', value: epciFlowData.totals.renewalNeeds, style: 'standardBorder' },
           ],
         }
 
@@ -797,43 +761,30 @@ export class ExportExcelService {
     results: TResults,
     simulationResults: TSimulationsResults,
   ): Promise<void> {
-    const totalNeed = simulationResults.totalFlux + simulationResults.totalStock
-
     const badHousingSectionConfig: SectionConfig = {
       data: [
-        { cell: 'F16', value: 'Besoin lié au mal-logement', style: 'sectionHeader' },
-        { cell: 'G16', value: simulationResults.totalStock, style: 'importantValue' },
-        {
-          cell: 'H16',
-          value: totalNeed > 0 ? simulationResults.totalStock / totalNeed : 0,
-          style: 'importantValue',
-          numFmt: '0.00%',
-        },
-        { cell: 'F17', value: 'Hors logement', style: 'standardBorder' },
-        { cell: 'F18', value: 'Hébergement', style: 'standardBorder' },
-        { cell: 'F19', value: 'Inadéquation financière', style: 'standardBorder' },
-        { cell: 'F20', value: 'Mauvaise qualité', style: 'standardBorder' },
-        { cell: 'F21', value: 'Inadéquation physique', style: 'standardBorder' },
+        { cell: 'F15', value: 'Besoin lié au mal-logement', style: 'sectionHeader' },
+        { cell: 'G15', value: simulationResults.totalStock, style: 'importantValue' },
+        { cell: 'F16', value: 'Hors logement', style: 'standardBorder' },
+        { cell: 'F17', value: 'Hébergement', style: 'standardBorder' },
+        { cell: 'F18', value: 'Inadéquation financière', style: 'standardBorder' },
+        { cell: 'F19', value: 'Mauvaise qualité', style: 'standardBorder' },
+        { cell: 'F20', value: 'Inadéquation physique', style: 'standardBorder' },
       ],
     }
 
     CellStyleHelper.applySectionConfig(epciWorksheet, badHousingSectionConfig)
 
-    this.populateBadHousingDetailedResults(epciWorksheet, epciScenario, results, totalNeed)
+    this.populateBadHousingDetailedResults(epciWorksheet, epciScenario, results)
   }
 
-  private populateBadHousingDetailedResults(
-    epciWorksheet: ExcelJS.Worksheet,
-    epciScenario: TEpciScenario,
-    results: TResults,
-    totalNeed: number,
-  ): void {
+  private populateBadHousingDetailedResults(epciWorksheet: ExcelJS.Worksheet, epciScenario: TEpciScenario, results: TResults): void {
     const resultCategories = [
-      { key: 'noAccomodation', row: 17 },
-      { key: 'hosted', row: 18 },
-      { key: 'financialInadequation', row: 19 },
-      { key: 'badQuality', row: 20 },
-      { key: 'physicalInadequation', row: 21 },
+      { key: 'noAccomodation', row: 16 },
+      { key: 'hosted', row: 17 },
+      { key: 'financialInadequation', row: 18 },
+      { key: 'badQuality', row: 19 },
+      { key: 'physicalInadequation', row: 20 },
     ]
 
     resultCategories.forEach(({ key, row }) => {
@@ -843,12 +794,6 @@ export class ExportExcelService {
           cell: `G${row}`,
           value: epciData.value,
           style: 'standardBorder',
-        })
-        CellStyleHelper.applyCellConfig(epciWorksheet, {
-          cell: `H${row}`,
-          value: totalNeed > 0 ? epciData.value / totalNeed : 0,
-          style: 'standardBorder',
-          numFmt: '0.00%',
         })
       }
     })
@@ -1065,7 +1010,7 @@ export class ExportExcelService {
       const configHostedFilocom: SectionConfig = {
         data: [
           {
-            cell: 'D37',
+            cell: 'D38',
             value: Math.round(hostedFilocomData.value * cohobIntergPercent),
             style: 'standardBorder',
           },
@@ -1207,11 +1152,11 @@ export class ExportExcelService {
   ): Promise<void> {
     const annualizedNeedsConfig: SectionConfig = {
       data: [
-        { cell: 'F23', value: `Besoin en logements annualisé (jusqu'à horizon de projection)`, style: 'sectionHeader' },
-        { cell: 'F24', value: 'Année', style: 'standardBorder' },
-        { cell: 'F25', value: 'Permis de construire autorisés (Sit@del)', style: 'standardBorder' },
-        { cell: 'F26', value: 'Besoins en constructions neuves', style: 'standardBorder' },
-        { cell: 'F27', value: 'Logements excédentaires', style: 'standardBorder' },
+        { cell: 'F22', value: `Besoin en logements annualisé (jusqu'à horizon de projection)`, style: 'sectionHeader' },
+        { cell: 'F23', value: 'Année', style: 'standardBorder' },
+        { cell: 'F24', value: 'Permis de construire autorisés (Sit@del)', style: 'standardBorder' },
+        { cell: 'F25', value: 'Besoins en constructions neuves', style: 'standardBorder' },
+        { cell: 'F26', value: 'Logements excédentaires', style: 'standardBorder' },
       ],
     }
 
@@ -1228,19 +1173,26 @@ export class ExportExcelService {
   ): void {
     let col = 7
     for (let year = 2013; year <= simulation.scenario.projection; year++) {
+      const cell = epciWorksheet.getCell(23, col)
       CellStyleHelper.applyCellConfig(epciWorksheet, {
-        cell: epciWorksheet.getCell(24, col).address,
+        cell: cell.address,
         value: year,
         style: 'standardBorder',
       })
+      cell.font = { bold: true }
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'E7E6E6' },
+      }
       epciWorksheet.getColumn(col).width = 15
       col++
     }
 
     const dataRows = [
-      { row: 25, results: results.sitadel, dataKey: 'data' },
-      { row: 26, results: results.flowRequirement, dataKey: 'housingNeeds' },
-      { row: 27, results: results.flowRequirement, dataKey: 'surplusHousing' },
+      { row: 24, results: results.sitadel, dataKey: 'data' },
+      { row: 25, results: results.flowRequirement, dataKey: 'housingNeeds' },
+      { row: 26, results: results.flowRequirement, dataKey: 'surplusHousing' },
     ]
 
     dataRows.forEach(({ row, results: resultData, dataKey }) => {
@@ -1280,7 +1232,7 @@ export class ExportExcelService {
   }
 
   private applySectionHeaderStyles(epciWorksheet: ExcelJS.Worksheet): void {
-    const sectionHeaderCells = ['B13', 'C13', 'D13', 'B23', 'C23', 'D23', 'B28', 'C28', 'B34', 'C34', 'D34']
+    const sectionHeaderCells = ['B9', 'C9', 'D9', 'B13', 'C13', 'D13', 'B23', 'C23', 'D23', 'B28', 'C28', 'B34', 'C34', 'D34']
     sectionHeaderCells.forEach((cellAddr) => {
       const cell = epciWorksheet.getCell(cellAddr)
       cell.font = { bold: true }
@@ -1296,13 +1248,13 @@ export class ExportExcelService {
     const alternateRowColors = [
       { rows: [14, 15, 16], color: 'F8F8F8' },
       { rows: [19, 20, 21], color: 'F8F8F8' },
-      { rows: [24, 25, 26], color: 'F8F8F8' },
+      { rows: [23, 24, 25], color: 'F8F8F8' },
       { rows: [29, 30], color: 'F8F8F8' },
       { rows: [31, 32], color: 'F8F8F8' },
       { rows: [35, 36, 37, 38, 39, 40, 41], color: 'F8F8F8' },
-      { rows: [10, 11, 12, 13, 14], color: 'F8F8F8' },
-      { rows: [17, 18, 19, 20, 21], color: 'F8F8F8' },
-      { rows: [25, 26, 27], color: 'F8F8F8' },
+      { rows: [9, 10, 11, 12, 13], color: 'F8F8F8' },
+      { rows: [16, 17, 18, 19, 20, 20], color: 'F8F8F8' },
+      { rows: [24, 25, 26], color: 'F8F8F8' },
     ]
 
     alternateRowColors.forEach((section) => {
@@ -1347,7 +1299,7 @@ export class ExportExcelService {
 
   private setColumnWidths(epciWorksheet: ExcelJS.Worksheet): void {
     const columnWidths = {
-      A: 45,
+      A: 65,
       B: 40,
       C: 15,
       D: 20,

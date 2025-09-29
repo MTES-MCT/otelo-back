@@ -88,10 +88,10 @@ export const getOmphaleKey = (scenario: string) => {
   }
 }
 
-export const getSource = (key: string) => {
+export const getSource = (key: string, isBadQuality?: boolean) => {
   switch (key) {
     case 'Filo':
-      return 'Filocom'
+      return isBadQuality ? 'PPPI Noyau dur (CGDD/SDES à partir de données fiscales)' : 'CGDD/SDES'
     case 'FF':
       return 'Fichiers Fonciers'
     case 'RP':
