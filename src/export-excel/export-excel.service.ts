@@ -364,7 +364,7 @@ export class ExportExcelService {
 
     CellStyleHelper.applyCellConfig(epciWorksheet, {
       cell: 'A2',
-      value: 'Nom du scenario',
+      value: 'Nom du scénario',
       style: 'sectionHeader',
     })
     CellStyleHelper.applyCellConfig(epciWorksheet, {
@@ -380,9 +380,9 @@ export class ExportExcelService {
     results: TResults,
   ): Promise<void> {
     await this.createTimeHorizonSection(epciWorksheet, simulation, epciScenario, results)
-    await this.createDemographicSection(epciWorksheet, simulation, epciScenario)
-    await this.createVacantHousingSection(epciWorksheet, simulation, epciScenario)
-    await this.createSecondaryResidencesSection(epciWorksheet, simulation, epciScenario)
+    await this.createDemographicSection(epciWorksheet, simulation, epciScenario, results)
+    await this.createVacantHousingSection(epciWorksheet, simulation, epciScenario, results)
+    await this.createSecondaryResidencesSection(epciWorksheet, simulation, epciScenario, results)
     await this.createUrbanRenewalSection(epciWorksheet, epciScenario)
     await this.createBadHousingSection(epciWorksheet, simulation)
   }
@@ -415,6 +415,7 @@ export class ExportExcelService {
     epciWorksheet: ExcelJS.Worksheet,
     simulation: TSimulationWithEpciAndScenario,
     epciScenario: TEpciScenario,
+    results: TResults,
   ): Promise<void> {
     const demographicPopulationEvolution = await this.demographicEvolutionService.getDemographicEvolutionPopulationByEpci(
       epciScenario.epciCode,
@@ -423,13 +424,15 @@ export class ExportExcelService {
     const demographicEvolution = await this.demographicEvolutionService.getDemographicEvolution(epciScenario.epciCode)
     const demographicEvolutionEpciData = demographicEvolution[epciScenario.epciCode]
     const populationKey = getPopulationKey(simulation.scenario.b2_scenario)
+    const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
+    const projection = peakYear ?? simulation.scenario.projection
 
     const demographicConfig: SectionConfig = {
       data: [
         { cell: 'A9', value: 'Evolution démographique', style: 'sectionHeader' },
         { cell: 'B9', value: 'Modalités', style: 'standardBorder' },
         { cell: 'C9', value: 'Valeur 2021', style: 'standardBorder' },
-        { cell: 'D9', value: `Valeur ${simulation.scenario.projection}`, style: 'standardBorder' },
+        { cell: 'D9', value: `Valeur ${peakYear}`, style: 'standardBorder' },
         { cell: 'A10', value: 'Evolution de la population', style: 'standardBorder' },
         { cell: 'B10', value: getPopulationLabel(simulation.scenario.b2_scenario), style: 'standardBorder' },
         {
@@ -443,7 +446,7 @@ export class ExportExcelService {
         {
           cell: 'D10',
           value: (() => {
-            const found = demographicPopulationEvolutionEpciData.data.find((d) => d.year === simulation.scenario.projection)
+            const found = demographicPopulationEvolutionEpciData.data.find((d) => d.year === projection)
             return found?.[populationKey] ?? 0
           })(),
           style: 'standardBorder',
@@ -463,7 +466,7 @@ export class ExportExcelService {
           cell: 'D11',
           value: (() => {
             const key = getOmphaleKey(simulation.scenario.b2_scenario)
-            const found = demographicEvolutionEpciData.data.find((d) => d.year === simulation.scenario.projection)
+            const found = demographicEvolutionEpciData.data.find((d) => d.year === projection)
             return found?.[key] ?? 0
           })(),
           style: 'standardBorder',
@@ -478,8 +481,11 @@ export class ExportExcelService {
     epciWorksheet: ExcelJS.Worksheet,
     simulation: TSimulationWithEpciAndScenario,
     epciScenario: TEpciScenario,
+    results: TResults,
   ): Promise<void> {
     const rates = await this.accommodationRatesService.getAccommodationRates(epciScenario.epciCode)
+    const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
+    const projection = peakYear ?? simulation.scenario.projection
 
     const vacantHousingConfig: SectionConfig = {
       data: [
@@ -522,7 +528,7 @@ export class ExportExcelService {
 
     epciWorksheet.mergeCells('A19:A21')
     const situationHorizonCell = epciWorksheet.getCell('A19')
-    situationHorizonCell.value = `Situation à ${simulation.scenario.projection}`
+    situationHorizonCell.value = `Situation à ${projection}`
     situationHorizonCell.alignment = { horizontal: 'center', vertical: 'middle' }
     situationHorizonCell.fill = {
       type: 'pattern',
@@ -536,8 +542,11 @@ export class ExportExcelService {
     epciWorksheet: ExcelJS.Worksheet,
     simulation: TSimulationWithEpciAndScenario,
     epciScenario: TEpciScenario,
+    results: TResults,
   ): Promise<void> {
     const rates = await this.accommodationRatesService.getAccommodationRates(epciScenario.epciCode)
+    const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
+    const projection = peakYear ?? simulation.scenario.projection
 
     const secondaryResidencesConfig: SectionConfig = {
       data: [
@@ -549,7 +558,7 @@ export class ExportExcelService {
         { cell: 'C24', value: this.toPercentage(rates[epciScenario.epciCode].txRs), style: 'standardBorder' },
         { cell: 'B25', value: 'Variation du taux', style: 'standardBorder' },
         { cell: 'C25', value: this.toPercentage(rates[epciScenario.epciCode].txRs - epciScenario.b2_tx_rs), style: 'standardBorder' },
-        { cell: 'B26', value: `Résidences secondaires en ${simulation.scenario.projection}`, style: 'standardBorder' },
+        { cell: 'B26', value: `Résidences secondaires en ${projection}`, style: 'standardBorder' },
         { cell: 'C26', value: this.toPercentage(epciScenario.b2_tx_rs), style: 'standardBorder' },
       ],
     }
@@ -565,6 +574,7 @@ export class ExportExcelService {
         { cell: 'A28', value: 'Renouvellement urbain', style: 'sectionHeader' },
         { cell: 'B28', value: 'Modalités', style: 'standardBorder' },
         { cell: 'C28', value: '%', style: 'standardBorder' },
+        { cell: 'D28', value: 'Nombre de logements', style: 'standardBorder' },
         { cell: 'B29', value: 'Taux de restructuration', style: 'standardBorder' },
         { cell: 'C29', value: this.toPercentage(rates[epciScenario.epciCode].restructuringRate), style: 'standardBorder' },
         { cell: 'B30', value: 'Taux de disparition', style: 'standardBorder' },
@@ -786,13 +796,12 @@ export class ExportExcelService {
       { key: 'badQuality', row: 19 },
       { key: 'physicalInadequation', row: 20 },
     ]
-
     resultCategories.forEach(({ key, row }) => {
       const epciData = results[key].epcis.find((epci) => epci.epciCode === epciScenario.epciCode)
       if (epciData) {
         CellStyleHelper.applyCellConfig(epciWorksheet, {
           cell: `G${row}`,
-          value: epciData.value,
+          value: epciData.prorataValue,
           style: 'standardBorder',
         })
       }
@@ -1005,13 +1014,11 @@ export class ExportExcelService {
 
     // Calculate hosted Filocom data for D37 based on b12_cohab_interg_subie
     if (hostedFilocomData) {
-      const cohobIntergPercent = simulation.scenario.b12_cohab_interg_subie / 100
-
       const configHostedFilocom: SectionConfig = {
         data: [
           {
             cell: 'D38',
-            value: Math.round(hostedFilocomData.value * cohobIntergPercent),
+            value: Math.round(hostedFilocomData.value),
             style: 'standardBorder',
           },
         ],
@@ -1232,7 +1239,7 @@ export class ExportExcelService {
   }
 
   private applySectionHeaderStyles(epciWorksheet: ExcelJS.Worksheet): void {
-    const sectionHeaderCells = ['B9', 'C9', 'D9', 'B13', 'C13', 'D13', 'B23', 'C23', 'D23', 'B28', 'C28', 'B34', 'C34', 'D34']
+    const sectionHeaderCells = ['B9', 'C9', 'D9', 'B13', 'C13', 'D13', 'B23', 'C23', 'D23', 'B28', 'C28', 'D28', 'B34', 'C34', 'D34']
     sectionHeaderCells.forEach((cellAddr) => {
       const cell = epciWorksheet.getCell(cellAddr)
       cell.font = { bold: true }
