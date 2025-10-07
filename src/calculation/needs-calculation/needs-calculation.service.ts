@@ -34,11 +34,12 @@ export class NeedsCalculationService {
         epciFlowRequirement.totals.vacantAccomodation
 
       const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds)
-
       total += epciTotalFlux + epciTotalStock
       totalFlux += epciTotalFlux
       totalStock += epciTotalStock
-      vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
+      if (epciFlowRequirement.totals.longTermVacantAccomodation <= 0) {
+        vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
+      }
 
       return {
         epciCode: epci.code,
