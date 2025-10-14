@@ -439,7 +439,7 @@ export class ExportExcelService {
           cell: 'C10',
           value: (() => {
             const found = demographicPopulationEvolutionEpciData.data.find((d) => d.year === 2021)
-            return found?.[populationKey] ?? 0
+            return populationKey ? found?.[populationKey] : 0
           })(),
           style: 'standardBorder',
         },
@@ -447,7 +447,7 @@ export class ExportExcelService {
           cell: 'D10',
           value: (() => {
             const found = demographicPopulationEvolutionEpciData.data.find((d) => d.year === projection)
-            return found?.[populationKey] ?? 0
+            return populationKey ? found?.[populationKey] : 0
           })(),
           style: 'standardBorder',
         },
@@ -458,7 +458,7 @@ export class ExportExcelService {
           value: (() => {
             const key = getOmphaleKey(simulation.scenario.b2_scenario)
             const found = demographicEvolutionEpciData.data.find((d) => d.year === 2021)
-            return found?.[key] ?? 0
+            return key ? found?.[key] : 0
           })(),
           style: 'standardBorder',
         },
@@ -467,7 +467,7 @@ export class ExportExcelService {
           value: (() => {
             const key = getOmphaleKey(simulation.scenario.b2_scenario)
             const found = demographicEvolutionEpciData.data.find((d) => d.year === projection)
-            return found?.[key] ?? 0
+            return key ? found?.[key] : 0
           })(),
           style: 'standardBorder',
         },
