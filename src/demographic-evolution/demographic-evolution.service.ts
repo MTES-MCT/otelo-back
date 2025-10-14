@@ -6,7 +6,9 @@ import {
   TDemographicEvolutionByEpci,
   TDemographicEvolutionMenagesByEpci,
   TDemographicEvolutionMenagesByEpciAndYear,
+  TDemographicEvolutionMenagesByEpciRecord,
   TDemographicEvolutionPopulationByEpciAndYear,
+  TDemographicEvolutionPopulationByEpciRecord,
   TDemographicMenagesMaxYearsByEpci,
   TDemographicPopulationMaxYearsByEpci,
 } from '~/schemas/demographic-evolution/demographic-evolution'
@@ -120,7 +122,7 @@ const createProjectionMenagesTableData = (
 export class DemographicEvolutionService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getDemographicEvolution(epciCodes: string, years?: number[]): Promise<TDemographicEvolutionMenagesByEpciAndYear> {
+  async getDemographicEvolution(epciCodes: string, years?: number[]): Promise<TDemographicEvolutionMenagesByEpciRecord> {
     const epcisArray = epciCodes.split(',')
     const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code IN (${Prisma.join(epcisArray)})${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
 
@@ -177,7 +179,7 @@ export class DemographicEvolutionService {
       })
 
       return acc
-    }, {} as TDemographicEvolutionMenagesByEpciAndYear)
+    }, {} as TDemographicEvolutionMenagesByEpciRecord)
 
     return groupedByEpci
   }
@@ -185,7 +187,7 @@ export class DemographicEvolutionService {
   async getDemographicEvolutionPopulationByEpci(
     epciCodes: string,
     years?: number[],
-  ): Promise<TDemographicEvolutionPopulationByEpciAndYear> {
+  ): Promise<TDemographicEvolutionPopulationByEpciRecord> {
     const epcisArray = epciCodes.split(',')
     const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code IN (${Prisma.join(epcisArray)})${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
 
@@ -230,7 +232,7 @@ export class DemographicEvolutionService {
       })
 
       return acc
-    }, {} as TDemographicEvolutionPopulationByEpciAndYear)
+    }, {} as TDemographicEvolutionPopulationByEpciRecord)
 
     return groupedByEpci
   }

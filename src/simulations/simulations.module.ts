@@ -6,12 +6,11 @@ import { EpcisModule } from '~/epcis/epcis.module'
 import { ScenariosModule } from '~/scenarios/scenarios.module'
 import { SimulationsController } from './simulations.controller'
 import { SimulationsService } from './simulations.service'
-import { ExportPowerpointModule } from '~/export-powerpoint/export-powerpoint.module'
 
 @Module({
   controllers: [SimulationsController],
   exports: [SimulationsService],
-  imports: [EpcisModule, ScenariosModule, PrismaModule, EmailModule, EpciGroupsModule, ExportPowerpointModule],
+  imports: [EpcisModule, ScenariosModule, PrismaModule, EmailModule, EpciGroupsModule],
   providers: [SimulationsService],
 })
 export class SimulationsModule {}

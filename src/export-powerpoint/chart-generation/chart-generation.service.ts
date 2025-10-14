@@ -1,31 +1,18 @@
 import { Injectable } from '@nestjs/common'
 import * as puppeteer from 'puppeteer'
 
+// todo: use zod schema instead and type it in the export-powerpoint calculators
 interface ChartConfig {
-  type: 'line' | 'bar' | 'pie'
-  data: Record<string, unknown>[]
-  width?: number
-  height?: number
-  xKey?: string
-  valueKey?: string
-  colors?: string[]
-  lines?: Array<{
-    dataKey: string
-    color?: string
-    strokeWidth?: number
-    name?: string
-  }>
-  bars?: Array<{
-    dataKey: string
-    color?: string
-    name?: string
-  }>
+  type: 'projection-population-evolution' | 'projection-menages-evolution' | 'bad-housing' | 'comparison-population-evolution-housing-needs'
+  data: unknown
+  metadata?: Record<string, unknown>
+  width: number
+  height: number
 }
 
 @Injectable()
 export class ChartGenerationService {
   async generateChartImage(chartConfig: ChartConfig): Promise<Buffer> {
-    console.log(JSON.stringify(chartConfig, null, 2))
     const browser = await puppeteer.launch({
       headless: false,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -38,20 +25,33 @@ export class ChartGenerationService {
 
     await page.setViewport({ width, height })
 
-    const html = this.generateRechartsHTML(chartConfig, width, height)
-
+    const html = this.generateRechartsHTML(chartConfig)
     await page.setContent(html)
 
     const screenshot = await page.screenshot({
       type: 'png',
-      clip: { x: 0, y: 0, width, height },
       omitBackground: false,
     })
     await browser.close()
     return Buffer.from(screenshot)
   }
 
-  private generateRechartsHTML(chartConfig: ChartConfig, width: number, height: number): string {
+  private generateRechartsHTML(chartConfig: ChartConfig): string {
+    switch (chartConfig.type) {
+      case 'projection-population-evolution':
+        return this.generatePopulationChart(chartConfig)
+      case 'projection-menages-evolution':
+        return this.generateMenagesChart(chartConfig)
+      case 'bad-housing':
+        return this.generateBadHousingChart(chartConfig)
+      case 'comparison-population-evolution-housing-needs':
+        return this.generateComparisonPopulationChart(chartConfig)
+      default:
+        throw new Error('Invalid chart type')
+    }
+  }
+
+  private generatePopulationChart(chartConfig: ChartConfig): string {
     return `
      <!DOCTYPE html>
       <html>
@@ -66,14 +66,14 @@ export class ChartGenerationService {
                   padding: 0;
                   background: white;
                   font-family: 'Calibri', Arial, sans-serif;
-                  width: 800px;
-                  height: 500px;
+                  width: ${chartConfig.width || 800}px;
+                  height: ${chartConfig.height || 500}px;
                   overflow: hidden;
               }
 
               #myChart {
-                  width: 800px;
-                  height: 500px;
+                  width: ${chartConfig.width || 800}px;
+                  height: ${chartConfig.height || 500}px;
               }
           </style>
       </head>
@@ -88,43 +88,9 @@ export class ChartGenerationService {
           <script>
               const ctx = document.getElementById('myChart');
 
-              const demographicData = [
-                  { year: 2018, central: 106588, haute: 106612, basse: 106565 },
-                  { year: 2019, central: 106916, haute: 106934, basse: 106900 },
-                  { year: 2020, central: 107227, haute: 107235, basse: 107217 },
-                  { year: 2021, central: 107491, haute: 107491, basse: 107491 },
-                  { year: 2022, central: 107742, haute: 107815, basse: 107661 },
-                  { year: 2023, central: 108038, haute: 108198, basse: 107862 },
-                  { year: 2024, central: 108328, haute: 108586, basse: 108053 },
-                  { year: 2025, central: 108583, haute: 108977, basse: 108183 },
-                  { year: 2026, central: 108807, haute: 109355, basse: 108284 },
-                  { year: 2027, central: 109015, haute: 109739, basse: 108324 },
-                  { year: 2028, central: 109225, haute: 110129, basse: 108346 },
-                  { year: 2029, central: 109408, haute: 110528, basse: 108314 },
-                  { year: 2030, central: 109555, haute: 110911, basse: 108237 },
-                  { year: 2031, central: 109685, haute: 111300, basse: 108110 },
-                  { year: 2032, central: 109803, haute: 111686, basse: 107960 },
-                  { year: 2033, central: 109905, haute: 112055, basse: 107792 },
-                  { year: 2034, central: 109964, haute: 112391, basse: 107582 },
-                  { year: 2035, central: 110006, haute: 112711, basse: 107332 },
-                  { year: 2036, central: 110023, haute: 113026, basse: 107062 },
-                  { year: 2037, central: 110022, haute: 113318, basse: 106765 },
-                  { year: 2038, central: 109991, haute: 113595, basse: 106432 },
-                  { year: 2039, central: 109956, haute: 113855, basse: 106088 },
-                  { year: 2040, central: 109875, haute: 114096, basse: 105712 },
-                  { year: 2041, central: 109797, haute: 114328, basse: 105321 },
-                  { year: 2042, central: 109703, haute: 114535, basse: 104922 },
-                  { year: 2043, central: 109600, haute: 114742, basse: 104488 },
-                  { year: 2044, central: 109465, haute: 114927, basse: 104045 },
-                  { year: 2045, central: 109327, haute: 115092, basse: 103604 },
-                  { year: 2046, central: 109168, haute: 115260, basse: 103147 },
-                  { year: 2047, central: 109011, haute: 115393, basse: 102665 },
-                  { year: 2048, central: 108839, haute: 115538, basse: 102187 },
-                  { year: 2049, central: 108664, haute: 115650, basse: 101704 },
-                  { year: 2050, central: 108460, haute: 115766, basse: 101191 }
-              ];
-
-              new Chart(ctx, {
+              const demographicData = ${JSON.stringify(chartConfig.data)};
+              
+              const chart = new Chart(ctx, {
                   type: 'line',
                   data: {
                       labels: demographicData.map(item => item.year),
@@ -158,19 +124,22 @@ export class ChartGenerationService {
                   options: {
                       responsive: true,
                       maintainAspectRatio: false,
+                      animation: false,
                       scales: {
                           x: {
                               title: {
                                   display: true,
-                                  text: 'Year'
+                                  text: 'Année'
                               }
                           },
                           y: {
                               title: {
                                   display: true,
-                                  text: 'Population'
+                                  text: 'Évolution'
                               },
-                              beginAtZero: false
+                              beginAtZero: false,
+                              min: ${JSON.stringify(chartConfig.metadata?.min)},
+                              max: ${JSON.stringify(chartConfig.metadata?.max)}
                           }
                       },
                       plugins: {
@@ -188,93 +157,442 @@ export class ChartGenerationService {
     `
   }
 
-  // private generateRechartsJavaScript(chartConfig: ChartConfig): string {
-  //   return `
-  //     const {
-  //       LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer
-  //     } = Recharts;
+  private generateMenagesChart(chartConfig: ChartConfig): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
 
-  //     const data = ${JSON.stringify(chartConfig.data)};
-  //     const colors = ['#666666', '#000091', '#161616'];
+    const defaultLinePalette = ['rgb(255, 99, 132)', 'rgb(75, 192, 192)', 'rgb(54, 162, 235)']
+    const palette = defaultLinePalette
+    const defaultLines = [
+      {
+        dataKey: 'centralH',
+        name: 'Décohabitation accélérée',
+        strokeWidth: 2,
+      },
+      {
+        dataKey: 'centralC',
+        name: 'Décohabitation tendancielle',
+        strokeWidth: 2,
+      },
+      {
+        dataKey: 'centralB',
+        name: 'Décohabitation décélérée',
+        strokeWidth: 2,
+      },
+    ]
 
-  //     const chartElement = React.createElement(LineChart, {
-  //       data: data,
-  //       margin: { top: 20, right: 30, left: 20, bottom: 20 }
-  //     }, [
-  //       React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: '3 3' }),
-  //       React.createElement(XAxis, {
-  //         key: 'xaxis',
-  //         dataKey: 'year',
-  //         fontSize: 12
-  //       }),
-  //       React.createElement(YAxis, {
-  //         key: 'yaxis',
-  //         fontSize: 12
-  //       }),
-  //       React.createElement(Line, {
-  //         key: 'haute',
-  //         type: 'monotone',
-  //         dataKey: 'haute',
-  //         stroke: colors[0],
-  //         strokeWidth: 1,
-  //         name: 'Haute'
-  //       }),
-  //       React.createElement(Line, {
-  //         key: 'central',
-  //         type: 'monotone',
-  //         dataKey: 'central',
-  //         stroke: colors[1],
-  //         strokeWidth: 2,
-  //         name: 'Central'
-  //       }),
-  //       React.createElement(Line, {
-  //         key: 'basse',
-  //         type: 'monotone',
-  //         dataKey: 'basse',
-  //         stroke: colors[2],
-  //         strokeWidth: 1,
-  //         name: 'Basse'
-  //       })
-  //     ]);
+    const lines = defaultLines
 
-  //     const chart = React.createElement(ResponsiveContainer,
-  //       { width: '100%', height: '100%' },
-  //       chartElement
-  //     );
+    const rawData = chartConfig.data as unknown
+    let menagesData: Array<Record<string, number>> = Array.isArray(rawData) ? (rawData as Array<Record<string, number>>) : []
+    let metadata = chartConfig.metadata as { min?: number; max?: number } | undefined
 
-  //     ReactDOM.render(chart, document.getElementById('recharts-chart'));
-  //   `
-  // }
+    if (!menagesData.length && rawData && typeof rawData === 'object') {
+      // biome-ignore lint/suspicious/noExplicitAny: todo
+      const values = Object.values(rawData as Record<string, any>)
 
-  // private generateLinesJavaScript(lines: ChartConfig['lines'] = []): string {
-  //   return (lines || [])
-  //     .map(
-  //       (line) => `
-  //     React.createElement(Line, {
-  //       key: '${line.dataKey}',
-  //       type: 'monotone',
-  //       dataKey: '${line.dataKey}',
-  //       stroke: '${line.color || '#8884d8'}',
-  //       strokeWidth: ${line.strokeWidth || 2},
-  //       name: '${line.name || line.dataKey}'
-  //     })
-  //   `,
-  //     )
-  //     .join(',')
-  // }
+      for (const entry of values) {
+        if (entry && typeof entry === 'object' && Array.isArray(entry.data)) {
+          menagesData = entry.data
+          if (!metadata && entry.metadata) {
+            metadata = entry.metadata
+          }
+          break
+        }
+      }
+    }
 
-  // private generateBarsJavaScript(bars: ChartConfig['bars'] = []): string {
-  //   return (bars || [])
-  //     .map(
-  //       (bar) => `
-  //     React.createElement(Bar, {
-  //       key: '${bar.dataKey}',
-  //       dataKey: '${bar.dataKey}',
-  //       fill: '${bar.color || '#8884d8'}',
-  //       name: '${bar.name || bar.dataKey}'
-  //     })
-  //   `,
-  //     )
-  //     .join(',')
-  // }
+    if (!metadata || typeof metadata.min !== 'number' || typeof metadata.max !== 'number') {
+      const collectedValues: number[] = []
+      menagesData.forEach((item) => {
+        lines.forEach((line) => {
+          const value = Number(item[line.dataKey])
+          if (!Number.isNaN(value)) {
+            collectedValues.push(value)
+          }
+        })
+      })
+
+      if (collectedValues.length) {
+        metadata = {
+          min: Math.min(...collectedValues),
+          max: Math.max(...collectedValues),
+        }
+      } else {
+        metadata = {}
+      }
+    }
+
+    const datasetsConfig = lines.map((line, index) => ({
+      dataKey: line.dataKey,
+      label: line.name || line.dataKey,
+      color: palette[index % palette.length],
+      strokeWidth: line.strokeWidth ?? 2,
+    }))
+
+    const menagesDataJson = JSON.stringify(menagesData)
+    const datasetsConfigJson = JSON.stringify(datasetsConfig)
+    const yAxisMin = typeof metadata?.min === 'number' ? metadata.min : null
+    const yAxisMax = typeof metadata?.max === 'number' ? metadata.max : null
+
+    return `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              background: white;
+              font-family: 'Calibri', Arial, sans-serif;
+              width: ${width}px;
+              height: ${height}px;
+              overflow: hidden;
+            }
+
+            #menagesChart {
+              width: ${width}px;
+              height: ${height}px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div>
+            <canvas id="menagesChart"></canvas>
+          </div>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            const ctx = document.getElementById('menagesChart')
+
+            const menagesData = ${menagesDataJson};
+            const datasetsConfig = ${datasetsConfigJson};
+            const yAxisMin = ${JSON.stringify(yAxisMin)};
+            const yAxisMax = ${JSON.stringify(yAxisMax)};
+
+            const datasets = datasetsConfig.map((config, index) => ({
+              label: config.label,
+              data: menagesData.map((item) => {
+                const value = item[config.dataKey]
+                return typeof value === 'number' ? value : null
+              }),
+              borderColor: config.color,
+              backgroundColor: config.color,
+              borderWidth: config.strokeWidth || 2,
+              tension: 0.2,
+              pointRadius: 0,
+              fill: false,
+              spanGaps: true,
+            }))
+
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: menagesData.map((item) => item.year),
+                datasets,
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Année',
+                    },
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: 'Nombre de ménages',
+                    },
+                    beginAtZero: false,
+                    min: yAxisMin,
+                    max: yAxisMax,
+                  },
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top',
+                  },
+                },
+              },
+            })
+          </script>
+        </body>
+      </html>
+    `
+  }
+
+  private generateBadHousingChart(chartConfig: ChartConfig): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
+
+    const defaultBarPalette = ['rgb(239, 68, 68)', 'rgb(234, 179, 8)', 'rgb(59, 130, 246)', 'rgb(34, 197, 94)', 'rgb(168, 85, 247)']
+
+    const palette = defaultBarPalette
+
+    const data = chartConfig.data as {
+      name: string
+      hosted: { total: number }
+      noAccommodation: { total: number }
+      badQuality: number
+      financialInadequation: number
+      physicalInadequation: number
+    }
+
+    const labels = [data.name]
+
+    const datasets = [
+      {
+        label: 'Sans logement',
+        backgroundColor: palette[0],
+        borderColor: palette[0],
+        borderWidth: 1,
+        data: [data.noAccommodation.total],
+      },
+      {
+        label: 'Hébergés',
+        backgroundColor: palette[1],
+        borderColor: palette[1],
+        borderWidth: 1,
+        data: [data.hosted.total],
+      },
+      {
+        label: 'Inadéquation financière',
+        backgroundColor: palette[2],
+        borderColor: palette[2],
+        borderWidth: 1,
+        data: [data.financialInadequation],
+      },
+      {
+        label: 'Mauvaise qualité',
+        backgroundColor: palette[3],
+        borderColor: palette[3],
+        borderWidth: 1,
+        data: [data.badQuality],
+      },
+      {
+        label: 'Inadéquation physique',
+        backgroundColor: palette[4],
+        borderColor: palette[4],
+        borderWidth: 1,
+        data: [data.physicalInadequation],
+      },
+    ]
+
+    return `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              background: white;
+              font-family: 'Calibri', Arial, sans-serif;
+              width: ${width}px;
+              height: ${height}px;
+              overflow: hidden;
+            }
+
+            #badHousingChart {
+              width: ${width}px;
+              height: ${height}px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div>
+            <canvas id="badHousingChart"></canvas>
+          </div>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            const ctx = document.getElementById('badHousingChart')
+            const labels = ${JSON.stringify(labels)};
+            const datasets = ${JSON.stringify(datasets)};
+
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels,
+                datasets,
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                  x: {
+                    stacked: false,
+                  },
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top',
+                  },
+                },
+              },
+            })
+          </script>
+        </body>
+      </html>
+    `
+  }
+
+  private generateComparisonPopulationChart(chartConfig: ChartConfig): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
+
+    const data = chartConfig.data as {
+      housingNeeds: Record<number, number>
+      populationEvolution: Record<string, { data: Array<{ year: number; central: number; haute: number; basse: number }> }>
+      selectedScenario: string
+    }
+
+    // Get the first EPCI's population data
+    const populationData = Object.values(data.populationEvolution)[0]?.data || []
+    const housingNeedsData = data.housingNeeds
+    const selectedScenario = data.selectedScenario
+    console.log('data', data)
+
+    // Create labels from years
+    const years = populationData.map((item) => item.year)
+    const labels = years.map((year) => year.toString())
+
+    // Housing needs bar data
+    const housingNeedsValues = years.map((year) => housingNeedsData[year] || 0)
+
+    // Population evolution line data - only for selected scenario
+    const populationValues = populationData.map((item) => item[selectedScenario as keyof typeof item] as number)
+
+    const scenarioLabels = {
+      central: 'Population - Central',
+      haute: 'Population - Haute',
+      basse: 'Population - Basse',
+    }
+
+    const scenarioColors = {
+      central: 'rgb(75, 192, 192)',
+      haute: 'rgb(255, 99, 132)',
+      basse: 'rgb(54, 162, 235)',
+    }
+
+    return `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding-top: 100px;
+              background: white;
+              font-family: 'Calibri', Arial, sans-serif;
+              width: ${width}px;
+              height: ${height}px;
+              overflow: hidden;
+            }
+
+            #comparisonChart {
+              width: ${width - 100}px;
+              height: ${height - 100}px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div>
+            <canvas id="comparisonChart"></canvas>
+          </div>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            const ctx = document.getElementById('comparisonChart')
+            const labels = ${JSON.stringify(labels)};
+            const housingNeedsValues = ${JSON.stringify(housingNeedsValues)};
+            const populationValues = ${JSON.stringify(populationValues)};
+            const selectedScenario = ${JSON.stringify(selectedScenario)};
+            const scenarioLabels = ${JSON.stringify(scenarioLabels)};
+            const scenarioColors = ${JSON.stringify(scenarioColors)};
+
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [
+                  {
+                    label: 'Constructions neuves',
+                    type: 'bar',
+                    data: housingNeedsValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1'
+                  },
+                  {
+                    label: scenarioLabels[selectedScenario],
+                    type: 'line',
+                    data: populationValues,
+                    borderColor: scenarioColors[selectedScenario],
+                    backgroundColor: scenarioColors[selectedScenario].replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                    tension: 0.1,
+                    fill: false,
+                    yAxisID: 'y2'
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                  y1: {
+                    type: 'linear',
+                    position: 'left',
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Constructions neuves'
+                    }
+                  },
+                  y2: {
+                    type: 'linear',
+                    position: 'right',
+                    title: {
+                      display: true,
+                      text: "Évolution du nombre d'habitant"
+                    },
+                    grid: {
+                      drawOnChartArea: false,
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top'
+                  }
+                }
+              }
+            })
+          </script>
+        </body>
+      </html>
+    `
+  }
 }
