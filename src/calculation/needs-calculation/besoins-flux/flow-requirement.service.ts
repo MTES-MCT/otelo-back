@@ -8,10 +8,11 @@ import { RenewalHousingStockService } from '~/calculation/needs-calculation/beso
 import { DemographicEvolutionCustomService } from '~/demographic-evolution-custom/demographic-evolution-custom.service'
 import { TFlowRequirementChartData, TFlowRequirementChartDataResult } from '~/schemas/calculator/calculation-result'
 import { EOmphale, TDemographicEvolution, TGetDemographicEvolution } from '~/schemas/demographic-evolution/demographic-evolution'
+import { TStockRequirementsResults } from '~/schemas/results/results'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
 
 @Injectable()
-export class FlowRequirementService extends BaseCalculator {
+export class FlowRequirementService extends BaseCalculator<[TStockRequirementsResults], [TStockRequirementsResults]> {
   constructor(
     @Inject('CalculationContext')
     protected readonly context: CalculationContext,
@@ -23,10 +24,11 @@ export class FlowRequirementService extends BaseCalculator {
     super(context)
   }
 
-  async calculate(): Promise<TFlowRequirementChartDataResult> {
+  async calculate(stockRequirementsNeeds: TStockRequirementsResults): Promise<TFlowRequirementChartDataResult> {
     const { simulation } = this.context
     const { epcis } = simulation
-    const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(epci.code)))
+    const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(epci.code, stockRequirementsNeeds)))
+
     return { epcis: results }
   }
 
@@ -257,11 +259,10 @@ export class FlowRequirementService extends BaseCalculator {
     return menagesEvolution
   }
 
-  async calculateByEpci(epciCode: string): Promise<TFlowRequirementChartData> {
+  async calculateByEpci(epciCode: string, stockRequirementsNeeds: TStockRequirementsResults): Promise<TFlowRequirementChartData> {
     const { baseYear, simulation } = this.context
     const { scenario } = simulation
     const totalParc = await this.renewalHousingStock.getFilocomFlux(epciCode)
-    const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock()
     const stockByEpci = this.stockRequirementsService.calculateStockByEpci(epciCode, stockRequirementsNeeds)
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]

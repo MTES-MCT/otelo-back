@@ -14,11 +14,11 @@ export interface CalculationContext {
   simulation: TSimulationWithEpciAndScenario
 }
 
-export abstract class BaseCalculator {
+export abstract class BaseCalculator<TCalculateArgs extends unknown[] = [], TCalculateByEpciArgs extends unknown[] = []> {
   constructor(protected readonly context: CalculationContext) {}
 
-  abstract calculate(): Promise<TCalculationResult | TChartDataResult | TFlowRequirementChartDataResult>
-  abstract calculateByEpci(epciCode: string): Promise<number | TChartData | TFlowRequirementChartData>
+  abstract calculate(...args: TCalculateArgs): Promise<TCalculationResult | TChartDataResult | TFlowRequirementChartDataResult>
+  abstract calculateByEpci(epciCode: string, ...args: TCalculateByEpciArgs): Promise<number | TChartData | TFlowRequirementChartData>
 
   protected applyCoefficient(value: number): number {
     return Math.round(value * this.context.coefficient)

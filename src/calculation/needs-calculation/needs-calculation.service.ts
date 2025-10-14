@@ -17,9 +17,10 @@ export class NeedsCalculationService {
   ) {}
 
   async calculate(): Promise<TResults> {
-    const flowRequirement = await this.flowRequirementService.calculate()
     const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock()
+    const flowRequirement = await this.flowRequirementService.calculate(stockRequirementsNeeds)
     const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality } = stockRequirementsNeeds
+
     const sitadel = await this.sitadelService.calculate()
     let total = 0
     let totalStock = 0
@@ -32,20 +33,23 @@ export class NeedsCalculationService {
         epciFlowRequirement.totals.renewalNeeds +
         epciFlowRequirement.totals.secondaryResidenceAccomodationEvolution +
         epciFlowRequirement.totals.vacantAccomodation
+      const peakYear = epciFlowRequirement.data.peakYear
 
-      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds)
-      total += epciTotalFlux + epciTotalStock
+      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds, peakYear)
+      total += epciTotalFlux + epciTotalStock.total
       totalFlux += epciTotalFlux
-      totalStock += epciTotalStock
+      totalStock += epciTotalStock.total
       if (epciFlowRequirement.totals.longTermVacantAccomodation <= 0) {
         vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
       }
 
       return {
         epciCode: epci.code,
-        total: epciTotalFlux + epciTotalStock,
+        total: epciTotalFlux + epciTotalStock.total,
+        prepeakTotalStock: epciTotalStock.prePeakTotal,
+        postpeakTotalStock: epciTotalStock.postPeakTotal,
         totalFlux: epciTotalFlux,
-        totalStock: epciTotalStock,
+        totalStock: epciTotalStock.total,
         vacantAccomodation: epciFlowRequirement.totals.longTermVacantAccomodation,
       }
     })
