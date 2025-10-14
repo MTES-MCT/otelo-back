@@ -45,7 +45,7 @@ export class NeedsCalculationService {
 
       return {
         epciCode: epci.code,
-        total: epciTotalFlux + epciTotalStock.total,
+        total: epciTotalFlux + epciTotalStock.prePeakTotal,
         prepeakTotalStock: epciTotalStock.prePeakTotal,
         postpeakTotalStock: epciTotalStock.postPeakTotal,
         totalFlux: epciTotalFlux,
