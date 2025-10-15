@@ -26,6 +26,7 @@ export class NeedsCalculationService {
     let totalStock = 0
     let totalFlux = 0
     let vacantAccomodation = 0
+    let secondaryAccommodation = 0
     const epcisTotals = this.context.simulation.epcis.map((epci) => {
       const epciFlowRequirement = flowRequirement.epcis.find((e) => e.code === epci.code) as TFlowRequirementChartData
       const epciTotalFlux =
@@ -42,6 +43,9 @@ export class NeedsCalculationService {
       if (epciFlowRequirement.totals.longTermVacantAccomodation <= 0) {
         vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
       }
+      if (epciFlowRequirement.totals.longTermVacantAccomodation <= 0) {
+        secondaryAccommodation += epciFlowRequirement.totals.secondaryResidenceAccomodationEvolution
+      }
 
       return {
         epciCode: epci.code,
@@ -50,7 +54,8 @@ export class NeedsCalculationService {
         postpeakTotalStock: epciTotalStock.postPeakTotal,
         totalFlux: epciTotalFlux,
         totalStock: epciTotalStock.total,
-        vacantAccomodation: epciFlowRequirement.totals.longTermVacantAccomodation,
+        vacantAccomodation,
+        secondaryAccommodation,
       }
     })
 
@@ -67,6 +72,7 @@ export class NeedsCalculationService {
       totalFlux,
       totalStock,
       vacantAccomodation,
+      secondaryAccommodation,
     }
   }
 }
