@@ -29,11 +29,14 @@ export class NeedsCalculationService {
     let secondaryAccommodation = 0
     const epcisTotals = this.context.simulation.epcis.map((epci) => {
       const epciFlowRequirement = flowRequirement.epcis.find((e) => e.code === epci.code) as TFlowRequirementChartData
+
       const epciTotalFlux =
         epciFlowRequirement.totals.demographicEvolution +
         epciFlowRequirement.totals.renewalNeeds +
         epciFlowRequirement.totals.secondaryResidenceAccomodationEvolution +
-        epciFlowRequirement.totals.vacantAccomodation
+        epciFlowRequirement.totals.longTermVacantAccomodation +
+        epciFlowRequirement.totals.shortTermVacantAccomodation
+
       const peakYear = epciFlowRequirement.data.peakYear
 
       const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds, peakYear)
