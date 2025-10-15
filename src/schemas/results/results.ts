@@ -21,6 +21,7 @@ export const ZResults = ZStockRequirementsResults.extend({
   totalFlux: z.number(),
   totalStock: z.number(),
   vacantAccomodation: z.number(),
+  secondaryAccommodation: z.number(),
 })
 
 export type TResults = z.infer<typeof ZResults>

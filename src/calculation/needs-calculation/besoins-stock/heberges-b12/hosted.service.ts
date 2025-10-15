@@ -56,7 +56,6 @@ export class HostedService extends BaseCalculator {
     const results = await Promise.all(
       epcis.map(async (epci) => {
         const value = await this.calculateByEpci(epci.code)
-
         const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
 
         return {
@@ -68,6 +67,7 @@ export class HostedService extends BaseCalculator {
     )
     const total = results.reduce((sum, result) => sum + result.value, 0)
     const prorataTotal = results.reduce((sum, result) => sum + result.prorataValue, 0)
+
     return {
       epcis: results,
       total,

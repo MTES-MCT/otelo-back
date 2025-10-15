@@ -62,3 +62,14 @@ export const ZCloneSimulationDto = z.object({
 })
 
 export type TCloneSimulationDto = z.infer<typeof ZCloneSimulationDto>
+
+export const ZSimulationsResults = z.object({
+  epciCode: z.string(),
+  id: z.string(),
+  totalFlux: z.number(),
+  totalStock: z.number(),
+  vacantAccomodation: z.number(),
+  simulationId: z.string(),
+})
+
+export type TSimulationsResults = z.infer<typeof ZSimulationsResults>

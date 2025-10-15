@@ -35,7 +35,7 @@ describe('CoefficientCalculationService', () => {
       expect(service.calculateCoefficient(6)).toBe(1)
     })
 
-    it('should return projectionPeriod / horizonResorption if projectionPeriod is less than horizonResorption', () => {
+    it('should return projectionPeriod / horizon - baseYearResorption if projectionPeriod is less than horizonResorption', () => {
       expect(service.calculateCoefficient(12, 6)).toBe(0.5)
     })
   })

@@ -17,35 +17,48 @@ export class NeedsCalculationService {
   ) {}
 
   async calculate(): Promise<TResults> {
-    const flowRequirement = await this.flowRequirementService.calculate()
     const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock()
+    const flowRequirement = await this.flowRequirementService.calculate(stockRequirementsNeeds)
     const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality } = stockRequirementsNeeds
+
     const sitadel = await this.sitadelService.calculate()
     let total = 0
     let totalStock = 0
     let totalFlux = 0
     let vacantAccomodation = 0
+    let secondaryAccommodation = 0
     const epcisTotals = this.context.simulation.epcis.map((epci) => {
       const epciFlowRequirement = flowRequirement.epcis.find((e) => e.code === epci.code) as TFlowRequirementChartData
+
       const epciTotalFlux =
         epciFlowRequirement.totals.demographicEvolution +
         epciFlowRequirement.totals.renewalNeeds +
         epciFlowRequirement.totals.secondaryResidenceAccomodationEvolution +
-        epciFlowRequirement.totals.vacantAccomodation
+        epciFlowRequirement.totals.longTermVacantAccomodation +
+        epciFlowRequirement.totals.shortTermVacantAccomodation
 
-      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds)
+      const peakYear = epciFlowRequirement.data.peakYear
 
-      total += epciTotalFlux + epciTotalStock
+      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds, peakYear)
+      total += epciTotalFlux + epciTotalStock.total
       totalFlux += epciTotalFlux
-      totalStock += epciTotalStock
-      vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
+      totalStock += epciTotalStock.total
+      if (epciFlowRequirement.totals.longTermVacantAccomodation <= 0) {
+        vacantAccomodation += epciFlowRequirement.totals.longTermVacantAccomodation
+      }
+      if (epciFlowRequirement.totals.longTermVacantAccomodation <= 0) {
+        secondaryAccommodation += epciFlowRequirement.totals.secondaryResidenceAccomodationEvolution
+      }
 
       return {
         epciCode: epci.code,
-        total: epciTotalFlux + epciTotalStock,
+        total: epciTotalFlux + epciTotalStock.prePeakTotal,
+        prepeakTotalStock: epciTotalStock.prePeakTotal,
+        postpeakTotalStock: epciTotalStock.postPeakTotal,
         totalFlux: epciTotalFlux,
-        totalStock: epciTotalStock,
-        vacantAccomodation: epciFlowRequirement.totals.longTermVacantAccomodation,
+        totalStock: epciTotalStock.total,
+        vacantAccomodation,
+        secondaryAccommodation,
       }
     })
 
@@ -62,6 +75,7 @@ export class NeedsCalculationService {
       totalFlux,
       totalStock,
       vacantAccomodation,
+      secondaryAccommodation,
     }
   }
 }
