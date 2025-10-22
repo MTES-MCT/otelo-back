@@ -213,15 +213,11 @@ export class SimulationsService {
   }
 
   async markAsExported(simulationIds: string[]): Promise<void> {
-    await this.prismaService.simulation.updateMany({
-      where: {
-        id: {
-          in: simulationIds,
-        },
-      },
-      data: {
-        exported: true,
-      },
+    await this.prismaService.export.createMany({
+      data: simulationIds.map((simulationId) => ({
+        type: 'POWERPOINT',
+        simulationId,
+      })),
     })
   }
 }
