@@ -17,6 +17,7 @@ export class ExportExcelController {
   @HttpCode(HttpStatus.OK)
   async exportScenario(@Param('simulationId') simulationId: string, @Res() res: Response) {
     const { workbook, simulation } = await this.exportExcelService.exportScenario(simulationId)
+    await this.exportExcelService.markAsExported(simulationId)
     const buffer = await workbook.xlsx.writeBuffer()
 
     const mainEpciCode = simulation.scenario.epciScenarios.find((e) => e.baseEpci)?.epciCode

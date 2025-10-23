@@ -1346,4 +1346,13 @@ export class ExportExcelService {
 
     return { simulation, workbook }
   }
+
+  async markAsExported(simulationId: string) {
+    return this.prismaService.export.create({
+      data: {
+        type: 'EXCEL',
+        simulationId,
+      },
+    })
+  }
 }
