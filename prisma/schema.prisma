@@ -91,6 +91,22 @@ model Session {
   @@map("sessions")
 }
 
+enum ExportType {
+  POWERPOINT
+  EXCEL
+}
+model Export {
+  id String @id @default(uuid())
+  
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+  simulationId String     @map("simulation_id") 
+  createdAt DateTime @default(now()) @map("created_at")
+
+  type ExportType
+
+  @@map("exports")
+}
+
 model EmailVerification {
   id        String   @id @default(uuid())
   code      String   @unique
@@ -272,13 +288,12 @@ model Simulation {
   epciGroup   EpciGroup? @relation(fields: [epciGroupId], references: [id])
   epciGroupId String?    @map("epci_group_id")
 
-  exported Boolean @default(false)
-
   epcis Epci[]
 
   scenario          Scenario            @relation(fields: [scenarioId], references: [id])
   scenarioId        String              @map("scenario_id")
   SimulationResults SimulationResults[]
+  exports           Export[]
 
   @@map("simulations")
 }

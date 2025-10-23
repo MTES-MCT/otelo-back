@@ -50,7 +50,7 @@ export class StatisticsService {
     const exportedResults = await this.prisma.simulationResults.findMany({
       where: {
         simulation: {
-          exported: true,
+          exports: { some: { type: 'POWERPOINT' } },
         },
       },
       select: {
@@ -109,17 +109,18 @@ export class StatisticsService {
     return results
   }
 
-  async getUsersWithExportedScenariosCount(): Promise<number> {
-    const usersWithExports = await this.prisma.user.count({
+  async getUsersWithExportedScenariosCount() {
+    const powerpointCount = await this.prisma.export.count({
       where: {
-        simulations: {
-          some: {
-            exported: true,
-          },
-        },
+        type: 'POWERPOINT',
       },
     })
 
-    return usersWithExports
+    const excelCount = await this.prisma.export.count({
+      where: {
+        type: 'EXCEL',
+      },
+    })
+    return { total: excelCount + powerpointCount, powerpoint: powerpointCount, excel: excelCount }
   }
 }
