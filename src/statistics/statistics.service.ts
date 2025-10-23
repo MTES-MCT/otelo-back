@@ -110,6 +110,41 @@ export class StatisticsService {
   }
 
   async getUsersWithExportedScenariosCount() {
+    const threeMonthsAgo = new Date()
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+
+    const usersWithRecentSimulations = await this.prisma.user.findMany({
+      where: {
+        simulations: {
+          some: {
+            createdAt: {
+              gte: threeMonthsAgo,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    const usersWithExports = await this.prisma.user.findMany({
+      where: {
+        simulations: {
+          some: {
+            exports: {
+              some: {},
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    const uniqueUserIds = new Set([...usersWithRecentSimulations.map((user) => user.id), ...usersWithExports.map((user) => user.id)])
+
     const powerpointCount = await this.prisma.export.count({
       where: {
         type: 'POWERPOINT',
@@ -121,6 +156,6 @@ export class StatisticsService {
         type: 'EXCEL',
       },
     })
-    return { total: excelCount + powerpointCount, powerpoint: powerpointCount, excel: excelCount }
+    return { total: uniqueUserIds.size, powerpoint: powerpointCount, excel: excelCount }
   }
 }
