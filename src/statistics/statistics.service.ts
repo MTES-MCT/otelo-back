@@ -50,7 +50,7 @@ export class StatisticsService {
     const exportedResults = await this.prisma.simulationResults.findMany({
       where: {
         simulation: {
-          exports: { every: { type: 'POWERPOINT' } },
+          exports: { some: { type: 'POWERPOINT' } },
         },
       },
       select: {
