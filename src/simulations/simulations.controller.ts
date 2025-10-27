@@ -105,7 +105,7 @@ export class SimulationsController {
     const { nextStep, resultDate, selectedSimulations, privilegedSimulation } = data
 
     const simulations = await this.simulationsService.getMany(selectedSimulations)
-    await this.simulationsService.markAsExported(selectedSimulations)
+    await this.simulationsService.markAsExported(selectedSimulations, privilegedSimulation)
 
     // Prepare email content
     const privilegedSim = privilegedSimulation ? simulations.find((sim) => sim.id === privilegedSimulation) : null

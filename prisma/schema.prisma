@@ -101,6 +101,7 @@ model Export {
   simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
   simulationId String     @map("simulation_id") 
   createdAt DateTime @default(now()) @map("created_at")
+  isPrivileged Boolean @default(false) @map("is_privileged") 
 
   type ExportType
 

@@ -148,6 +148,7 @@ export class StatisticsService {
     const powerpointCount = await this.prisma.export.count({
       where: {
         type: 'POWERPOINT',
+        isPrivileged: true,
       },
     })
 
