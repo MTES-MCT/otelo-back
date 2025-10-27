@@ -212,11 +212,12 @@ export class SimulationsService {
     return groupedSimulations
   }
 
-  async markAsExported(simulationIds: string[]): Promise<void> {
+  async markAsExported(simulationIds: string[], privilegedSimulationId?: string): Promise<void> {
     await this.prismaService.export.createMany({
       data: simulationIds.map((simulationId) => ({
         type: 'POWERPOINT',
         simulationId,
+        isPrileged: privilegedSimulationId === simulationId,
       })),
     })
   }
