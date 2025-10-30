@@ -1,9 +1,18 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import * as puppeteer from 'puppeteer'
+import { TResults } from '~/schemas/results/results'
+import { chartKeyColors } from './colors'
 
 // todo: use zod schema instead and type it in the export-powerpoint calculators
 interface ChartConfig {
-  type: 'projection-population-evolution' | 'projection-menages-evolution' | 'bad-housing' | 'comparison-population-evolution-housing-needs'
+  type:
+    | 'projection-population-evolution'
+    | 'projection-menages-evolution'
+    | 'bad-housing'
+    | 'comparison-population-evolution-housing-needs'
+    | 'vacant-accommodation'
+    | 'annual-needs'
+    | 'annual-needs-comparison'
   data: unknown
   metadata?: Record<string, unknown>
   width: number
@@ -12,9 +21,11 @@ interface ChartConfig {
 
 @Injectable()
 export class ChartGenerationService {
+  private readonly logger = new Logger(ChartGenerationService.name)
   async generateChartImage(chartConfig: ChartConfig): Promise<Buffer> {
+    this.logger.verbose(`Generating chart image for ${chartConfig.type}`)
     const browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
 
@@ -46,6 +57,12 @@ export class ChartGenerationService {
         return this.generateBadHousingChart(chartConfig)
       case 'comparison-population-evolution-housing-needs':
         return this.generateComparisonPopulationChart(chartConfig)
+      case 'vacant-accommodation':
+        return this.generateVacantAccommodationChart(chartConfig)
+      case 'annual-needs-comparison':
+        return this.generateComparisonHousingNeedsChart(chartConfig)
+      case 'annual-needs':
+        return this.generateAnnualNeedsChart(chartConfig)
       default:
         throw new Error('Invalid chart type')
     }
@@ -63,17 +80,18 @@ export class ChartGenerationService {
           <style>
               body {
                   margin: 0;
-                  padding: 0;
+                  padding: 20px;
                   background: white;
                   font-family: 'Calibri', Arial, sans-serif;
                   width: ${chartConfig.width || 800}px;
                   height: ${chartConfig.height || 500}px;
                   overflow: hidden;
+                  box-sizing: border-box;
               }
 
               #myChart {
-                  width: ${chartConfig.width || 800}px;
-                  height: ${chartConfig.height || 500}px;
+                  width: ${(chartConfig.width || 800) - 40}px;
+                  height: ${(chartConfig.height || 500) - 40}px;
               }
           </style>
       </head>
@@ -98,24 +116,24 @@ export class ChartGenerationService {
                           {
                               label: 'Central',
                               data: demographicData.map(item => item.central),
-                              borderColor: 'rgb(75, 192, 192)',
-                              backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                              borderColor: '${chartKeyColors.central}',
+                              backgroundColor: '${chartKeyColors.central}33',
                               tension: 0.1,
                               fill: false
                           },
                           {
                               label: 'Haute',
                               data: demographicData.map(item => item.haute),
-                              borderColor: 'rgb(255, 99, 132)',
-                              backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                              borderColor: '${chartKeyColors.haute}',
+                              backgroundColor: '${chartKeyColors.haute}33',
                               tension: 0.1,
                               fill: false
                           },
                           {
                               label: 'Basse',
                               data: demographicData.map(item => item.basse),
-                              borderColor: 'rgb(54, 162, 235)',
-                              backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                              borderColor: '${chartKeyColors.basse}',
+                              backgroundColor: '${chartKeyColors.basse}33',
                               tension: 0.1,
                               fill: false
                           }
@@ -125,6 +143,14 @@ export class ChartGenerationService {
                       responsive: true,
                       maintainAspectRatio: false,
                       animation: false,
+                      layout: {
+                          padding: {
+                              top: 10,
+                              right: 10,
+                              bottom: 10,
+                              left: 10
+                          }
+                      },
                       scales: {
                           x: {
                               title: {
@@ -160,9 +186,11 @@ export class ChartGenerationService {
   private generateMenagesChart(chartConfig: ChartConfig): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
+    const chartWidth = width - 40
+    const chartHeight = height - 40
 
-    const defaultLinePalette = ['rgb(255, 99, 132)', 'rgb(75, 192, 192)', 'rgb(54, 162, 235)']
-    const palette = defaultLinePalette
+    const dsfrLinePalette = [chartKeyColors.centralH, chartKeyColors.centralC, chartKeyColors.centralB]
+    const palette = dsfrLinePalette
     const defaultLines = [
       {
         dataKey: 'centralH',
@@ -244,7 +272,7 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 0;
+              padding: 20px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
               width: ${width}px;
@@ -253,8 +281,8 @@ export class ChartGenerationService {
             }
 
             #menagesChart {
-              width: ${width}px;
-              height: ${height}px;
+              width: ${chartWidth}px;
+              height: ${chartHeight}px;
             }
           </style>
         </head>
@@ -298,6 +326,14 @@ export class ChartGenerationService {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                  }
+                },
                 scales: {
                   x: {
                     title: {
@@ -332,10 +368,18 @@ export class ChartGenerationService {
   private generateBadHousingChart(chartConfig: ChartConfig): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
+    const chartWidth = width - 40
+    const chartHeight = height - 40
 
-    const defaultBarPalette = ['rgb(239, 68, 68)', 'rgb(234, 179, 8)', 'rgb(59, 130, 246)', 'rgb(34, 197, 94)', 'rgb(168, 85, 247)']
+    const dsfrBarPalette = [
+      chartKeyColors.noAccommodation,
+      chartKeyColors.hosted,
+      chartKeyColors.financialInadequation,
+      chartKeyColors.badQuality,
+      chartKeyColors.physicalInadequation,
+    ]
 
-    const palette = defaultBarPalette
+    const palette = dsfrBarPalette
 
     const data = chartConfig.data as {
       name: string
@@ -395,17 +439,18 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 0;
+              padding: 20px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
               width: ${width}px;
               height: ${height}px;
               overflow: hidden;
+              box-sizing: border-box;
             }
 
             #badHousingChart {
-              width: ${width}px;
-              height: ${height}px;
+              width: ${chartWidth}px;
+              height: ${chartHeight}px;
             }
           </style>
         </head>
@@ -431,6 +476,14 @@ export class ChartGenerationService {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                  }
+                },
                 scales: {
                   x: {
                     stacked: false,
@@ -456,6 +509,8 @@ export class ChartGenerationService {
   private generateComparisonPopulationChart(chartConfig: ChartConfig): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
+    const chartWidth = width - 40
+    const chartHeight = height - 40
 
     const data = chartConfig.data as {
       housingNeeds: Record<number, number>
@@ -467,7 +522,6 @@ export class ChartGenerationService {
     const populationData = Object.values(data.populationEvolution)[0]?.data || []
     const housingNeedsData = data.housingNeeds
     const selectedScenario = data.selectedScenario
-    console.log('data', data)
 
     // Create labels from years
     const years = populationData.map((item) => item.year)
@@ -486,10 +540,13 @@ export class ChartGenerationService {
     }
 
     const scenarioColors = {
-      central: 'rgb(75, 192, 192)',
-      haute: 'rgb(255, 99, 132)',
-      basse: 'rgb(54, 162, 235)',
+      central: chartKeyColors.central,
+      haute: chartKeyColors.haute,
+      basse: chartKeyColors.basse,
     }
+
+    const housingNeedsColor = chartKeyColors.housingNeeds
+    const housingNeedsBgColor = chartKeyColors.housingNeeds + '99'
 
     return `
      <!DOCTYPE html>
@@ -500,7 +557,8 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding-top: 100px;
+              padding: 20px;
+              box-sizing: border-box;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
               width: ${width}px;
@@ -509,8 +567,8 @@ export class ChartGenerationService {
             }
 
             #comparisonChart {
-              width: ${width - 100}px;
-              height: ${height - 100}px;
+              width: ${chartWidth}px;
+              height: ${chartHeight}px;
             }
           </style>
         </head>
@@ -539,8 +597,8 @@ export class ChartGenerationService {
                     label: 'Constructions neuves',
                     type: 'bar',
                     data: housingNeedsValues,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: '${housingNeedsBgColor}',
+                    borderColor: '${housingNeedsColor}',
                     borderWidth: 1,
                     yAxisID: 'y1'
                   },
@@ -549,7 +607,7 @@ export class ChartGenerationService {
                     type: 'line',
                     data: populationValues,
                     borderColor: scenarioColors[selectedScenario],
-                    backgroundColor: scenarioColors[selectedScenario].replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                    backgroundColor: scenarioColors[selectedScenario] + '33',
                     tension: 0.1,
                     fill: false,
                     yAxisID: 'y2'
@@ -560,6 +618,14 @@ export class ChartGenerationService {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                  }
+                },
                 scales: {
                   y1: {
                     type: 'linear',
@@ -586,6 +652,568 @@ export class ChartGenerationService {
                   legend: {
                     display: true,
                     position: 'top'
+                  }
+                }
+              }
+            })
+          </script>
+        </body>
+      </html>
+    `
+  }
+
+  private generateVacantAccommodationChart(chartConfig: ChartConfig): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
+    const chartWidth = width - 40
+    const chartHeight = height - 40
+
+    const data = chartConfig.data as {
+      linearChart: Record<
+        string,
+        {
+          data: Array<{ year: number; [key: string]: number }>
+          metadata: { min: number; max: number }
+          epci: { name: string }
+        }
+      >
+      tableData: Record<
+        string,
+        {
+          name: string
+          annualEvolution?: {
+            [yearRange: string]: {
+              value: number
+            }
+          }
+        }
+      >
+    }
+
+    const linearDataKey = 'vacant'
+    const lineChartTitle = 'Évolution du nombre de logements vacants en volume'
+    const barChartTitle = 'Évolution annuelle moyenne du nombre de logements vacants'
+
+    const epcisLinearChart = Object.keys(data.linearChart)
+
+    const allMetadata = epcisLinearChart.map((epci) => data.linearChart[epci].metadata)
+    const minValues = allMetadata.map((m) => m.min)
+    const maxValues = allMetadata.map((m) => m.max)
+    const globalMin = Math.min(...minValues)
+    const globalMax = Math.max(...maxValues)
+    const padding = (globalMax - globalMin) * 0.05
+    const yAxisMin = Math.max(0, Math.round(globalMin - padding))
+    const yAxisMax = Math.round(globalMax + padding)
+
+    const lineDatasets = epcisLinearChart.map((epci, index) => {
+      const epciData = data.linearChart[epci]
+      const color = chartKeyColors[linearDataKey] || `hsl(${index * 60}, 70%, 50%)`
+      return {
+        label: epciData.epci.name,
+        data: epciData.data.map((item) => ({ x: item.year, y: item[linearDataKey] })),
+        borderColor: color,
+        backgroundColor: color + '33',
+        tension: 0.1,
+        fill: false,
+      }
+    })
+
+    const barChart = Object.entries(data.tableData)
+      .filter(([key]) => epcisLinearChart.includes(key))
+      .map(([key, value]) => {
+        return {
+          '2010-2015': value.annualEvolution?.['2010-2015']?.value ?? 0,
+          '2015-2021': value.annualEvolution?.['2015-2021']?.value ?? 0,
+          epciCode: key,
+          name: value.name,
+        }
+      })
+
+    return `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding: 20px;
+              background: white;
+              font-family: 'Calibri', Arial, sans-serif;
+              width: ${width}px;
+              height: ${height}px;
+              overflow: hidden;
+              box-sizing: border-box;
+              display: flex;
+              gap: 20px;
+            }
+
+            .chart-container {
+              flex: 1;
+              height: ${chartHeight}px;
+              width: ${chartWidth}px;
+            }
+
+            #lineChart, #barChart {
+              width: 100%;
+              height: 100%;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="barChart"></canvas>
+          </div>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            // Line Chart
+            const lineCtx = document.getElementById('lineChart')
+            const lineDatasets = ${JSON.stringify(lineDatasets)}
+
+            new Chart(lineCtx, {
+              type: 'line',
+              data: {
+                datasets: lineDatasets
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 40,
+                    left: 10
+                  }
+                },
+                scales: {
+                  x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                      display: true,
+                      text: '${lineChartTitle}'
+                    },
+                    grid: {
+                      display: true
+                    }
+                  },
+                  y: {
+                    min: ${yAxisMin},
+                    max: ${yAxisMax},
+                    title: {
+                      display: true,
+                      text: 'Valeur'
+                    },
+                    grid: {
+                      display: true
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top'
+                  },
+                  tooltip: {
+                    mode: 'index',
+                    intersect: false
+                  }
+                }
+              }
+            })
+
+            // Bar Chart
+            const barCtx = document.getElementById('barChart')
+            const barData = ${JSON.stringify(barChart)}
+
+            new Chart(barCtx, {
+              type: 'bar',
+              data: {
+                labels: barData.map(item => item.name),
+                datasets: [
+                  {
+                    label: '2010-2015',
+                    data: barData.map(item => item['2010-2015']),
+                    backgroundColor: '${chartKeyColors['2010-2015']}',
+                    borderColor: '${chartKeyColors['2010-2015']}',
+                    borderWidth: 1
+                  },
+                  {
+                    label: '2015-2021',
+                    data: barData.map(item => item['2015-2021']),
+                    backgroundColor: '${chartKeyColors['2015-2021']}',
+                    borderColor: '${chartKeyColors['2015-2021']}',
+                    borderWidth: 1
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 10,
+                    bottom: 40,
+                    left: 10
+                  }
+                },
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: '${barChartTitle}'
+                    },
+                    ticks: {
+                      display: false
+                    }
+                  },
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Valeur'
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end'
+                  },
+                  tooltip: {
+                    mode: 'index',
+                    intersect: false
+                  }
+                }
+              }
+            })
+          </script>
+        </body>
+      </html>
+    `
+  }
+
+  private generateAnnualNeedsChart(chartConfig: ChartConfig): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
+    const chartHeight = height - 10
+
+    const data = chartConfig.data as {
+      sitadelData: Array<{ year: number; value: number }>
+      newConstructionsData: {
+        housingNeeds: Record<number, number>
+        surplusHousing: Record<number, number>
+      }
+      horizon: number
+    }
+
+    const { sitadelData, newConstructionsData, horizon } = data
+
+    const allYears = Array.from(
+      new Set([
+        ...sitadelData.map((d) => d.year),
+        ...Object.keys(newConstructionsData.housingNeeds).map(Number),
+        ...Object.keys(newConstructionsData.surplusHousing).map(Number),
+      ]),
+    ).sort((a, b) => a - b)
+
+    const mergedData = allYears.map((year) => ({
+      housingNeeds: newConstructionsData.housingNeeds[year] ?? null,
+      surplusHousing: newConstructionsData.surplusHousing[year] ?? null,
+      sitadelValue: sitadelData.find((d) => d.year === year)?.value ?? null,
+      year,
+    }))
+
+    const maxValue = Math.max(
+      Math.max(...sitadelData.map((d) => d.value)),
+      Math.max(...Object.values(newConstructionsData.housingNeeds)),
+      Math.max(...Object.values(newConstructionsData.surplusHousing)),
+    )
+
+    return `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding: 20px;
+              background: white;
+              font-family: 'Calibri', Arial, sans-serif;
+              width: ${width}px;
+              height: ${height}px;
+              overflow: hidden;
+              box-sizing: border-box;
+            }
+
+            .chart-container {
+              height: ${chartHeight}px;
+              width: 100%;
+            }
+
+            #annualNeedsChart {
+              width: 100%;
+              height: 100%;
+            }
+
+            .chart-title {
+              text-align: center;
+              font-size: 16px;
+              font-weight: bold;
+              margin-bottom: 10px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="chart-title">Besoins en construction neuves annualisés</div>
+          <div class="chart-container">
+            <canvas id="annualNeedsChart"></canvas>
+          </div>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            const ctx = document.getElementById('annualNeedsChart')
+            const mergedData = ${JSON.stringify(mergedData)}
+            const horizon = ${horizon}
+            const maxValue = ${maxValue}
+
+            // Create datasets for the chart
+            const datasets = [
+              {
+                label: 'Permis de construire autorisés (Sit@del)',
+                data: mergedData.map(item => item.sitadelValue),
+                backgroundColor: '${chartKeyColors.sitadelValue}',
+                borderColor: '${chartKeyColors.sitadelValue}',
+                borderWidth: 1,
+                type: 'bar'
+              },
+              {
+                label: 'Besoins en logements',
+                data: mergedData.map(item => item.housingNeeds),
+                backgroundColor: '${chartKeyColors.housingNeeds}',
+                borderColor: '${chartKeyColors.housingNeeds}',
+                borderWidth: 1,
+                type: 'bar'
+              },
+              {
+                label: 'Logements excédentaires',
+                data: mergedData.map(item => item.surplusHousing),
+                backgroundColor: '${chartKeyColors.surplusHousing}',
+                borderColor: '${chartKeyColors.surplusHousing}',
+                borderWidth: 1,
+                type: 'bar'
+              }
+            ]
+
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: mergedData.map(item => item.year),
+                datasets: datasets
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 50,
+                    bottom: 40,
+                    left: 20
+                  }
+                },
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Année'
+                    },
+                    ticks: {
+                      maxRotation: 45,
+                      minRotation: 45
+                    }
+                  },
+                  y: {
+                    beginAtZero: true,
+                    max: ${Math.ceil(maxValue * 1.1)},
+                    title: {
+                      display: true,
+                      text: 'Nombre de logements'
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top'
+                  },
+                  tooltip: {
+                    mode: 'index',
+                    intersect: false
+                  }
+                }
+              }
+            })
+          </script>
+        </body>
+      </html>
+    `
+  }
+
+  private generateComparisonHousingNeedsChart(chartConfig: ChartConfig): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
+    const chartHeight = height - 40
+
+    const data = chartConfig.data as Record<string, TResults>
+
+    // Extract simulation IDs and their results
+    const simulationIds = Object.keys(data)
+    const simulationResults = simulationIds.map((id) => ({
+      id,
+      flowRequirement: data[id].flowRequirement,
+    }))
+
+    // Get all years from all simulations
+    const allYears = new Set<number>()
+    simulationResults.forEach((sim) => {
+      if (sim.flowRequirement?.epcis?.[0]?.data?.housingNeeds) {
+        Object.keys(sim.flowRequirement.epcis[0].data.housingNeeds).forEach((year) => {
+          allYears.add(parseInt(year))
+        })
+      }
+    })
+
+    const sortedYears = Array.from(allYears).sort((a, b) => a - b)
+
+    const datasets = simulationResults.map((sim, index) => {
+      const housingNeedsData = sortedYears.map((year) => {
+        const epciData = sim.flowRequirement?.epcis?.[0]
+        return epciData?.data?.housingNeeds?.[year] || 0
+      })
+
+      const colors = ['#002060', '#DAE3F4', '#FBE5D6']
+
+      return {
+        label: sim.id,
+        data: housingNeedsData,
+        backgroundColor: colors[index],
+        borderColor: colors[index],
+        borderWidth: 1,
+      }
+    })
+
+    const allValues = datasets.flatMap((d) => d.data)
+    const maxValue = Math.max(...allValues.filter((v) => v > 0))
+
+    return `
+     <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding: 20px;
+              background: white;
+              font-family: 'Calibri', Arial, sans-serif;
+              width: ${width}px;
+              height: ${height}px;
+              overflow: hidden;
+              box-sizing: border-box;
+            }
+
+            .chart-container {
+              height: ${chartHeight}px;
+              width: 100%;
+            }
+
+            #comparisonChart {
+              width: 100%;
+              height: 100%;
+            }
+
+            .chart-title {
+              text-align: center;
+              font-size: 16px;
+              font-weight: bold;
+              margin-bottom: 10px;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="chart-title">Comparaison des besoins en logements par simulation</div>
+          <div class="chart-container">
+            <canvas id="comparisonChart"></canvas>
+          </div>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+            const ctx = document.getElementById('comparisonChart')
+            const datasets = ${JSON.stringify(datasets)}
+            const years = ${JSON.stringify(sortedYears)}
+            const maxValue = ${maxValue}
+
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: years,
+                datasets: datasets
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                layout: {
+                  padding: {
+                    top: 10,
+                    right: 20,
+                    bottom: 40,
+                    left: 20
+                  }
+                },
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Année'
+                    },
+                    ticks: {
+                      maxRotation: 45,
+                      minRotation: 45
+                    },
+                    categoryPercentage: 0.8,
+                    barPercentage: 0.9
+                  },
+                  y: {
+                    beginAtZero: true,
+                    max: ${Math.ceil(maxValue * 1.1)},
+                    title: {
+                      display: true,
+                      text: 'Nombre de logements'
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: false
                   }
                 }
               }

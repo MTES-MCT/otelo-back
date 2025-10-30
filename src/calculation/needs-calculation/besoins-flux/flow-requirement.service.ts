@@ -9,6 +9,8 @@ import { DemographicEvolutionCustomService } from '~/demographic-evolution-custo
 import { TFlowRequirementChartData, TFlowRequirementChartDataResult } from '~/schemas/calculator/calculation-result'
 import { EOmphale, TDemographicEvolution, TGetDemographicEvolution } from '~/schemas/demographic-evolution/demographic-evolution'
 import { TStockRequirementsResults } from '~/schemas/results/results'
+import { TScenario } from '~/schemas/scenarios/scenario'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
 
 @Injectable()
@@ -24,24 +26,27 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     super(context)
   }
 
-  async calculate(stockRequirementsNeeds: TStockRequirementsResults): Promise<TFlowRequirementChartDataResult> {
-    const { simulation } = this.context
+  async calculate(
+    simulation: TSimulationWithEpciAndScenario,
+    stockRequirementsNeeds: TStockRequirementsResults,
+  ): Promise<TFlowRequirementChartDataResult> {
     const { epcis } = simulation
-    const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(epci.code, stockRequirementsNeeds)))
-
+    const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(simulation, epci.code, stockRequirementsNeeds)))
     return { epcis: results }
   }
 
-  calculateAdditionalHousingUnitsForDeficitReduction(additionalHousingUnitsForNewHouseholds: TDemographicEvolution, stockByEpci: number) {
-    const { simulation, baseYear } = this.context
-    const { scenario } = simulation
-    const { b1_horizon_resorption } = scenario
+  calculateAdditionalHousingUnitsForDeficitReduction(
+    additionalHousingUnitsForNewHouseholds: TDemographicEvolution,
+    stockByEpci: number,
+    horizon: number,
+  ) {
+    const { baseYear } = this.context
     const result: Record<number, number> = {}
     additionalHousingUnitsForNewHouseholds.data.forEach(({ year }) => {
-      if (year > b1_horizon_resorption) {
+      if (year > horizon) {
         result[year] = 0
       } else {
-        const calculation = stockByEpci / (b1_horizon_resorption - baseYear)
+        const calculation = stockByEpci / (horizon - baseYear)
         result[year] = isFinite(calculation) ? Math.round(calculation) : 0
       }
     })
@@ -75,9 +80,7 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     return result
   }
 
-  calculateAdditionalHousingForReplacements(totalParc: number, epciCode: string) {
-    const { simulation } = this.context
-    const { scenario } = simulation
+  calculateAdditionalHousingForReplacements(scenario: TScenario, totalParc: number, epciCode: string) {
     const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
     return totalParc * (epciScenario!.b2_tx_disparition - epciScenario!.b2_tx_restructuration)
   }
@@ -172,6 +175,7 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
   }
 
   calculateParcEvolutionAndNeedsSequential(
+    simulation: TSimulationWithEpciAndScenario,
     initialParc: number,
     newHousingUnitsToConstruct: Record<number, number>,
     additionalHousingUnitsForDeficitAndNewHouseholds: Array<{ year: number; value: number }>,
@@ -196,7 +200,7 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
 
     for (let year = baseYear + 1; year <= periodProjection; year++) {
       const previousParc = parcEvolution[year - 1]
-      additionalHousingForReplacements[year] = this.calculateAdditionalHousingForReplacements(previousParc, epciCode)
+      additionalHousingForReplacements[year] = this.calculateAdditionalHousingForReplacements(simulation.scenario, previousParc, epciCode)
       let totalValue
       if (year <= peakYear) {
         totalValue = additionalHousingForReplacements[year] + (newHousingUnitsToConstruct[year] || 0)
@@ -259,8 +263,12 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     return menagesEvolution
   }
 
-  async calculateByEpci(epciCode: string, stockRequirementsNeeds: TStockRequirementsResults): Promise<TFlowRequirementChartData> {
-    const { baseYear, simulation } = this.context
+  async calculateByEpci(
+    simulation: TSimulationWithEpciAndScenario,
+    epciCode: string,
+    stockRequirementsNeeds: TStockRequirementsResults,
+  ): Promise<TFlowRequirementChartData> {
+    const { baseYear } = this.context
     const { scenario } = simulation
     const totalParc = await this.renewalHousingStock.getFilocomFlux(epciCode)
     const stockByEpci = this.stockRequirementsService.calculateStockByEpci(epciCode, stockRequirementsNeeds)
@@ -272,12 +280,15 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     // We want to get value from 2021, so we start the calculation one year before, i.e. 2020
     const additionalHousingUnitsForNewHouseholds = await this.demographicEvolutionService.calculateOmphaleProjectionsByYearAndEpci(
       menagesEvolution,
+      simulation,
+      epciCode,
       baseYear - 1,
     )
 
     const additionalHousingUnitsForDeficitReduction = this.calculateAdditionalHousingUnitsForDeficitReduction(
       additionalHousingUnitsForNewHouseholds,
       stockByEpci,
+      simulation.scenario.b1_horizon_resorption,
     )
 
     const additionalHousingUnitsForDeficitAndNewHouseholds = this.calculateAdditionalHousingUnitsForDeficitAndNewHouseholds(
@@ -288,19 +299,26 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     // Calculate the year just before we pass from positive to negative
     const peakYearIndex = additionalHousingUnitsForDeficitAndNewHouseholds.findIndex(({ value }) => value < 0)
     const peakYear = additionalHousingUnitsForDeficitAndNewHouseholds[peakYearIndex - 1]?.year ?? 2050
-    const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(epciCode, peakYear)
+    const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(
+      scenario,
+      epciCode,
+      peakYear,
+    )
     const shortTermVacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(
+      scenario,
       epciCode,
       peakYear,
       'short',
     )
     const longTermVacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(
+      scenario,
       epciCode,
       peakYear,
       'long',
     )
 
     const secondaryResidenceAccomodationEvolution = await this.renewalHousingStock.getSecondaryResidenceAccomodationEvolutionByEpciAndYear(
+      simulation,
       epciCode,
       peakYear,
     )
@@ -336,6 +354,7 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
       secondaryResidenceVariation,
     )
     const { parcEvolution, housingNeeds, surplusHousing, additionalHousingForReplacements } = this.calculateParcEvolutionAndNeedsSequential(
+      simulation,
       totalParc.parctot,
       newHousingUnitsToConstruct,
       additionalHousingUnitsForDeficitAndNewHouseholds,

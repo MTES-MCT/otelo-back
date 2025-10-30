@@ -1,33 +1,31 @@
-import { Inject, Injectable } from '@nestjs/common'
-import { CalculationContext } from '~/calculation/needs-calculation/base-calculator'
+import { Injectable } from '@nestjs/common'
 import { FlowRequirementService } from '~/calculation/needs-calculation/besoins-flux/flow-requirement.service'
 import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.service'
 import { TFlowRequirementChartData } from '~/schemas/calculator/calculation-result'
 import { TResults } from '~/schemas/results/results'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
+import { SimulationsService } from '~/simulations/simulations.service'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
 
 @Injectable()
 export class NeedsCalculationService {
   constructor(
-    @Inject('CalculationContext')
-    protected readonly context: CalculationContext,
+    private readonly simulationService: SimulationsService,
     private readonly flowRequirementService: FlowRequirementService,
     private readonly stockRequirementsService: StockRequirementsService,
     private readonly sitadelService: SitadelService,
   ) {}
 
-  async calculate(): Promise<TResults> {
-    const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock()
-    const flowRequirement = await this.flowRequirementService.calculate(stockRequirementsNeeds)
+  async calculate(simulation: TSimulationWithEpciAndScenario): Promise<TResults> {
+    const flowRequirement = await this.flowRequirementService.calculate(simulation)
+    const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock(simulation)
     const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality } = stockRequirementsNeeds
-
-    const sitadel = await this.sitadelService.calculate()
+    const sitadel = await this.sitadelService.calculate(simulation)
     let total = 0
     let totalStock = 0
     let totalFlux = 0
     let vacantAccomodation = 0
-    let secondaryAccommodation = 0
-    const epcisTotals = this.context.simulation.epcis.map((epci) => {
+    const epcisTotals = simulation.epcis.map((epci) => {
       const epciFlowRequirement = flowRequirement.epcis.find((e) => e.code === epci.code) as TFlowRequirementChartData
 
       const epciTotalFlux =

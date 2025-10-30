@@ -3,6 +3,7 @@ import { HostedFilocom, HostedSne } from '@prisma/client'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
 import { TCalculationResult } from '~/schemas/calculator/calculation-result'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class HostedService extends BaseCalculator {
@@ -30,8 +31,7 @@ export class HostedService extends BaseCalculator {
     })
   }
 
-  async calculateByEpci(epciCode: string): Promise<number> {
-    const { simulation } = this.context
+  async calculateByEpci(simulation: TSimulationWithEpciAndScenario, epciCode: string): Promise<number> {
     const { scenario } = simulation
 
     const hostedFilocom = await this.getHostedFilocom(epciCode)
@@ -48,14 +48,15 @@ export class HostedService extends BaseCalculator {
     return this.applyCoefficient(result)
   }
 
-  async calculate(): Promise<TCalculationResult> {
-    const { simulation, baseYear } = this.context
+  async calculate(simulation: TSimulationWithEpciAndScenario): Promise<TCalculationResult> {
+    const { baseYear } = this.context
     const { epcis, scenario } = simulation
     const { projection, b1_horizon_resorption: horizon } = scenario
 
     const results = await Promise.all(
       epcis.map(async (epci) => {
-        const value = await this.calculateByEpci(epci.code)
+        const value = await this.calculateByEpci(simulation, epci.code)
+
         const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
 
         return {

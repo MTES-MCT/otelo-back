@@ -1,9 +1,11 @@
 import { Body, Controller, HttpCode, HttpStatus, Param, Post, Res } from '@nestjs/common'
 import { Role } from '@prisma/client'
 import { Response } from 'express'
+import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { ExportPowerpointService } from '~/export-powerpoint/export-powerpoint.service'
 import { TRequestPowerpoint } from '~/schemas/simulations/simulation'
+import { TUser } from '~/schemas/users/user'
 
 @Controller('export-powerpoint')
 export class ExportPowerpointController {
@@ -14,8 +16,12 @@ export class ExportPowerpointController {
   })
   @Post(':simulationId')
   @HttpCode(HttpStatus.OK)
-  async requestPowerpoint(@Param('simulationId') simulationId: string, @Body() data: TRequestPowerpoint, @Res() res: Response) {
-
+  async requestPowerpoint(
+    @User() user: TUser,
+    @Param('simulationId') simulationId: string,
+    @Body() data: TRequestPowerpoint,
+    @Res() res: Response,
+  ) {
     const mockdata = {
       nextStep: 'Atelier de travail',
       resultDate: new Date('2025-10-10').toLocaleDateString('fr-FR'),
@@ -29,6 +35,7 @@ export class ExportPowerpointController {
       periodStart: '2026',
       periodEnd: '2032',
       epci: { code: '245901160', name: 'CA Valenciennes Métropole' },
+      username: `${user.firstname} ${user.lastname}`,
     }
     const buffer = await this.exportPowerpointService.generateFromTemplate(mockdata)
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
