@@ -3,6 +3,8 @@ import { FilocomFlux } from '@prisma/client'
 import { AccommodationRatesService } from '~/accommodation-rates/accommodation-rates.service'
 import { CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { TScenario } from '~/schemas/scenarios/scenario'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class RenewalHousingStockService {
@@ -22,12 +24,11 @@ export class RenewalHousingStockService {
   }
 
   private async getVacantAccommodationRate(
+    scenario: TScenario,
     defaultVacancyRate: number,
     epciCode: string,
     type: 'short' | 'long' | 'total' = 'total',
   ): Promise<number> {
-    const { simulation } = this.context
-    const { scenario } = simulation
     const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
     const shortTermRate = epciScenario?.b2_tx_vacance_courte !== undefined ? epciScenario.b2_tx_vacance_courte : defaultVacancyRate
     const longTermRate = epciScenario?.b2_tx_vacance_longue !== undefined ? epciScenario.b2_tx_vacance_longue : defaultVacancyRate
@@ -43,21 +44,19 @@ export class RenewalHousingStockService {
     }
   }
 
-  private getSecondaryResidenceRate(defaultSecondaryResidenceRate: number, epciCode: string): number {
-    const { simulation } = this.context
-    const { scenario } = simulation
+  private getSecondaryResidenceRate(scenario: TScenario, defaultSecondaryResidenceRate: number, epciCode: string): number {
     const epciScenario = scenario.epciScenarios.find((epci) => epci.epciCode === epciCode)
 
     return epciScenario?.b2_tx_rs ?? defaultSecondaryResidenceRate
   }
 
   async getVacantAccomodationEvolutionByEpciAndYear(
+    scenario: TScenario,
     epciCode: string,
     peakYear: number,
     type: 'short' | 'long' | 'total' = 'total',
   ): Promise<Record<number, number>> {
-    const { simulation, baseYear, periodProjection } = this.context
-    const { scenario } = simulation
+    const { baseYear, periodProjection } = this.context
     const { projection } = scenario
     const accommodationRates = await this.accommodationRatesService.getAccommodationRates(epciCode)
     const longTermVacancyRate = accommodationRates[epciCode].longTermVacancyRate
@@ -69,7 +68,7 @@ export class RenewalHousingStockService {
     } else if (type === 'short') {
       defaultVacancyRate = shortTermVacancyRate
     }
-    const targetVacancyRate = await this.getVacantAccommodationRate(defaultVacancyRate, epciCode, type)
+    const targetVacancyRate = await this.getVacantAccommodationRate(scenario, defaultVacancyRate, epciCode, type)
 
     const result: Record<number, number> = {}
 
@@ -89,14 +88,18 @@ export class RenewalHousingStockService {
     return result
   }
 
-  async getSecondaryResidenceAccomodationEvolutionByEpciAndYear(epciCode: string, peakYear: number): Promise<Record<number, number>> {
-    const { simulation, baseYear, periodProjection } = this.context
+  async getSecondaryResidenceAccomodationEvolutionByEpciAndYear(
+    simulation: TSimulationWithEpciAndScenario,
+    epciCode: string,
+    peakYear: number,
+  ): Promise<Record<number, number>> {
+    const { baseYear, periodProjection } = this.context
     const { scenario } = simulation
     const { projection } = scenario
     const data = await this.getFilocomFlux(epciCode)
 
     const defaultSecondaryResidenceRate = data.txRsParctot
-    const targetSecondaryResidenceRate = this.getSecondaryResidenceRate(data.txRsParctot, epciCode)
+    const targetSecondaryResidenceRate = this.getSecondaryResidenceRate(simulation.scenario, data.txRsParctot, epciCode)
 
     const result: Record<number, number> = {}
 

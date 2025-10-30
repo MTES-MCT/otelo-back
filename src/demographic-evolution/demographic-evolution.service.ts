@@ -184,10 +184,7 @@ export class DemographicEvolutionService {
     return groupedByEpci
   }
 
-  async getDemographicEvolutionPopulationByEpci(
-    epciCodes: string,
-    years?: number[],
-  ): Promise<TDemographicEvolutionPopulationByEpciRecord> {
+  async getDemographicEvolutionPopulationByEpci(epciCodes: string, years?: number[]): Promise<TDemographicEvolutionPopulationByEpciRecord> {
     const epcisArray = epciCodes.split(',')
     const whereCond: Prisma.Sql = Prisma.sql`WHERE epci_code IN (${Prisma.join(epcisArray)})${years && years.length > 0 ? Prisma.sql` AND year IN (${Prisma.join(years)})` : Prisma.empty}`
 

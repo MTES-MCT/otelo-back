@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
-import * as JSZip from 'jszip'
 import * as path from 'path'
+import { Injectable } from '@nestjs/common'
+import * as JSZip from 'jszip'
 
 @Injectable()
 export class ZipService {
@@ -19,7 +19,7 @@ export class ZipService {
 
   async replaceImageInTemplate(zip: JSZip, imageBuffer: Buffer, imageFileName: string): Promise<void> {
     const mediaPath = `ppt/media/${imageFileName}`
-    
+
     const existingImage = zip.file(mediaPath)
     if (existingImage) {
       zip.file(mediaPath, imageBuffer)

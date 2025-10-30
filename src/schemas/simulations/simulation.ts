@@ -60,6 +60,7 @@ export const ZRequestPowerpoint = z.object({
     code: z.string(),
     name: z.string(),
   }),
+  username: z.string().optional(),
 })
 
 export type TRequestPowerpoint = z.infer<typeof ZRequestPowerpoint>

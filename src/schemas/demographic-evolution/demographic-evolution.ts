@@ -134,7 +134,7 @@ export const ZDemographicEvolutionPopulationByEpciRecord = z.record(
       }),
     ),
     metadata: z.object({ max: z.number(), min: z.number() }),
-  })
+  }),
 )
 
 export type TDemographicEvolutionPopulationByEpciRecord = z.infer<typeof ZDemographicEvolutionPopulationByEpciRecord>
@@ -206,7 +206,7 @@ export const ZDemographicEvolutionMenagesByEpciRecord = z.record(
       }),
     ),
     metadata: z.object({ max: z.number(), min: z.number() }),
-  })
+  }),
 )
 
 export type TDemographicEvolutionMenagesByEpciRecord = z.infer<typeof ZDemographicEvolutionMenagesByEpciRecord>

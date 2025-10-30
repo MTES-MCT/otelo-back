@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ChartGenerationService } from './chart-generation.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { ChartGenerationService } from './chart-generation.service'
 
 describe('ChartGenerationService', () => {
-  let service: ChartGenerationService;
+  let service: ChartGenerationService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [ChartGenerationService],
-    }).compile();
+    }).compile()
 
-    service = module.get<ChartGenerationService>(ChartGenerationService);
-  });
+    service = module.get<ChartGenerationService>(ChartGenerationService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

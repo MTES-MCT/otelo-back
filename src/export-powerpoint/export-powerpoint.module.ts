@@ -6,6 +6,7 @@ import { EpcisModule } from '~/epcis/epcis.module'
 import { ChartGenerationModule } from '~/export-powerpoint/chart-generation/chart-generation.module'
 import { PlaceholderGenerationModule } from '~/export-powerpoint/placeholder-generation/placeholder-generation.module'
 import { ZipModule } from '~/export-powerpoint/zip/zip.module'
+import { RpInseeModule } from '~/rp-insee/rp-insee.module'
 import { SimulationsModule } from '~/simulations/simulations.module'
 import { ExportPowerpointController } from './export-powerpoint.controller'
 import { ExportPowerpointService } from './export-powerpoint.service'
@@ -23,6 +24,7 @@ import { ExportPowerpointService } from './export-powerpoint.service'
     forwardRef(() => NeedsCalculationModule),
     forwardRef(() => SimulationsModule),
     DataVisualisationModule,
+    RpInseeModule,
   ],
 })
 export class ExportPowerpointModule {}

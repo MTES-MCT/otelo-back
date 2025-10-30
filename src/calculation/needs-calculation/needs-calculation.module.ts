@@ -53,7 +53,6 @@ interface AuthenticatedRequest extends Request {
           coefficient,
           periodProjection,
           baseYear: 2021,
-          simulation,
         }
       },
     },

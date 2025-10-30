@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { PlaceholderGenerationService } from './placeholder-generation.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { PlaceholderGenerationService } from './placeholder-generation.service'
 
 describe('PlaceholderGenerationService', () => {
-  let service: PlaceholderGenerationService;
+  let service: PlaceholderGenerationService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [PlaceholderGenerationService],
-    }).compile();
+    }).compile()
 
-    service = module.get<PlaceholderGenerationService>(PlaceholderGenerationService);
-  });
+    service = module.get<PlaceholderGenerationService>(PlaceholderGenerationService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})
