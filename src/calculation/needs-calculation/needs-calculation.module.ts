@@ -42,6 +42,9 @@ interface AuthenticatedRequest extends Request {
         request: AuthenticatedRequest,
       ) => {
         const simulationId = request.params.simulationId
+        if (!simulationId) {
+          return { baseYear: 2021 }
+        }
         const simulation = await simulationService.get(simulationId)
         const periodProjection = simulation.scenario.projection
         const coefficient = await coefficientCalculationService.calculateCoefficient(

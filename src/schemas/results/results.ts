@@ -22,6 +22,7 @@ export const ZResults = ZStockRequirementsResults.extend({
   totalStock: z.number(),
   vacantAccomodation: z.number(),
   secondaryAccommodation: z.number(),
+  name: z.string().optional(),
 })
 
 export type TResults = z.infer<typeof ZResults>
