@@ -41,10 +41,15 @@ export class StockRequirementsService {
     }, 0)
   }
 
-  calculateProrataStockByEpci(epciCode: string, data: TStockRequirementsResults, peakYear: number) {
+  calculateProrataStockByEpci(
+    simulation: TSimulationWithEpciAndScenario,
+    epciCode: string,
+    data: TStockRequirementsResults,
+    peakYear: number,
+  ) {
     const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality } = data
     const categories = [noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality]
-    const { baseYear, simulation } = this.context
+    const { baseYear } = this.context
     const { projection, b1_horizon_resorption: horizon } = simulation.scenario
 
     const baseToHorizonDelta = horizon - baseYear

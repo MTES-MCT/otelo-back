@@ -23,7 +23,7 @@ export abstract class BaseCalculator<TCalculateArgs extends unknown[] = [], TCal
   abstract calculateByEpci(
     simulation: TSimulationWithEpciAndScenario,
     epciCode: string,
-    ...args: TCalculateArgs
+    ...args: TCalculateByEpciArgs
   ): Promise<number | TChartData | TFlowRequirementChartData>
 
   protected applyCoefficient(value: number): number {

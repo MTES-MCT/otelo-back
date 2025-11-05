@@ -56,8 +56,8 @@ export class RenewalHousingStockService {
     peakYear: number,
     type: 'short' | 'long' | 'total' = 'total',
   ): Promise<Record<number, number>> {
-    const { baseYear, periodProjection } = this.context
     const { projection } = scenario
+    const { baseYear } = this.context
     const accommodationRates = await this.accommodationRatesService.getAccommodationRates(epciCode)
     const longTermVacancyRate = accommodationRates[epciCode].longTermVacancyRate
     const shortTermVacancyRate = accommodationRates[epciCode].shortTermVacancyRate
@@ -75,7 +75,7 @@ export class RenewalHousingStockService {
     const minYear = Math.min(peakYear, projection)
     result[baseYear] = defaultVacancyRate
 
-    for (let year = baseYear + 1; year <= periodProjection; year++) {
+    for (let year = baseYear + 1; year <= projection; year++) {
       if (year <= peakYear) {
         const previousYearRate = result[year - 1]
         const rateChange = (targetVacancyRate - defaultVacancyRate) / (minYear - baseYear)
@@ -93,7 +93,9 @@ export class RenewalHousingStockService {
     epciCode: string,
     peakYear: number,
   ): Promise<Record<number, number>> {
-    const { baseYear, periodProjection } = this.context
+    const { baseYear } = this.context
+    const periodProjection = simulation.scenario.projection
+
     const { scenario } = simulation
     const { projection } = scenario
     const data = await this.getFilocomFlux(epciCode)

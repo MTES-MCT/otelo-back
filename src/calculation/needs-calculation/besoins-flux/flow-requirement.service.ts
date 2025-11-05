@@ -130,9 +130,10 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
   calculateVacantAccommodationVariationByYear(
     accommodationVariation: Record<number, number>,
     vacantAccomodationEvolution: Record<number, number>,
+    periodProjection: number,
   ): Record<number, number> {
     const result: Record<number, number> = {}
-    const { baseYear, periodProjection } = this.context
+    const { baseYear } = this.context
 
     for (let year = baseYear; year <= periodProjection; year++) {
       if (year === baseYear) {
@@ -152,9 +153,10 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
   calculateSecondaryResidenceVariationByYear(
     accommodationVariation: Record<number, number>,
     secondaryResidenceAccomodationEvolution: Record<number, number>,
+    periodProjection: number,
   ): Record<number, number> {
     const result: Record<number, number> = {}
-    const { baseYear, periodProjection } = this.context
+    const { baseYear } = this.context
 
     for (let year = baseYear; year <= periodProjection; year++) {
       if (year === baseYear) {
@@ -187,7 +189,9 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     surplusHousing: Record<number, number>
     additionalHousingForReplacements: Record<number, number>
   } {
-    const { baseYear, periodProjection } = this.context
+    const { baseYear } = this.context
+    const periodProjection = simulation.scenario.projection
+
     const parcEvolution: Record<number, number> = {}
     const housingNeeds: Record<number, number> = {}
     const surplusHousing: Record<number, number> = {}
@@ -335,18 +339,22 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     const vacantAccommodationVariation = this.calculateVacantAccommodationVariationByYear(
       accommodationVariationEvolution,
       vacantAccomodationEvolution,
+      simulation.scenario.projection,
     )
     const shortTermVacantAccomodationVariation = this.calculateVacantAccommodationVariationByYear(
       accommodationVariationEvolution,
       shortTermVacantAccomodationEvolution,
+      simulation.scenario.projection,
     )
     const longTermVacantAccomodationVariation = this.calculateVacantAccommodationVariationByYear(
       accommodationVariationEvolution,
       longTermVacantAccomodationEvolution,
+      simulation.scenario.projection,
     )
     const secondaryResidenceVariation = this.calculateSecondaryResidenceVariationByYear(
       accommodationVariationEvolution,
       secondaryResidenceAccomodationEvolution,
+      simulation.scenario.projection,
     )
     const newHousingUnitsToConstruct = this.calculateNewHousingUnitsToConstruct(
       additionalHousingUnitsForDeficitAndNewHouseholds,
