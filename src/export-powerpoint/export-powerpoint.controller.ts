@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post, Res } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Post, Res } from '@nestjs/common'
 import { Role } from '@prisma/client'
 import { Response } from 'express'
 import { User } from '~/common/decorators/authenticated-user'
@@ -6,45 +6,32 @@ import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { ExportPowerpointService } from '~/export-powerpoint/export-powerpoint.service'
 import { TRequestPowerpoint } from '~/schemas/simulations/simulation'
 import { TUser } from '~/schemas/users/user'
+import { SimulationsService } from '~/simulations/simulations.service'
 
 @Controller('export-powerpoint')
 export class ExportPowerpointController {
-  constructor(private readonly exportPowerpointService: ExportPowerpointService) {}
+  constructor(
+    private readonly exportPowerpointService: ExportPowerpointService,
+    private readonly simulationsService: SimulationsService,
+  ) {}
 
   @AccessControl({
     roles: [Role.USER, Role.ADMIN],
   })
-  @Post(':simulationId')
+  @Post()
   @HttpCode(HttpStatus.OK)
-  async requestPowerpoint(
-    @User() user: TUser,
-    @Param('simulationId') simulationId: string,
-    @Body() data: TRequestPowerpoint,
-    @Res() res: Response,
-  ) {
-    const mockdata = {
-      nextStep: 'Atelier de travail',
-      resultDate: new Date('2025-10-10').toLocaleDateString('fr-FR'),
-      selectedSimulations: [
-        '4d60a197-f284-429d-a842-e76a01680764',
-        'af48324a-209d-494b-8f1b-d7ae2b713a8e',
-        '7df4487a-f1ab-4873-8d14-8ac65aca54c0',
-      ],
-      privilegedSimulation: '4d60a197-f284-429d-a842-e76a01680764',
-      documentType: "Document d'Urbanisme",
-      periodStart: '2026',
-      periodEnd: '2032',
-      epci: { code: '245901160', name: 'CA Valenciennes Métropole' },
-      username: `${user.firstname} ${user.lastname}`,
-    }
-    const buffer = await this.exportPowerpointService.generateFromTemplate(mockdata)
+  async requestPowerpoint(@User() user: TUser, @Body() data: TRequestPowerpoint, @Res() res: Response) {
+    // const { selectedSimulations, privilegedSimulation } = data
+    const buffer = await this.exportPowerpointService.generateFromTemplate({ ...data, username: `${user.firstname} ${user.lastname}` })
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
     res.setHeader('Content-Disposition', `attachment; filename="Votre scenario Otelo.pptx"`)
     res.send(buffer)
-    // await this.simulationsService.markAsExported(selectedSimulations)
 
-    // Prepare email content
-    // const privilegedSim = privilegedSimulation ? simulations.find((sim) => sim.id === privilegedSimulation) : null
+    // todo - handle
+    // await this.simulationsService.markAsExported(data.selectedSimulations)
+    // const simulations = await this.simulationsService.getMany(selectedSimulations)
+
+    // const privilegedSim = data.privilegedSimulation ? simulations.find((sim) => sim.id === privilegedSimulation) : null
 
     // const htmlContent = `
     //   <h1>Demande de PowerPoint</h1>

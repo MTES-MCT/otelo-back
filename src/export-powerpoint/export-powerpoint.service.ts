@@ -37,32 +37,39 @@ export class ExportPowerpointService {
   ) {}
 
   private readonly slideCalculators = {
-    // slide1: this.calculateSlide1Data.bind(this),
-    // slide2: this.calculateSlide2Data.bind(this),
-    // slide4: this.calculateSlide4Data.bind(this),
-    // slide6: this.calculateSlide6Data.bind(this),
-    // slide8: this.calculateSlide8Data.bind(this),
-    // slide9: this.calculateSlide9Data.bind(this),
-    // slide10: this.calculateSlide10Data.bind(this),
-    // slide11: this.calculateSlide11Data.bind(this),
-    // slide12: this.calculateSlide12Data.bind(this),
-    // slide13: this.calculateSlide13Data.bind(this),
-    // slide14: this.calculateSlide14Data.bind(this),
-    // slide15: this.calculateSlide15Data.bind(this),
+    slide1: this.calculateSlide1Data.bind(this),
+    slide2: this.calculateSlide2Data.bind(this),
+    slide4: this.calculateSlide4Data.bind(this),
+    slide6: this.calculateSlide6Data.bind(this),
+    slide8: this.calculateSlide8Data.bind(this),
+    slide9: this.calculateSlide9Data.bind(this),
+    slide10: this.calculateSlide10Data.bind(this),
+    slide11: this.calculateSlide11Data.bind(this),
+    slide12: this.calculateSlide12Data.bind(this),
+    slide13: this.calculateSlide13Data.bind(this),
+    slide14: this.calculateSlide14Data.bind(this),
+    slide15: this.calculateSlide15Data.bind(this),
     slide16: this.calculateSlide16Data.bind(this),
-    // slide17: this.calculateSlide17Data.bind(this),
-    // slide18: this.calculateSlide18Data.bind(this),
-    // slide19: this.calculateSlide19Data.bind(this),
-    // slide20: this.calculateSlide20Data.bind(this),
-    // slide21: this.calculateSlide21Data.bind(this),
-    // slide22: this.calculateSlide22Data.bind(this),
-    // slide23: this.calculateSlide23Data.bind(this),
-    // slide24: this.calculateSlide24Data.bind(this),
-    // slide25: this.calculateSlide25Data.bind(this),
-    // slide26: this.calculateSlide26Data.bind(this),
-    // slide27: this.calculateSlide27Data.bind(this),
-    // slide28: this.calculateSlide28Data.bind(this),
-    // slide30: this.calculateSlide30Data.bind(this),
+    slide17: this.calculateSlide17Data.bind(this),
+    slide18: this.calculateSlide18Data.bind(this),
+    slide19: this.calculateSlide19Data.bind(this),
+    slide20: this.calculateSlide20Data.bind(this),
+    slide21: this.calculateSlide21Data.bind(this),
+    slide22: this.calculateSlide22Data.bind(this),
+    slide23: this.calculateSlide23Data.bind(this),
+    slide24: this.calculateSlide24Data.bind(this),
+    slide25: this.calculateSlide25Data.bind(this),
+    slide26: this.calculateSlide26Data.bind(this),
+    slide27: this.calculateSlide27Data.bind(this),
+    slide28: this.calculateSlide28Data.bind(this),
+    slide30: this.calculateSlide30Data.bind(this),
+  }
+
+  private getScenarioLabel(b2_scenario: string) {
+    const scenarioPrefix = b2_scenario.split('_')[0]
+    if (scenarioPrefix.startsWith('PH')) return 'Accélération'
+    if (scenarioPrefix.startsWith('Central')) return 'Tendanciel'
+    return 'Décélération'
   }
 
   private async prepareCommonData(data: TRequestPowerpoint): Promise<CommonSlideData> {
@@ -78,11 +85,12 @@ export class ExportPowerpointService {
 
     const simulationPromises = simulations.map(async (simulation) => ({
       id: simulation.id,
+      name: simulation.name,
       result: await this.needsCalculationService.calculate(simulation),
     }))
 
-    const results = (await Promise.all(simulationPromises)).reduce((acc, { id, result }) => {
-      acc[id] = result
+    const results = (await Promise.all(simulationPromises)).reduce((acc, { id, name, result }) => {
+      acc[id] = { ...result, name }
       return acc
     }, {})
 
@@ -361,276 +369,224 @@ export class ExportPowerpointService {
   }
 
   private async calculateSlide14Data(commonData: CommonSlideData) {
-    const { data, simulations, privilegedScenario } = commonData
-    const epciCode = data.epci.code
+    const getDecohabitationScenarioLabel = (scenario: string) => {
+      if (scenario.endsWith('_B')) return 'Décohabitation décélérée'
+      if (scenario.endsWith('_H')) return 'Décohabitation accélérée'
+      return 'Tendance actuelle'
+    }
 
-    const centralSimulation = simulations.find((sim) => sim.scenario.b2_scenario.startsWith('Central'))
+    const getDemographicEvolution = (b2_scenario: string): 'haute' | 'basse' | 'central' => {
+      const prefix = b2_scenario.split('_')[0]
+      if (prefix === 'PH') return 'haute'
+      if (prefix === 'PB') return 'basse'
+      return 'central'
+    }
 
-    let scenarioName1 = ''
-    let tendanciel = ''
-    let prin1 = ''
-    let vacance1 = ''
-    let rs1 = ''
-    let resorb1 = ''
+    const processSimulation = async (simulation: TSimulationWithEpciAndScenario | null, epciCode: string) => {
+      if (!simulation) return { hab: '', prin: '', vacance: '', rs: '', resorb: '' }
 
-    let prin2 = ''
-    let vacance2 = ''
-    let rs2 = ''
-    let resorb2 = ''
-
-    // Variables for last simulation (suffix 3)
-    let prin3 = ''
-    let resorb3 = ''
-
-    if (centralSimulation) {
-      scenarioName1 = centralSimulation.name
-
+      const demographicEvolution = getDemographicEvolution(simulation.scenario.b2_scenario)
+      const projectionYear = simulation.scenario.projection
       const epcis = commonData.epcis.filter((epci) => epci.code === epciCode)
-      const demographicData = await this.demographicEvolutionService.getDemographicEvolutionPopulationByEpci(epciCode)
-      const projectionYear = centralSimulation.scenario.projection
 
-      if (demographicData[epciCode]) {
-        const yearData = demographicData[epciCode].data.find((d) => d.year === projectionYear)
-        tendanciel = yearData ? yearData.central.toString() : '150'
-      }
-
-      const scenario = centralSimulation.scenario.b2_scenario
-      const scenarioPrefix = scenario.split('_')[0]
-      let selectedDemographicEvolution = 'central'
-
-      switch (scenarioPrefix) {
-        case 'PH':
-          selectedDemographicEvolution = 'haute'
-          break
-        case 'PB':
-          selectedDemographicEvolution = 'basse'
-          break
-        case 'PC':
-        default:
-          selectedDemographicEvolution = 'central'
-          break
-      }
+      const habData = demographicData[epciCode]?.data.find((d) => d.year === projectionYear)
+      const hab = habData?.[demographicEvolution]?.toString() || ''
 
       const demographicEvolutionData = await this.demographicEvolutionService.getDemographicEvolutionOmphaleAndYear(
         epcis,
-        selectedDemographicEvolution,
+        demographicEvolution,
       )
-      if (demographicEvolutionData.linearChart && demographicEvolutionData.linearChart[epciCode]) {
-        const yearData = demographicEvolutionData.linearChart[epciCode].find((d) => d.year === projectionYear)
-        prin1 = yearData ? yearData[getOmphaleKey(scenario)].toString() : ''
-      }
+      const prinData = demographicEvolutionData.linearChart?.[epciCode]?.data.find((d) => d.year === projectionYear)
+      const prin = prinData?.[getOmphaleKey(simulation.scenario.b2_scenario)]?.toString() || ''
 
-      const epciScenario = centralSimulation.scenario.epciScenarios.find((es) => es.epciCode === epciCode)
-      if (epciScenario) {
-        vacance1 = epciScenario.b2_tx_vacance_longue.toString()
-        rs1 = epciScenario.b2_tx_rs.toString()
-      }
+      const epciScenario = simulation.scenario.epciScenarios.find((es) => es.epciCode === epciCode)
+      const vacance = epciScenario?.b2_tx_vacance_longue.toString() || ''
+      const rs = epciScenario?.b2_tx_rs.toString() || ''
+      const resorb = simulation.scenario.b1_horizon_resorption.toString()
 
-      resorb1 = centralSimulation.scenario.b1_horizon_resorption.toString()
+      return { hab, prin, vacance, rs, resorb }
     }
 
-    const privilegedSimulationData = simulations.find((sim) => sim.id === privilegedScenario.id)
-    if (privilegedSimulationData) {
-      const epcis = commonData.epcis.filter((epci) => epci.code === epciCode)
-      const privilegedProjectionYear = privilegedSimulationData.scenario.projection
-      const privilegedScenario2 = privilegedSimulationData.scenario.b2_scenario
-      const privilegedScenarioPrefix = privilegedScenario2.split('_')[0]
-      let privilegedDemographicEvolution = 'central'
+    const { data, simulations, privilegedScenario } = commonData
+    const epciCode = data.epci.code
+    const othersSimulations = simulations.filter((sim) => sim.id !== privilegedScenario.id)
+    const [firstSimulation, lastSimulation] = othersSimulations
 
-      switch (privilegedScenarioPrefix) {
-        case 'PH':
-          privilegedDemographicEvolution = 'haute'
-          break
-        case 'PB':
-          privilegedDemographicEvolution = 'basse'
-          break
-        case 'PC':
-        default:
-          privilegedDemographicEvolution = 'central'
-          break
-      }
+    const demographicData = await this.demographicEvolutionService.getDemographicEvolutionPopulationByEpci(epciCode)
 
-      const privilegedDemographicEvolutionData = await this.demographicEvolutionService.getDemographicEvolutionOmphaleAndYear(
-        epcis,
-        privilegedDemographicEvolution,
-      )
-      if (privilegedDemographicEvolutionData.linearChart && privilegedDemographicEvolutionData.linearChart[epciCode]) {
-        const yearData = privilegedDemographicEvolutionData.linearChart[epciCode].data.find((d) => d.year === privilegedProjectionYear)
-
-        prin2 = yearData ? yearData[getOmphaleKey(privilegedScenario2)].toString() : ''
-      }
-
-      const privilegedEpciScenario = privilegedSimulationData.scenario.epciScenarios.find((es) => es.epciCode === epciCode)
-      if (privilegedEpciScenario) {
-        vacance2 = privilegedEpciScenario.b2_tx_vacance_longue.toString()
-        rs2 = privilegedEpciScenario.b2_tx_rs.toString()
-      }
-      resorb2 = privilegedSimulationData.scenario.b1_horizon_resorption.toString()
-    }
-
-    const lastSimulation = simulations.filter((sim) => sim.id !== centralSimulation?.id && sim.id !== privilegedScenario.id).slice(-1)[0]
-
-    if (lastSimulation) {
-      const epcis = commonData.epcis.filter((epci) => epci.code === epciCode)
-      const lastProjectionYear = lastSimulation.scenario.projection
-
-      const lastScenario = lastSimulation.scenario.b2_scenario
-      const lastScenarioPrefix = lastScenario.split('_')[0]
-      let lastDemographicEvolution = 'central'
-
-      switch (lastScenarioPrefix) {
-        case 'PH':
-          lastDemographicEvolution = 'haute'
-          break
-        case 'PB':
-          lastDemographicEvolution = 'basse'
-          break
-        case 'PC':
-        default:
-          lastDemographicEvolution = 'central'
-          break
-      }
-
-      const lastDemographicEvolutionData = await this.demographicEvolutionService.getDemographicEvolutionOmphaleAndYear(
-        epcis,
-        lastDemographicEvolution,
-      )
-      if (lastDemographicEvolutionData.linearChart && lastDemographicEvolutionData.linearChart[epciCode]) {
-        const yearData = lastDemographicEvolutionData.linearChart[epciCode].data.find((d) => d.year === lastProjectionYear)
-        prin3 = yearData ? yearData[getOmphaleKey(lastScenario)].toString() : ''
-      }
-
-      // resorb3: b1_horizon_resorption
-      resorb3 = lastSimulation.scenario.b1_horizon_resorption.toString()
-    }
+    const [sim1Data, sim2Data, sim3Data] = await Promise.all([
+      processSimulation(firstSimulation, epciCode),
+      processSimulation(privilegedScenario, epciCode),
+      processSimulation(lastSimulation, epciCode),
+    ])
 
     return {
       text: {
         ...commonData.baseLayout,
         horizon: `${commonData.baseLayout.layoutStart}-${commonData.baseLayout.layoutEnd}`,
-        scenarioName1,
-        scenarioName3: privilegedScenario.name,
+        nb: commonData.data.selectedSimulations.length.toString(),
+        scenarioName1: firstSimulation?.name || '',
         scenarioName2: privilegedScenario.name,
-        tendanciel,
-        acceleration: '200',
-        default: '200',
-        prin1,
-        prin2,
-        prin3,
-        menagesHorizon1: '100 000',
-        menagesHorizon2: '100 000',
-        menagesHorizon3: '100 000',
-        vacance1,
-        vacance2,
-        rs1,
-        rs2,
-        resorb1,
-        resorb2,
-        resorb3,
+        scenarioName3: lastSimulation?.name || '',
+        scenario1: firstSimulation ? this.getScenarioLabel(firstSimulation.scenario.b2_scenario) : '',
+        scenario2: this.getScenarioLabel(privilegedScenario.scenario.b2_scenario),
+        scenario3: lastSimulation ? this.getScenarioLabel(lastSimulation.scenario.b2_scenario) : '',
+        evol1: firstSimulation ? getDecohabitationScenarioLabel(firstSimulation.scenario.b2_scenario) : '',
+        evol2: getDecohabitationScenarioLabel(privilegedScenario.scenario.b2_scenario),
+        evol3: lastSimulation ? getDecohabitationScenarioLabel(lastSimulation.scenario.b2_scenario) : '',
+        hab1: sim1Data.hab,
+        hab2: sim2Data.hab,
+        hab3: sim3Data.hab,
+        prin1: sim1Data.prin,
+        prin2: sim2Data.prin,
+        prin3: sim3Data.prin,
+        vacance1: (Number(sim1Data.vacance) * 100).toFixed(2),
+        vacance2: (Number(sim2Data.vacance) * 100).toFixed(2),
+        vacance3: (Number(sim3Data.vacance) * 100).toFixed(2),
+        rs1: (Number(sim1Data.rs) * 100).toFixed(2),
+        rs2: (Number(sim2Data.rs) * 100).toFixed(2),
+        rs3: (Number(sim3Data.rs) * 100).toFixed(2),
+        resorb1: sim1Data.resorb,
+        resorb2: sim2Data.resorb,
+        resorb3: sim3Data.resorb,
+        menagesHorizon1: 'VOIR AVEC LUC',
+        menagesHorizon2: 'VOIR AVEC LUC',
+        menagesHorizon3: 'VOIR AVEC LUC',
+        privilegedScenario: privilegedScenario.name,
       },
     }
   }
 
   private async calculateSlide15Data(commonData: CommonSlideData) {
+    const getScenarioLabel = (b2_scenario: string): string => {
+      const scenarioPrefix = b2_scenario.split('_')[0]
+      if (scenarioPrefix.startsWith('PH')) return 'Acceleration'
+      if (scenarioPrefix.startsWith('Central')) return 'Tendanciel'
+      return 'Deceleration'
+    }
+
+    const calculateHousingSum = (
+      flowRequirement: { data: { housingNeeds: Record<string, number> } },
+      startYear: number,
+      endYear: number,
+    ): number => {
+      let sum = 0
+      for (let year = startYear; year <= endYear; year++) {
+        sum += flowRequirement.data.housingNeeds[year.toString()] || 0
+      }
+      return sum
+    }
+
+    const processSimulationData = (
+      simulation: TSimulationWithEpciAndScenario | null,
+      epciCode: string,
+      data: { periodStart: string; periodEnd: string },
+      isShortTerm = false,
+    ) => {
+      if (!simulation)
+        return {
+          demographic: 0,
+          fluidity: 0,
+          secondary: 0,
+          housingNeeds: 0,
+          vacant: 0,
+          total: 0,
+          newHousing: 0,
+          badHousing: 0,
+        }
+
+      const flowRequirement = results[simulation.id]?.flowRequirement.epcis.find((epci) => epci.code === epciCode)
+      if (!flowRequirement)
+        return {
+          demographic: 0,
+          fluidity: 0,
+          secondary: 0,
+          housingNeeds: 0,
+          vacant: 0,
+          total: 0,
+          newHousing: 0,
+          badHousing: 0,
+        }
+
+      const startYear = parseInt(data.periodStart)
+      const endYear = parseInt(data.periodEnd)
+      const housingSum = calculateHousingSum(flowRequirement, startYear, endYear)
+
+      const demographic = flowRequirement.totals.demographicEvolution
+      const fluidity = flowRequirement.totals.vacantAccomodation
+      const secondary = flowRequirement.totals.secondaryResidenceAccomodationEvolution
+      const housingNeedsValue = flowRequirement.totals.housingNeeds
+      const vacant = isShortTerm ? flowRequirement.totals.shortTermVacantAccomodation : flowRequirement.totals.longTermVacantAccomodation
+
+      // Calculate bad housing as sum of all housing inadequation types
+      const hostedEpci = results[simulation.id].hosted.epcis.find((epci) => epci.epciCode === epciCode)
+      const noAccommodationEpci = results[simulation.id].noAccomodation.epcis.find((epci) => epci.epciCode === epciCode)
+      const badQualityEpci = results[simulation.id].badQuality.epcis.find((epci) => epci.epciCode === epciCode)
+      const financialInadequationEpci = results[simulation.id].financialInadequation.epcis.find((epci) => epci.epciCode === epciCode)
+      const physicalInadequationEpci = results[simulation.id].physicalInadequation.epcis.find((epci) => epci.epciCode === epciCode)
+
+      const badHousing =
+        (hostedEpci?.prorataValue || 0) +
+        (noAccommodationEpci?.prorataValue || 0) +
+        (badQualityEpci?.prorataValue || 0) +
+        (financialInadequationEpci?.prorataValue || 0) +
+        (physicalInadequationEpci?.prorataValue || 0)
+
+      const total = demographic + fluidity + housingNeedsValue + vacant + secondary + housingSum
+
+      return {
+        demographic,
+        fluidity,
+        secondary,
+        housingNeeds: housingNeedsValue,
+        vacant,
+        total,
+        newHousing: housingSum,
+        badHousing,
+      }
+    }
+
     const { data, simulations, results, privilegedScenario } = commonData
     const epciCode = data.epci.code
+    const othersSimulations = simulations.filter((sim) => sim.id !== privilegedScenario.id)
+    const [firstSimulation, lastSimulation] = othersSimulations
 
-    const centralSimulation = simulations.find((sim) => sim.scenario.b2_scenario.startsWith('Central'))
-
-    let demographic1 = ''
-    let fluidity1 = ''
-    let secondary1 = ''
-    let housingNeeds1 = ''
-    let vacant1 = ''
-    let total1 = ''
-    let newHousing1 = ''
-    let demographic2 = ''
-    let fluidity2 = ''
-    let secondary2 = ''
-    let housingNeeds2 = ''
-    let vacant2 = ''
-    let total2 = ''
-    let newHousing2 = ''
-
-    const flowRequirement = results[privilegedScenario.id].flowRequirement.epcis.find((epci) => epci.code === epciCode)
-
-    if (centralSimulation && flowRequirement) {
-      demographic1 = flowRequirement.totals.demographicEvolution.toString()
-      fluidity1 = flowRequirement.totals.vacantAccomodation.toString()
-      secondary1 = flowRequirement.totals.secondaryResidenceAccomodationEvolution.toString()
-      housingNeeds1 = flowRequirement.totals.housingNeeds.toString()
-      vacant1 = flowRequirement.totals.shortTermVacantAccomodation.toString()
-      total1 = (
-        flowRequirement.totals.demographicEvolution +
-        flowRequirement.totals.vacantAccomodation +
-        flowRequirement.totals.housingNeeds
-      ).toString()
-
-      const startYear = parseInt(data.periodStart)
-      const endYear = parseInt(data.periodEnd)
-      let housingSum = 0
-
-      for (let year = startYear; year <= endYear; year++) {
-        const yearStr = year.toString()
-        housingSum += flowRequirement.data.housingNeeds[yearStr] || 0
-      }
-
-      newHousing1 = housingSum.toString()
-    }
-
-    if (flowRequirement) {
-      demographic2 = flowRequirement.totals.demographicEvolution.toString()
-      fluidity2 = flowRequirement.totals.vacantAccomodation.toString()
-      secondary2 = flowRequirement.totals.secondaryResidenceAccomodationEvolution.toString()
-      housingNeeds2 = flowRequirement.totals.housingNeeds.toString()
-      vacant2 = flowRequirement.totals.longTermVacantAccomodation.toString()
-      total2 = (
-        flowRequirement.totals.demographicEvolution +
-        flowRequirement.totals.vacantAccomodation +
-        flowRequirement.totals.housingNeeds
-      ).toString()
-
-      const startYear = parseInt(data.periodStart)
-      const endYear = parseInt(data.periodEnd)
-      let housingSum = 0
-
-      for (let year = startYear; year <= endYear; year++) {
-        const yearStr = year.toString()
-        housingSum += flowRequirement.data.housingNeeds[yearStr] || 0
-      }
-
-      newHousing2 = housingSum.toString()
-    }
+    const sim1Data = processSimulationData(firstSimulation, epciCode, data, true)
+    const sim2Data = processSimulationData(privilegedScenario, epciCode, data, false)
+    const sim3Data = processSimulationData(lastSimulation, epciCode, data, false)
 
     return {
       text: {
         ...commonData.baseLayout,
         start: commonData.baseLayout.layoutStart,
         end: commonData.baseLayout.layoutEnd,
-        newHousing1,
-        newHousing2,
-        newHousing3: '3',
-        demographic1,
-        demographic2,
-        demographic3: '1',
-        fluidity1,
-        fluidity2,
-        fluidity3: '1',
-        badHousing1: '1',
-        badHousing2: '1',
-        badHousing3: '1',
-        secondary1,
-        secondary2,
-        secondary3: '1',
-        housingNeeds1,
-        housingNeeds2,
-        housingNeeds3: '1',
-        vacant1,
-        vacant2,
-        vacant3: '1',
-        total1,
-        total2,
-        total3: '1',
+        scenario1: firstSimulation ? getScenarioLabel(firstSimulation.scenario.b2_scenario) : '',
+        scenario2: getScenarioLabel(privilegedScenario.scenario.b2_scenario),
+        scenario3: lastSimulation ? getScenarioLabel(lastSimulation.scenario.b2_scenario) : '',
+        newHousing1: sim1Data.newHousing.toString(),
+        newHousing2: sim2Data.newHousing.toString(),
+        newHousing3: sim3Data.newHousing.toString(),
+        demographic1: sim1Data.demographic.toString(),
+        demographic2: sim2Data.demographic.toString(),
+        demographic3: sim3Data.demographic.toString(),
+        fluidity1: sim1Data.fluidity.toString(),
+        fluidity2: sim2Data.fluidity.toString(),
+        fluidity3: sim3Data.fluidity.toString(),
+        badHousing1: sim1Data.badHousing.toString(),
+        badHousing2: sim2Data.badHousing.toString(),
+        badHousing3: sim3Data.badHousing.toString(),
+        secondary1: sim1Data.secondary.toString(),
+        secondary2: sim2Data.secondary.toString(),
+        secondary3: sim3Data.secondary.toString(),
+        housingNeeds1: sim1Data.housingNeeds.toString(),
+        housingNeeds2: sim2Data.housingNeeds.toString(),
+        housingNeeds3: sim3Data.housingNeeds.toString(),
+        vacant1: sim1Data.vacant.toString(),
+        vacant2: sim2Data.vacant.toString(),
+        vacant3: sim3Data.vacant.toString(),
+        total1: sim1Data.total.toString(),
+        total2: sim2Data.total.toString(),
+        total3: sim3Data.total.toString(),
       },
     }
   }
@@ -656,8 +612,10 @@ export class ExportPowerpointService {
   }
 
   private calculateSlide17Data(commonData: CommonSlideData) {
+    const { privilegedScenario } = commonData
+
     return {
-      text: { ...commonData.baseLayout },
+      text: { ...commonData.baseLayout, scenario: this.getScenarioLabel(privilegedScenario.scenario.b2_scenario) },
     }
   }
 
@@ -726,6 +684,7 @@ export class ExportPowerpointService {
         nb1: nb1.toString(),
         nb2: nb2.toString(),
         nb3: nb3.toString(),
+        scenario: this.getScenarioLabel(privilegedScenario.scenario.b2_scenario),
       },
     }
   }
@@ -742,7 +701,7 @@ export class ExportPowerpointService {
     }
 
     return {
-      text: { ...commonData.baseLayout },
+      text: { ...commonData.baseLayout, scenario: this.getScenarioLabel(privilegedScenario.scenario.b2_scenario) },
       charts: [
         {
           data,
@@ -762,9 +721,21 @@ export class ExportPowerpointService {
     // Get flow requirement data for this EPCI
     const flowRequirement = results[privilegedScenario.id].flowRequirement.epcis.find((epci) => epci.code === epciCode)
 
-    // Calculate nb by summing housingNeeds from docStart to projection year
+    let nbFluid = 0
+    let nbRs = 0
+    let nbUrb = 0
+    let nbVac = 0
     let nb = 0
+    let total = 0
+
     if (flowRequirement) {
+      // Use the same calculations as in calculateSlide15Data
+      nbFluid = flowRequirement.totals.vacantAccomodation // fluidity
+      nbRs = flowRequirement.totals.secondaryResidenceAccomodationEvolution // secondary
+      nbUrb = flowRequirement.totals.housingNeeds // housingNeedsValue
+      nbVac = flowRequirement.totals.longTermVacantAccomodation // vacant
+
+      // Calculate total as newHousing (sum from docStart to projection year)
       const startYear = parseInt(data.periodStart)
       const projectionYear = privilegedScenario.scenario.projection
 
@@ -772,19 +743,21 @@ export class ExportPowerpointService {
         const yearStr = year.toString()
         nb += flowRequirement.data.housingNeeds[yearStr] || 0
       }
+      total = nb // total = newHousing
     }
 
     return {
       text: {
         ...commonData.baseLayout,
-        nbNv: '200',
-        nbFluid: '200',
-        nbRs: '200',
-        nbUrb: '200',
-        nbVac: '200',
+        scenario: this.getScenarioLabel(privilegedScenario.scenario.b2_scenario),
+        nbNv: 'Voir avec luc',
+        nbFluid: nbFluid.toString(),
+        nbRs: nbRs.toString(),
+        nbUrb: nbUrb.toString(),
+        nbVac: nbVac.toString(),
         nb: nb.toString(),
         projection: privilegedScenario.scenario.projection.toString(),
-        total: '200',
+        total: total.toString(),
         dperc: '200',
       },
     }
@@ -841,7 +814,6 @@ export class ExportPowerpointService {
         resorbYear: resorbYear.toString(),
         total: totalStock.toString(),
         nbSituations: totalSituations.toString(),
-        impact: '200', // This value needs clarification - keeping original
         docStart: data.periodStart,
         docEnd: data.periodEnd,
       },

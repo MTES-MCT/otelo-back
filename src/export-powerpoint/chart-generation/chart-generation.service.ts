@@ -22,6 +22,7 @@ interface ChartConfig {
 @Injectable()
 export class ChartGenerationService {
   private readonly logger = new Logger(ChartGenerationService.name)
+
   async generateChartImage(chartConfig: ChartConfig): Promise<Buffer> {
     this.logger.verbose(`Generating chart image for ${chartConfig.type}`)
     const browser = await puppeteer.launch({
@@ -34,41 +35,71 @@ export class ChartGenerationService {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
 
-    await page.setViewport({ width, height })
+    const scale = 2
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
 
-    const html = this.generateRechartsHTML(chartConfig)
+    await page.setViewport({
+      width: scaledWidth,
+      height: scaledHeight,
+      deviceScaleFactor: scale,
+    })
+
+    const html = this.generateRechartsHTML(chartConfig, scale)
     await page.setContent(html)
+
+    await page.waitForFunction(
+      () => {
+        const canvas = document.querySelector('canvas')
+        return canvas && canvas.width > 0
+      },
+      { timeout: 5000 },
+    )
 
     const screenshot = await page.screenshot({
       type: 'png',
       omitBackground: false,
+      clip: {
+        x: 0,
+        y: 0,
+        width: scaledWidth,
+        height: scaledHeight,
+      },
     })
     await browser.close()
     return Buffer.from(screenshot)
   }
 
-  private generateRechartsHTML(chartConfig: ChartConfig): string {
+  private generateRechartsHTML(chartConfig: ChartConfig, scale: number = 1): string {
     switch (chartConfig.type) {
       case 'projection-population-evolution':
-        return this.generatePopulationChart(chartConfig)
+        return this.generatePopulationChart(chartConfig, scale)
       case 'projection-menages-evolution':
-        return this.generateMenagesChart(chartConfig)
+        return this.generateMenagesChart(chartConfig, scale)
       case 'bad-housing':
-        return this.generateBadHousingChart(chartConfig)
+        return this.generateBadHousingChart(chartConfig, scale)
       case 'comparison-population-evolution-housing-needs':
-        return this.generateComparisonPopulationChart(chartConfig)
+        return this.generateComparisonPopulationChart(chartConfig, scale)
       case 'vacant-accommodation':
-        return this.generateVacantAccommodationChart(chartConfig)
+        return this.generateVacantAccommodationChart(chartConfig, scale)
       case 'annual-needs-comparison':
-        return this.generateComparisonHousingNeedsChart(chartConfig)
+        return this.generateComparisonHousingNeedsChart(chartConfig, scale)
       case 'annual-needs':
-        return this.generateAnnualNeedsChart(chartConfig)
+        return this.generateAnnualNeedsChart(chartConfig, scale)
       default:
         throw new Error('Invalid chart type')
     }
   }
 
-  private generatePopulationChart(chartConfig: ChartConfig): string {
+  private generatePopulationChart(chartConfig: ChartConfig, scale: number = 1): string {
+    const width = chartConfig.width || 800
+    const height = chartConfig.height || 500
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const chartWidth = scaledWidth - padding * 2
+    const chartHeight = scaledHeight - padding * 2
+
     return `
      <!DOCTYPE html>
       <html>
@@ -80,18 +111,18 @@ export class ChartGenerationService {
           <style>
               body {
                   margin: 0;
-                  padding: 20px;
+                  padding: ${padding}px;
                   background: white;
                   font-family: 'Calibri', Arial, sans-serif;
-                  width: ${chartConfig.width || 800}px;
-                  height: ${chartConfig.height || 500}px;
+                  width: ${scaledWidth}px;
+                  height: ${scaledHeight}px;
                   overflow: hidden;
                   box-sizing: border-box;
               }
 
               #myChart {
-                  width: ${(chartConfig.width || 800) - 40}px;
-                  height: ${(chartConfig.height || 500) - 40}px;
+                  width: ${chartWidth}px;
+                  height: ${chartHeight}px;
               }
           </style>
       </head>
@@ -183,11 +214,14 @@ export class ChartGenerationService {
     `
   }
 
-  private generateMenagesChart(chartConfig: ChartConfig): string {
+  private generateMenagesChart(chartConfig: ChartConfig, scale: number = 1): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
-    const chartWidth = width - 40
-    const chartHeight = height - 40
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const chartWidth = scaledWidth - padding * 2
+    const chartHeight = scaledHeight - padding * 2
 
     const dsfrLinePalette = [chartKeyColors.centralH, chartKeyColors.centralC, chartKeyColors.centralB]
     const palette = dsfrLinePalette
@@ -272,11 +306,11 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 20px;
+              padding: ${padding}px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
-              width: ${width}px;
-              height: ${height}px;
+              width: ${scaledWidth}px;
+              height: ${scaledHeight}px;
               overflow: hidden;
             }
 
@@ -365,11 +399,14 @@ export class ChartGenerationService {
     `
   }
 
-  private generateBadHousingChart(chartConfig: ChartConfig): string {
+  private generateBadHousingChart(chartConfig: ChartConfig, scale: number = 1): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
-    const chartWidth = width - 40
-    const chartHeight = height - 40
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const chartWidth = scaledWidth - padding * 2
+    const chartHeight = scaledHeight - padding * 2
 
     const dsfrBarPalette = [
       chartKeyColors.noAccommodation,
@@ -439,11 +476,11 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 20px;
+              padding: ${padding}px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
-              width: ${width}px;
-              height: ${height}px;
+              width: ${scaledWidth}px;
+              height: ${scaledHeight}px;
               overflow: hidden;
               box-sizing: border-box;
             }
@@ -506,11 +543,14 @@ export class ChartGenerationService {
     `
   }
 
-  private generateComparisonPopulationChart(chartConfig: ChartConfig): string {
+  private generateComparisonPopulationChart(chartConfig: ChartConfig, scale: number = 1): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
-    const chartWidth = width - 40
-    const chartHeight = height - 40
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const chartWidth = scaledWidth - padding * 2
+    const chartHeight = scaledHeight - padding * 2
 
     const data = chartConfig.data as {
       housingNeeds: Record<number, number>
@@ -518,20 +558,21 @@ export class ChartGenerationService {
       selectedScenario: string
     }
 
-    // Get the first EPCI's population data
     const populationData = Object.values(data.populationEvolution)[0]?.data || []
     const housingNeedsData = data.housingNeeds
     const selectedScenario = data.selectedScenario
 
-    // Create labels from years
     const years = populationData.map((item) => item.year)
     const labels = years.map((year) => year.toString())
 
-    // Housing needs bar data
     const housingNeedsValues = years.map((year) => housingNeedsData[year] || 0)
 
-    // Population evolution line data - only for selected scenario
     const populationValues = populationData.map((item) => item[selectedScenario as keyof typeof item] as number)
+
+    // Calculate scale limits
+    const maxHousingNeeds = Math.max(...housingNeedsValues.filter((v) => v > 0))
+    const minPopulation = Math.min(...populationValues)
+    const maxPopulation = Math.max(...populationValues)
 
     const scenarioLabels = {
       central: 'Population - Central',
@@ -546,7 +587,7 @@ export class ChartGenerationService {
     }
 
     const housingNeedsColor = chartKeyColors.housingNeeds
-    const housingNeedsBgColor = chartKeyColors.housingNeeds + '99'
+    const housingNeedsBgColor = chartKeyColors.housingNeeds + '88'
 
     return `
      <!DOCTYPE html>
@@ -557,12 +598,12 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 20px;
+              padding: ${padding}px;
               box-sizing: border-box;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
-              width: ${width}px;
-              height: ${height}px;
+              width: ${scaledWidth}px;
+              height: ${scaledHeight}px;
               overflow: hidden;
             }
 
@@ -631,6 +672,7 @@ export class ChartGenerationService {
                     type: 'linear',
                     position: 'left',
                     beginAtZero: true,
+                    max: ${Math.ceil(maxHousingNeeds * 1.1)},
                     title: {
                       display: true,
                       text: 'Constructions neuves'
@@ -639,6 +681,8 @@ export class ChartGenerationService {
                   y2: {
                     type: 'linear',
                     position: 'right',
+                    min: ${Math.floor(minPopulation * 0.99)},
+                    max: ${Math.ceil(maxPopulation * 1.01)},
                     title: {
                       display: true,
                       text: "Évolution du nombre d'habitant"
@@ -662,11 +706,15 @@ export class ChartGenerationService {
     `
   }
 
-  private generateVacantAccommodationChart(chartConfig: ChartConfig): string {
+  private generateVacantAccommodationChart(chartConfig: ChartConfig, scale: number = 1): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
-    const chartWidth = width - 40
-    const chartHeight = height - 40
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const topPadding = 40 * scale // Extra padding for legends/titles
+    const chartWidth = scaledWidth - padding * 2
+    const chartHeight = scaledHeight - padding - topPadding
 
     const data = chartConfig.data as {
       linearChart: Record<
@@ -701,9 +749,9 @@ export class ChartGenerationService {
     const maxValues = allMetadata.map((m) => m.max)
     const globalMin = Math.min(...minValues)
     const globalMax = Math.max(...maxValues)
-    const padding = (globalMax - globalMin) * 0.05
-    const yAxisMin = Math.max(0, Math.round(globalMin - padding))
-    const yAxisMax = Math.round(globalMax + padding)
+    const yAxisPadding = (globalMax - globalMin) * 0.05
+    const yAxisMin = Math.max(0, Math.round(globalMin - yAxisPadding))
+    const yAxisMax = Math.round(globalMax + yAxisPadding)
 
     const lineDatasets = epcisLinearChart.map((epci, index) => {
       const epciData = data.linearChart[epci]
@@ -738,15 +786,15 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 20px;
+              padding: ${topPadding}px ${padding}px ${padding}px ${padding}px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
-              width: ${width}px;
-              height: ${height}px;
+              width: ${scaledWidth}px;
+              height: ${scaledHeight}px;
               overflow: hidden;
               box-sizing: border-box;
               display: flex;
-              gap: 20px;
+              gap: ${padding}px;
             }
 
             .chart-container {
@@ -787,7 +835,7 @@ export class ChartGenerationService {
                 animation: false,
                 layout: {
                   padding: {
-                    top: 10,
+                    top: 30,
                     right: 10,
                     bottom: 40,
                     left: 10
@@ -861,7 +909,7 @@ export class ChartGenerationService {
                 animation: false,
                 layout: {
                   padding: {
-                    top: 10,
+                    top: 30,
                     right: 10,
                     bottom: 40,
                     left: 10
@@ -904,10 +952,13 @@ export class ChartGenerationService {
     `
   }
 
-  private generateAnnualNeedsChart(chartConfig: ChartConfig): string {
+  private generateAnnualNeedsChart(chartConfig: ChartConfig, scale: number = 1): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
-    const chartHeight = height - 10
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const chartHeight = scaledHeight - padding
 
     const data = chartConfig.data as {
       sitadelData: Array<{ year: number; value: number }>
@@ -950,11 +1001,11 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 20px;
+              padding: ${padding}px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
-              width: ${width}px;
-              height: ${height}px;
+              width: ${scaledWidth}px;
+              height: ${scaledHeight}px;
               overflow: hidden;
               box-sizing: border-box;
             }
@@ -971,9 +1022,9 @@ export class ChartGenerationService {
 
             .chart-title {
               text-align: center;
-              font-size: 16px;
+              font-size: ${16 * scale}px;
               font-weight: bold;
-              margin-bottom: 10px;
+              margin-bottom: ${10 * scale}px;
             }
           </style>
         </head>
@@ -1075,21 +1126,23 @@ export class ChartGenerationService {
     `
   }
 
-  private generateComparisonHousingNeedsChart(chartConfig: ChartConfig): string {
+  private generateComparisonHousingNeedsChart(chartConfig: ChartConfig, scale: number = 1): string {
     const width = chartConfig.width || 800
     const height = chartConfig.height || 500
-    const chartHeight = height - 40
+    const scaledWidth = width * scale
+    const scaledHeight = height * scale
+    const padding = 20 * scale
+    const chartHeight = scaledHeight - padding * 2
 
     const data = chartConfig.data as Record<string, TResults>
 
-    // Extract simulation IDs and their results
     const simulationIds = Object.keys(data)
     const simulationResults = simulationIds.map((id) => ({
       id,
+      name: data[id].name,
       flowRequirement: data[id].flowRequirement,
     }))
 
-    // Get all years from all simulations
     const allYears = new Set<number>()
     simulationResults.forEach((sim) => {
       if (sim.flowRequirement?.epcis?.[0]?.data?.housingNeeds) {
@@ -1110,7 +1163,7 @@ export class ChartGenerationService {
       const colors = ['#002060', '#DAE3F4', '#FBE5D6']
 
       return {
-        label: sim.id,
+        label: sim.name,
         data: housingNeedsData,
         backgroundColor: colors[index],
         borderColor: colors[index],
@@ -1130,11 +1183,11 @@ export class ChartGenerationService {
           <style>
             body {
               margin: 0;
-              padding: 20px;
+              padding: ${padding}px;
               background: white;
               font-family: 'Calibri', Arial, sans-serif;
-              width: ${width}px;
-              height: ${height}px;
+              width: ${scaledWidth}px;
+              height: ${scaledHeight}px;
               overflow: hidden;
               box-sizing: border-box;
             }
@@ -1148,18 +1201,10 @@ export class ChartGenerationService {
               width: 100%;
               height: 100%;
             }
-
-            .chart-title {
-              text-align: center;
-              font-size: 16px;
-              font-weight: bold;
-              margin-bottom: 10px;
-            }
           </style>
         </head>
 
         <body>
-          <div class="chart-title">Comparaison des besoins en logements par simulation</div>
           <div class="chart-container">
             <canvas id="comparisonChart"></canvas>
           </div>
@@ -1213,7 +1258,8 @@ export class ChartGenerationService {
                 },
                 plugins: {
                   legend: {
-                    display: false
+                    display: true,
+                    position: 'top'
                   }
                 }
               }
