@@ -43,10 +43,12 @@ interface AuthenticatedRequest extends Request {
       ) => {
         const simulationId = request.params.simulationId
         if (!simulationId) {
-          return { baseYear: 2021 }
+          return {
+            baseYear: 2021,
+            coefficient: 1,
+          }
         }
         const simulation = await simulationService.get(simulationId)
-        const periodProjection = simulation.scenario.projection
         const coefficient = await coefficientCalculationService.calculateCoefficient(
           simulation.scenario.b1_horizon_resorption,
           simulation.scenario.projection,
@@ -54,7 +56,6 @@ interface AuthenticatedRequest extends Request {
 
         return {
           coefficient,
-          periodProjection,
           baseYear: 2021,
         }
       },

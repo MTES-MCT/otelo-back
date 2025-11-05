@@ -4,27 +4,26 @@ import { SitadelService } from '~/calculation/needs-calculation/sitadel/sitadel.
 import { TFlowRequirementChartData } from '~/schemas/calculator/calculation-result'
 import { TResults } from '~/schemas/results/results'
 import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
-import { SimulationsService } from '~/simulations/simulations.service'
 import { StockRequirementsService } from '~/stock-requirements/stock-requirements.service'
 
 @Injectable()
 export class NeedsCalculationService {
   constructor(
-    private readonly simulationService: SimulationsService,
     private readonly flowRequirementService: FlowRequirementService,
     private readonly stockRequirementsService: StockRequirementsService,
     private readonly sitadelService: SitadelService,
   ) {}
 
   async calculate(simulation: TSimulationWithEpciAndScenario): Promise<TResults> {
-    const flowRequirement = await this.flowRequirementService.calculate(simulation)
     const stockRequirementsNeeds = await this.stockRequirementsService.calculateStock(simulation)
+    const flowRequirement = await this.flowRequirementService.calculate(simulation, stockRequirementsNeeds)
     const { noAccomodation, hosted, financialInadequation, physicalInadequation, badQuality } = stockRequirementsNeeds
     const sitadel = await this.sitadelService.calculate(simulation)
     let total = 0
     let totalStock = 0
     let totalFlux = 0
     let vacantAccomodation = 0
+    let secondaryAccommodation = 0
     const epcisTotals = simulation.epcis.map((epci) => {
       const epciFlowRequirement = flowRequirement.epcis.find((e) => e.code === epci.code) as TFlowRequirementChartData
 
@@ -37,7 +36,12 @@ export class NeedsCalculationService {
 
       const peakYear = epciFlowRequirement.data.peakYear
 
-      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(epci.code, stockRequirementsNeeds, peakYear)
+      const epciTotalStock = this.stockRequirementsService.calculateProrataStockByEpci(
+        simulation,
+        epci.code,
+        stockRequirementsNeeds,
+        peakYear,
+      )
       total += epciTotalFlux + epciTotalStock.total
       totalFlux += epciTotalFlux
       totalStock += epciTotalStock.total
