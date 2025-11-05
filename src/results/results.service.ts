@@ -15,9 +15,9 @@ export class ResultsService {
 
   async getResults(simulationId: string): Promise<TSimulationWithResults> {
     const simulation = await this.simulationsService.get(simulationId)
-    const results = await this.needsCalculationService.calculate()
+    const results = await this.needsCalculationService.calculate(simulation)
 
-    await this.upsertSimulationResults(simulationId, results)
+    // await this.upsertSimulationResults(simulationId, results)
     return { ...simulation, results }
   }
 

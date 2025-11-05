@@ -50,9 +50,17 @@ export type TSimulationWithResults = z.infer<typeof ZSimulationWithResults>
 
 export const ZRequestPowerpoint = z.object({
   nextStep: z.string(),
-  resultDate: z.coerce.date(),
-  selectedSimulations: z.array(z.string()).min(1).max(4),
-  privilegedSimulation: z.string().optional(),
+  resultDate: z.string(),
+  selectedSimulations: z.array(z.string()),
+  privilegedSimulation: z.string(),
+  documentType: z.string(),
+  periodStart: z.string(),
+  periodEnd: z.string(),
+  epci: z.object({
+    code: z.string(),
+    name: z.string(),
+  }),
+  username: z.string().optional(),
 })
 
 export type TRequestPowerpoint = z.infer<typeof ZRequestPowerpoint>

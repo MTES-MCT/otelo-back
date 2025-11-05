@@ -27,5 +27,6 @@ import { DataVisualisationService } from './data-visualisation.service'
     PhysicalInadequationModule,
   ],
   providers: [DataVisualisationService],
+  exports: [DataVisualisationService],
 })
 export class DataVisualisationModule {}

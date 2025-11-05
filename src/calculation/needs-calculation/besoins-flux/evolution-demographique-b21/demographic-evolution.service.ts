@@ -8,6 +8,7 @@ import {
   TGetDemographicEvolutionByOmphaleQuery,
   TGetDemographicEvolutionByYearAndOmphaleQuery,
 } from '~/schemas/demographic-evolution/demographic-evolution'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 export const omphaleMap = {
   central_b: EOmphale.CENTRAL_B,
@@ -79,8 +80,12 @@ export class DemographicEvolutionService {
     }))
   }
 
-  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear?: number): Promise<TDemographicEvolution> {
-    const { simulation, baseYear: baseYearContext } = this.context
+  async calculateOmphaleProjectionsByYearAndEpci(
+    simulation: TSimulationWithEpciAndScenario,
+    epciCode: string,
+    baseYear?: number,
+  ): Promise<TDemographicEvolution> {
+    const { baseYear: baseYearContext } = this.context
     const { scenario } = simulation
     const { projection } = scenario
 

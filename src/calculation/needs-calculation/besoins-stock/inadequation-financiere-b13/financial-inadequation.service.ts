@@ -6,6 +6,7 @@ import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-c
 import { PrismaService } from '~/db/prisma.service'
 import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import { TEpci } from '~/schemas/epcis/epci'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class FinancialInadequationService extends BaseCalculator {
@@ -25,8 +26,7 @@ export class FinancialInadequationService extends BaseCalculator {
     })
   }
 
-  async calculateByEpci(epciCode: string): Promise<number> {
-    const { simulation } = this.context
+  async calculateByEpci(simulation: TSimulationWithEpciAndScenario, epciCode: string): Promise<number> {
     const { epcis, scenario } = simulation
     const epci = epcis.find((epci) => epci.code === epciCode) as TEpci
     const region = epci.region
@@ -35,7 +35,7 @@ export class FinancialInadequationService extends BaseCalculator {
 
     const financialInadequation = await this.getFinancialInadequation(epciCode)
 
-    const badQuality = await this.badQualityService.calculateByEpci(epciCode)
+    const badQuality = await this.badQualityService.calculateByEpci(simulation, epciCode)
 
     if (scenario.b13_acc) {
       result += financialInadequation[`nbAllPlus${scenario.b13_taux_effort}AccessionPropriete`]
@@ -49,13 +49,13 @@ export class FinancialInadequationService extends BaseCalculator {
     return this.applyCoefficient(result)
   }
 
-  async calculate(): Promise<TCalculationResult> {
-    const { simulation, baseYear } = this.context
+  async calculate(simulation: TSimulationWithEpciAndScenario): Promise<TCalculationResult> {
+    const { baseYear } = this.context
     const { epcis, scenario } = simulation
     const { projection, b1_horizon_resorption: horizon } = scenario
     const results = await Promise.all(
       epcis.map(async (epci) => {
-        const value = await this.calculateByEpci(epci.code)
+        const value = await this.calculateByEpci(simulation, epci.code)
         const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
         return {
           epciCode: epci.code,

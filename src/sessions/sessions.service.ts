@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { InvalidRefreshTokenException } from '~/common/exceptions'
 import { PrismaService } from '~/db/prisma.service'
 import { TSession } from '~/schemas/sessions/session'
 import { TUser } from '~/schemas/users/user'
@@ -170,7 +169,7 @@ export class SessionsService {
         },
       })
       if (!session) {
-        throw new InvalidRefreshTokenException()
+        throw new UnauthorizedException('Invalid refresh token')
       }
       const { expiresAt: accessTokenExpiresAt, token: newAccessToken } = this.generateAccessToken(session.user)
       const { token: newRefreshToken } = this.generateRefreshToken(session.user)
@@ -186,8 +185,8 @@ export class SessionsService {
 
       const user = await this.usersService.getByToken(updatedSession.accessToken)
       return { session: updatedSession, user }
-    } catch {
-      throw new InvalidRefreshTokenException()
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token', { cause: error })
     }
   }
 
