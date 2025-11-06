@@ -79,22 +79,17 @@ export class DemographicEvolutionService {
     }))
   }
 
-  async calculateOmphaleProjectionsByYearAndEpci(epciCode: string, baseYear?: number): Promise<TDemographicEvolution> {
+  async calculateOmphaleProjectionsByYearAndEpci(
+    menagesEvolution: TGetDemographicEvolution[],
+    baseYear?: number,
+  ): Promise<TDemographicEvolution> {
     const { simulation, baseYear: baseYearContext } = this.context
     const { scenario } = simulation
-    const { projection } = scenario
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
     const omphaleBaseYear = baseYear ?? baseYearContext
-    const futureProjections = await this.getProjectionsByOmphale(
-      {
-        epciCode,
-        omphale,
-      },
-      projection,
-    )
 
-    const sortedProjections = futureProjections.sort((a, b) => a.year - b.year).filter(({ year }) => year >= omphaleBaseYear)
+    const sortedProjections = menagesEvolution.sort((a, b) => a.year - b.year).filter(({ year }) => year >= omphaleBaseYear)
 
     const { max, min, periodMax, periodMin, yearlyData } = sortedProjections.reduce(
       (acc, projection, index) => {

@@ -271,7 +271,7 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
 
     // We want to get value from 2021, so we start the calculation one year before, i.e. 2020
     const additionalHousingUnitsForNewHouseholds = await this.demographicEvolutionService.calculateOmphaleProjectionsByYearAndEpci(
-      epciCode,
+      menagesEvolution,
       baseYear - 1,
     )
 
