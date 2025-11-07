@@ -8,5 +8,5 @@
 */
 -- AlterTable
 ALTER TABLE "sitadel" DROP COLUMN "value",
-ADD COLUMN     "authorized_housing_count" INTEGER NOT NULL,
-ADD COLUMN     "started_housing_count" INTEGER NOT NULL;
+ADD COLUMN     "authorized_housing_count" INTEGER,
+ADD COLUMN     "started_housing_count" INTEGER;
