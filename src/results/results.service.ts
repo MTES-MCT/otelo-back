@@ -17,7 +17,7 @@ export class ResultsService {
     const simulation = await this.simulationsService.get(simulationId)
     const results = await this.needsCalculationService.calculate(simulation)
 
-    // await this.upsertSimulationResults(simulationId, results)
+    await this.upsertSimulationResults(simulationId, results)
     return { ...simulation, results }
   }
 

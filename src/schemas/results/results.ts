@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ZCalculationResult, ZChartDataResult, ZFlowRequirementChartDataResult } from '~/schemas/calculator/calculation-result'
+import { ZCalculationResult, ZFlowRequirementChartDataResult, ZSitadelDataResult } from '~/schemas/calculator/calculation-result'
 
 export const ZStockRequirementsResults = z.object({
   badQuality: ZCalculationResult,
@@ -16,7 +16,7 @@ export const ZResults = ZStockRequirementsResults.extend({
     z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number(), vacantAccomodation: z.number() }),
   ),
   flowRequirement: ZFlowRequirementChartDataResult,
-  sitadel: ZChartDataResult,
+  sitadel: ZSitadelDataResult,
   total: z.number(),
   totalFlux: z.number(),
   totalStock: z.number(),
