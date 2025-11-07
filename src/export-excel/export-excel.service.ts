@@ -1162,8 +1162,9 @@ export class ExportExcelService {
         { cell: 'F22', value: `Besoin en logements annualisé (jusqu'à horizon de projection)`, style: 'sectionHeader' },
         { cell: 'F23', value: 'Année', style: 'standardBorder' },
         { cell: 'F24', value: 'Permis de construire autorisés (Sit@del)', style: 'standardBorder' },
-        { cell: 'F25', value: 'Besoins en constructions neuves', style: 'standardBorder' },
-        { cell: 'F26', value: 'Logements excédentaires', style: 'standardBorder' },
+        { cell: 'F25', value: 'Logements commencés (Sit@del)', style: 'standardBorder' },
+        { cell: 'F26', value: 'Besoins en constructions neuves', style: 'standardBorder' },
+        { cell: 'F27', value: 'Logements excédentaires', style: 'standardBorder' },
       ],
     }
 
@@ -1197,9 +1198,10 @@ export class ExportExcelService {
     }
 
     const dataRows = [
-      { row: 24, results: results.sitadel, dataKey: 'data' },
-      { row: 25, results: results.flowRequirement, dataKey: 'housingNeeds' },
-      { row: 26, results: results.flowRequirement, dataKey: 'surplusHousing' },
+      { row: 24, results: results.sitadel, dataKey: 'authorizedHousingCount' },
+      { row: 25, results: results.sitadel, dataKey: 'startedHousingCount' },
+      { row: 26, results: results.flowRequirement, dataKey: 'housingNeeds' },
+      { row: 27, results: results.flowRequirement, dataKey: 'surplusHousing' },
     ]
 
     dataRows.forEach(({ row, results: resultData, dataKey }) => {
@@ -1209,10 +1211,10 @@ export class ExportExcelService {
           let dataCol = 7
           for (let year = 2013; year <= simulation.scenario.projection; year++) {
             let cellValue = 0
-            if (dataKey === 'data') {
-              const series = epciData.data as Array<{ value: number; year: number }>
+            if (dataKey === 'authorizedHousingCount' || dataKey === 'startedHousingCount') {
+              const series = epciData.data as Array<{ authorizedHousingCount: number; startedHousingCount: number; year: number }>
               const found = Array.isArray(series) ? series.find((d) => d.year === year) : undefined
-              cellValue = found ? found.value : 0
+              cellValue = found ? found[dataKey] : 0
             } else {
               const container = epciData.data as unknown as { [k: string]: Record<number, number> | undefined }
               const group = container[dataKey]
