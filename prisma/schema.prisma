@@ -660,7 +660,8 @@ model VacancyAccommodation {
 
 model Sitadel {
   year  Int
-  value Int
+  authorizedHousingCount Int @map("authorized_housing_count")
+  startedHousingCount Int @map("started_housing_count")
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
