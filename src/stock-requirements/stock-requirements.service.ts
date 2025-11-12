@@ -79,10 +79,13 @@ export class StockRequirementsService {
         const prePeakValue = computeScaledValue(baseValue, yearsBeforePeak, requiresFullValue)
         const postPeakValue = computeScaledValue(baseValue, yearsAfterPeak)
 
+        const newPostPeakTotal = acc.postPeakTotal + postPeakValue
+        const totalValue = newPostPeakTotal > 0 ? acc.prePeakTotal + prePeakValue : acc.total + epciResult.prorataValue
+
         return {
-          total: acc.total + epciResult.prorataValue,
+          total: totalValue,
           prePeakTotal: acc.prePeakTotal + prePeakValue,
-          postPeakTotal: acc.postPeakTotal + postPeakValue,
+          postPeakTotal: newPostPeakTotal,
         }
       },
       { total: 0, prePeakTotal: 0, postPeakTotal: 0 },
