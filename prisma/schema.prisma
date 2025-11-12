@@ -259,6 +259,7 @@ model Epci {
   vacancyAccommodation           VacancyAccommodation[]
   epciScenario                   EPCIScenario[]
   sitadel                        Sitadel[]
+  householdSizes                 HouseholdSizes[]
 
   Bassin     Bassin? @relation(fields: [bassinName], references: [name])
   bassinName String? @map("bassin_name")
@@ -762,4 +763,25 @@ model SimulationResults {
 
   @@unique([epciCode, simulationId])
   @@map("simulation_results")
+}
+
+
+model HouseholdSizes {
+year Int
+
+  centralB Float @map("central_b")
+  centralC Float @map("central_c")
+  centralH Float @map("central_h")
+  phB      Float @map("ph_b")
+  phC      Float @map("ph_c")
+  phH      Float @map("ph_h")
+  pbB      Float @map("pb_b")
+  pbC      Float @map("pb_c")
+  pbH      Float @map("pb_h")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("household_sizes")
 }
