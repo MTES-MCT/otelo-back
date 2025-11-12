@@ -32,6 +32,7 @@ import { RpInseeModule } from './rp-insee/rp-insee.module'
 import { ScenariosModule } from './scenarios/scenarios.module'
 import { SessionsModule } from './sessions/sessions.module'
 import { SimulationsModule } from './simulations/simulations.module'
+import { SitadelModule } from './sitadel/sitadel.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UsersModule } from './users/users.module'
 import { VacancyModule } from './vacancy/vacancy.module'
@@ -72,6 +73,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     EmailVerificationModule,
     ExportExcelModule,
     ExportPowerpointModule,
+    SitadelModule,
   ],
   providers: [
     AuthenticationGuard,

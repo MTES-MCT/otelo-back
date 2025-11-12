@@ -9,6 +9,7 @@ import { PhysicalInadequationService } from '~/physical-inadequation/physical-in
 import { RpInseeService } from '~/rp-insee/rp-insee.service'
 import { TDataVisualisationQuery, TInadequateHousing } from '~/schemas/data-visualisation/data-visualisation'
 import { TEpci } from '~/schemas/epcis/epci'
+import { SitadelService } from '~/sitadel/sitadel.service'
 import { VacancyService } from '~/vacancy/vacancy.service'
 
 @Injectable()
@@ -23,6 +24,7 @@ export class DataVisualisationService {
     private readonly badQualityService: BadQualityService,
     private readonly financialInadequationService: FinancialInadequationService,
     private readonly physicalInadequationService: PhysicalInadequationService,
+    private readonly sitadelService: SitadelService,
   ) {}
 
   async getInadequateHousing(epcis: TEpci[]): Promise<TInadequateHousing> {
@@ -99,6 +101,8 @@ export class DataVisualisationService {
         return this.vacancyService.getVacancy(epcis)
       case 'mal-logement':
         return this.getInadequateHousing(epcis)
+      case 'sitadel':
+        return this.sitadelService.getSitadel(epcis)
       default:
         throw new Error('Invalid data visualisation type')
     }
