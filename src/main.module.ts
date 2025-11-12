@@ -26,6 +26,7 @@ import { FilocomModule } from './filocom/filocom.module'
 import { FinancialInadequationModule } from './financial-inadequation/financial-inadequation.module'
 import { HealthController } from './health/health.controller'
 import { HostedModule } from './hosted/hosted.module'
+import { HouseholdSizesModule } from './household-sizes/household-sizes.module'
 import { NoAccommodationModule } from './no-accommodation/no-accommodation.module'
 import { PhysicalInadequationModule } from './physical-inadequation/physical-inadequation.module'
 import { RpInseeModule } from './rp-insee/rp-insee.module'
@@ -74,6 +75,7 @@ import { VacancyModule } from './vacancy/vacancy.module'
     ExportExcelModule,
     ExportPowerpointModule,
     SitadelModule,
+    HouseholdSizesModule,
   ],
   providers: [
     AuthenticationGuard,

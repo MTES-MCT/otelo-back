@@ -4,6 +4,7 @@ import { DemographicEvolutionService } from '~/demographic-evolution/demographic
 import { EpcisService } from '~/epcis/epcis.service'
 import { FinancialInadequationService } from '~/financial-inadequation/financial-inadequation.service'
 import { HostedService } from '~/hosted/hosted.service'
+import { HouseholdSizesService } from '~/household-sizes/household-sizes.service'
 import { NoAccommodationService } from '~/no-accommodation/no-accommodation.service'
 import { PhysicalInadequationService } from '~/physical-inadequation/physical-inadequation.service'
 import { RpInseeService } from '~/rp-insee/rp-insee.service'
@@ -25,6 +26,7 @@ export class DataVisualisationService {
     private readonly financialInadequationService: FinancialInadequationService,
     private readonly physicalInadequationService: PhysicalInadequationService,
     private readonly sitadelService: SitadelService,
+    private readonly householdSizesService: HouseholdSizesService,
   ) {}
 
   async getInadequateHousing(epcis: TEpci[]): Promise<TInadequateHousing> {
@@ -103,6 +105,8 @@ export class DataVisualisationService {
         return this.getInadequateHousing(epcis)
       case 'sitadel':
         return this.sitadelService.getSitadel(epcis)
+      case 'taille-menages':
+        return this.householdSizesService.getHouseholdSizes(epcis)
       default:
         throw new Error('Invalid data visualisation type')
     }

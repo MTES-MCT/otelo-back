@@ -5,6 +5,7 @@ import { EpcisModule } from '~/epcis/epcis.module'
 import { FilocomModule } from '~/filocom/filocom.module'
 import { FinancialInadequationModule } from '~/financial-inadequation/financial-inadequation.module'
 import { HostedModule } from '~/hosted/hosted.module'
+import { HouseholdSizesModule } from '~/household-sizes/household-sizes.module'
 import { NoAccommodationModule } from '~/no-accommodation/no-accommodation.module'
 import { PhysicalInadequationModule } from '~/physical-inadequation/physical-inadequation.module'
 import { RpInseeModule } from '~/rp-insee/rp-insee.module'
@@ -27,6 +28,7 @@ import { DataVisualisationService } from './data-visualisation.service'
     FinancialInadequationModule,
     PhysicalInadequationModule,
     SitadelModule,
+    HouseholdSizesModule,
   ],
   providers: [DataVisualisationService],
   exports: [DataVisualisationService],
