@@ -195,45 +195,8 @@ export class ExportPowerpointService {
   }
 
   private async calculateSlide8Data(commonData: CommonSlideData) {
-    const { results, privilegedScenario } = commonData
-    const scenario = commonData.privilegedScenario.scenario.b2_scenario
-    const scenarioPrefix = scenario.split('_')[0]
-    let selectedDemographicEvolution = ''
-    switch (scenarioPrefix) {
-      case 'PH':
-        selectedDemographicEvolution = 'haute'
-        break
-      case 'PB':
-        selectedDemographicEvolution = 'basse'
-        break
-      case 'PC':
-      default:
-        selectedDemographicEvolution = 'central'
-        break
-    }
-
-    const flowRequirement = results[privilegedScenario.id].flowRequirement.epcis.find((epci) => epci.code === commonData.data.epci.code)
-    const epciCode = commonData.data.epci.code
-    const epcis = commonData.epcis.filter((epci) => epci.code === epciCode)
-    const data = await this.demographicEvolutionService.getDemographicEvolutionPopulationAndYear(epcis)
-
-    const chartData = {
-      housingNeeds: flowRequirement?.data.housingNeeds,
-      populationEvolution: data.linearChart,
-      selectedScenario: selectedDemographicEvolution,
-    }
     return {
       text: { ...commonData.baseLayout },
-      charts: [
-        {
-          data: chartData,
-          metadata: data.maxYears,
-          templateImageFileName: 'image8.png',
-          width: 615,
-          height: 390,
-          type: 'comparison-population-evolution-housing-needs',
-        },
-      ],
     }
   }
 
@@ -401,6 +364,8 @@ export class ExportPowerpointService {
 
       const epciScenario = simulation.scenario.epciScenarios.find((es) => es.epciCode === epciCode)
       const vacance = epciScenario?.b2_tx_vacance_longue.toString() || ''
+      // TODO - calculer la reduction du taux de vacance de longue durée
+
       const rs = epciScenario?.b2_tx_rs.toString() || ''
       const resorb = simulation.scenario.b1_horizon_resorption.toString()
 
@@ -465,24 +430,15 @@ export class ExportPowerpointService {
       return 'Deceleration'
     }
 
-    const calculateHousingSum = (
-      flowRequirement: { data: { housingNeeds: Record<string, number> } },
-      startYear: number,
-      endYear: number,
-    ): number => {
+    const calculateHousingSum = (projection: number, flowRequirement: { data: { housingNeeds: Record<string, number> } }): number => {
       let sum = 0
-      for (let year = startYear; year <= endYear; year++) {
+      for (let year = 2021; year <= projection; year++) {
         sum += flowRequirement.data.housingNeeds[year.toString()] || 0
       }
       return sum
     }
 
-    const processSimulationData = (
-      simulation: TSimulationWithEpciAndScenario | null,
-      epciCode: string,
-      data: { periodStart: string; periodEnd: string },
-      isShortTerm = false,
-    ) => {
+    const processSimulationData = (simulation: TSimulationWithEpciAndScenario | null, epciCode: string, isShortTerm = false) => {
       if (!simulation)
         return {
           demographic: 0,
@@ -508,12 +464,10 @@ export class ExportPowerpointService {
           badHousing: 0,
         }
 
-      const startYear = parseInt(data.periodStart)
-      const endYear = parseInt(data.periodEnd)
-      const housingSum = calculateHousingSum(flowRequirement, startYear, endYear)
-
+      const housingSum = calculateHousingSum(simulation.scenario.projection, flowRequirement)
+      const renewalNeeds = flowRequirement.totals.renewalNeeds
       const demographic = flowRequirement.totals.demographicEvolution
-      const fluidity = flowRequirement.totals.vacantAccomodation
+      const fluidity = flowRequirement.totals.shortTermVacantAccomodation
       const secondary = flowRequirement.totals.secondaryResidenceAccomodationEvolution
       const housingNeedsValue = flowRequirement.totals.housingNeeds
       const vacant = isShortTerm ? flowRequirement.totals.shortTermVacantAccomodation : flowRequirement.totals.longTermVacantAccomodation
@@ -541,7 +495,7 @@ export class ExportPowerpointService {
         housingNeeds: housingNeedsValue,
         vacant,
         total,
-        newHousing: housingSum,
+        newHousing: renewalNeeds,
         badHousing,
       }
     }
@@ -551,9 +505,9 @@ export class ExportPowerpointService {
     const othersSimulations = simulations.filter((sim) => sim.id !== privilegedScenario.id)
     const [firstSimulation, lastSimulation] = othersSimulations
 
-    const sim1Data = processSimulationData(firstSimulation, epciCode, data, true)
-    const sim2Data = processSimulationData(privilegedScenario, epciCode, data, false)
-    const sim3Data = processSimulationData(lastSimulation, epciCode, data, false)
+    const sim1Data = processSimulationData(firstSimulation, epciCode, true)
+    const sim2Data = processSimulationData(privilegedScenario, epciCode, false)
+    const sim3Data = processSimulationData(lastSimulation, epciCode, false)
 
     return {
       text: {
@@ -640,7 +594,8 @@ export class ExportPowerpointService {
     const endYear = parseInt(data.periodEnd)
     const projectionYear = privilegedScenario.scenario.projection
 
-    let nb1 = 0 // Sum from 2021 to docStart-1
+    let nb1Sum = 0 // Sum from 2021 to docStart-1
+    let nb1Count = 0 // Count of years for average
     let nb2Sum = 0 // Sum from docStart to docEnd (for average calculation)
     let nb2Count = 0 // Count of years for average
     let nb3 = 0 // Sum from docEnd+1 to projection
@@ -649,7 +604,8 @@ export class ExportPowerpointService {
       // nb1: Sum from 2021 to docStart-1
       for (let year = 2021; year < startYear; year++) {
         const yearStr = year.toString()
-        nb1 += flowRequirement.data.housingNeeds[yearStr] || 0
+        nb1Sum += flowRequirement.data.housingNeeds[yearStr] || 0
+        nb1Count++
       }
 
       // nb2: Calculate sum for docStart to docEnd (will calculate average later)
@@ -665,12 +621,10 @@ export class ExportPowerpointService {
         nb3 += flowRequirement.data.housingNeeds[yearStr] || 0
       }
     }
-
+    const nb1 = nb1Count > 0 ? Math.round(nb1Sum / nb1Count) : 0
     // Calculate average for nb2
     const nb2 = nb2Count > 0 ? Math.round(nb2Sum / nb2Count) : 0
-
-    // Total is the sum from docStart to docEnd
-    const total = nb2Sum
+    const total = results.totals
 
     return {
       text: {
