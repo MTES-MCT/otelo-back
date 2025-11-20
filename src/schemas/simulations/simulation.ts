@@ -60,6 +60,7 @@ export const ZRequestPowerpoint = z.object({
     code: z.string(),
     name: z.string(),
   }),
+  epcis: z.array(ZEpci).optional(),
   username: z.string().optional(),
 })
 

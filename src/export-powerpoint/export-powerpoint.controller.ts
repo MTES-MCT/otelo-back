@@ -43,6 +43,10 @@ export class ExportPowerpointController {
     //   <ul>
     //     ${simulations.map((sim) => `<li>${sim.name}</li>`).join('')}
     //   </ul>
+    //   <p><strong>EPCI(s) demandé(s):</strong></p>
+    //   <ul>
+    //     ${epcis.map((sim) => `<li>${epci.name} - ${epci.code}</li>`).join('')}
+    //   </ul>
     // `
 
     // try {

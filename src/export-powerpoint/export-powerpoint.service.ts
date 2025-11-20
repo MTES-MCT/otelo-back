@@ -1,4 +1,5 @@
 import { Injectable, Logger, Scope } from '@nestjs/common'
+import { AccommodationRatesService } from '~/accommodation-rates/accommodation-rates.service'
 import { NeedsCalculationService } from '~/calculation/needs-calculation/needs-calculation.service'
 import { DataVisualisationService } from '~/data-visualisation/data-visualisation.service'
 import { DemographicEvolutionService } from '~/demographic-evolution/demographic-evolution.service'
@@ -34,6 +35,7 @@ export class ExportPowerpointService {
     private readonly simulationService: SimulationsService,
     private readonly dataVisualisationService: DataVisualisationService,
     private readonly rpInseeService: RpInseeService,
+    private readonly accommodationRatesService: AccommodationRatesService,
   ) {}
 
   private readonly slideCalculators = {
@@ -363,8 +365,29 @@ export class ExportPowerpointService {
       const prin = prinData?.[getOmphaleKey(simulation.scenario.b2_scenario)]?.toString() || ''
 
       const epciScenario = simulation.scenario.epciScenarios.find((es) => es.epciCode === epciCode)
-      const vacance = epciScenario?.b2_tx_vacance_longue.toString() || ''
-      // TODO - calculer la reduction du taux de vacance de longue durée
+
+      // Calculate vacancy rate reduction percentage
+      let vacance = ''
+      if (epciScenario?.b2_tx_vacance_longue !== undefined) {
+        try {
+          const accommodationRates = await this.accommodationRatesService.getAccommodationRates(epciCode)
+          const defaultLongTermRate = accommodationRates[epciCode]?.longTermVacancyRate
+
+          if (defaultLongTermRate && defaultLongTermRate > 0) {
+            const currentRate = epciScenario.b2_tx_vacance_longue
+            const reduction = defaultLongTermRate - currentRate
+            const reductionPercentage = (reduction / defaultLongTermRate) * 100
+            const formattedReduction = Math.round(reductionPercentage * 100) / 100
+
+            vacance = `${(currentRate * 100).toFixed(2)}% (soit une réduction de ${formattedReduction}%)`
+          } else {
+            vacance = `${(epciScenario.b2_tx_vacance_longue * 100).toFixed(2)}%`
+          }
+        } catch (error) {
+          this.logger.error(`Failed to calculate vacancy reduction for ${epciCode}:`, error)
+          vacance = `${(epciScenario.b2_tx_vacance_longue * 100).toFixed(2)}%`
+        }
+      }
 
       const rs = epciScenario?.b2_tx_rs.toString() || ''
       const resorb = simulation.scenario.b1_horizon_resorption.toString()
@@ -624,7 +647,7 @@ export class ExportPowerpointService {
     const nb1 = nb1Count > 0 ? Math.round(nb1Sum / nb1Count) : 0
     // Calculate average for nb2
     const nb2 = nb2Count > 0 ? Math.round(nb2Sum / nb2Count) : 0
-    const total = results.totals
+    const total = nb2Sum
 
     return {
       text: {
@@ -834,8 +857,14 @@ export class ExportPowerpointService {
     const placeholders: Record<string, unknown> = {}
 
     for (const [slideKey, calculator] of Object.entries(this.slideCalculators)) {
-      const result = calculator(commonData)
-      placeholders[slideKey] = await result
+      try {
+        const result = calculator(commonData)
+        placeholders[slideKey] = await result
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const errorStack = error instanceof Error ? error.stack : undefined
+        this.logger.error(`Failed to calculate ${slideKey}: ${errorMessage}`, errorStack)
+      }
     }
 
     return placeholders as TPowerpointPlaceholders

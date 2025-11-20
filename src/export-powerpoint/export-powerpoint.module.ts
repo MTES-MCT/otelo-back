@@ -1,4 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common'
+import { AccommodationRatesModule } from '~/accommodation-rates/accommodation-rates.module'
 import { NeedsCalculationModule } from '~/calculation/needs-calculation/needs-calculation.module'
 import { DataVisualisationModule } from '~/data-visualisation/data-visualisation.module'
 import { DemographicEvolutionModule } from '~/demographic-evolution/demographic-evolution.module'
@@ -25,6 +26,7 @@ import { ExportPowerpointService } from './export-powerpoint.service'
     forwardRef(() => SimulationsModule),
     DataVisualisationModule,
     RpInseeModule,
+    AccommodationRatesModule,
   ],
 })
 export class ExportPowerpointModule {}
