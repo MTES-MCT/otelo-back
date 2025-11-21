@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import * as argon2 from 'argon2'
 import { Request } from 'express'
@@ -11,6 +11,7 @@ import {
 import { EmailVerificationService } from '~/common/exceptions/email-verification/email-verification.service'
 import { CronService } from '~/cron/cron.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
+import { TResetPassword } from '~/schemas/auth/reset-password'
 import { TSignIn } from '~/schemas/auth/sign-in'
 import { TSignupCallback } from '~/schemas/auth/sign-in-callback'
 import { TSignUp } from '~/schemas/auth/sign-up'
@@ -19,6 +20,7 @@ import { TUser } from '~/schemas/users/user'
 import { SessionsService } from '~/sessions/sessions.service'
 import { SimulationsService } from '~/simulations/simulations.service'
 import { UsersService } from '~/users/users.service'
+import { PasswordResetService } from './password-reset.service'
 
 @Injectable()
 export class AuthService {
@@ -29,16 +31,9 @@ export class AuthService {
     private readonly scenariosService: ScenariosService,
     private readonly cronService: CronService,
     private readonly emailVerificationService: EmailVerificationService,
+    private readonly passwordResetService: PasswordResetService,
   ) {}
-
-  private async hashPassword(password: string): Promise<string> {
-    return await argon2.hash(password, {
-      type: argon2.argon2id,
-      memoryCost: 2 ** 16,
-      timeCost: 3,
-      parallelism: 1,
-    })
-  }
+  private readonly logger = new Logger(AuthService.name)
 
   async resendConfirmationMail(email: string) {
     return this.emailVerificationService.resendConfirmationMail(email)
@@ -96,7 +91,7 @@ export class AuthService {
       emailVerified: null,
       provider: 'credentials',
       lastLoginAt: new Date(),
-      password: await this.hashPassword(signUpData.password),
+      password: await this.passwordResetService.hashPassword(signUpData.password),
       hasAccess: isInWhitelist,
     })
     await this.cronService.handleUserAccessUpdate()
@@ -182,5 +177,22 @@ export class AuthService {
 
   async logout(userId: string) {
     return this.sessionsService.deleteUserSessions(userId)
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      return this.passwordResetService.generateResetToken(email)
+    } catch (error) {
+      this.logger.error(error)
+    }
+  }
+
+  async resetPassword(resetPassword: TResetPassword) {
+    const { token, newPassword, confirmPassword } = resetPassword
+    return this.passwordResetService.resetPassword(token, newPassword, confirmPassword)
+  }
+
+  async checkResetToken(token: string): Promise<void> {
+    return this.passwordResetService.checkResetToken(token)
   }
 }
