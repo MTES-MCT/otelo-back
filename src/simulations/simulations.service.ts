@@ -217,7 +217,7 @@ export class SimulationsService {
       data: simulationIds.map((simulationId) => ({
         type: 'POWERPOINT',
         simulationId,
-        isPrileged: privilegedSimulationId === simulationId,
+        isPrivileged: privilegedSimulationId === simulationId,
       })),
     })
   }
