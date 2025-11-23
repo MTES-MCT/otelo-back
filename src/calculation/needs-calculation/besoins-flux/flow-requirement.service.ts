@@ -267,6 +267,34 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     return menagesEvolution
   }
 
+  calculatePeakYear(
+    additionalHousingUnitsForNewHouseholds: TDemographicEvolution,
+    additionalHousingUnitsForDeficitReduction: Record<number, number>,
+  ) {
+    const firstYearValue = additionalHousingUnitsForNewHouseholds.data.find(({ year }) => year === 2021)?.yearValue || 0
+
+    const { peakYear } = additionalHousingUnitsForNewHouseholds.data.reduce(
+      (acc, { year, value }) => {
+        const deficitValue = additionalHousingUnitsForDeficitReduction[year] || 0
+        let currentSum = acc.previousSum
+        if (year > 2021) {
+          currentSum = deficitValue + value + acc.previousSum
+        }
+
+        if (currentSum > acc.maxSum) {
+          acc.maxSum = currentSum
+          acc.peakYear = year
+        }
+
+        acc.previousSum = currentSum
+        return acc
+      },
+      { maxSum: -Infinity, peakYear: 2050, previousSum: firstYearValue },
+    )
+
+    return peakYear < 2021 ? 2021 : peakYear
+  }
+
   async calculateByEpci(
     simulation: TSimulationWithEpciAndScenario,
     epciCode: string,
@@ -298,13 +326,7 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
       additionalHousingUnitsForNewHouseholds,
       additionalHousingUnitsForDeficitReduction,
     )
-
-    // Calculate the year just before we pass from positive to negative
-    const peakYearIndex = additionalHousingUnitsForDeficitAndNewHouseholds.findIndex(({ value }) => value < 0)
-    let peakYear = additionalHousingUnitsForDeficitAndNewHouseholds[peakYearIndex - 1]?.year ?? 2050
-    if (peakYear < baseYear) {
-      peakYear = 2050
-    }
+    const peakYear = this.calculatePeakYear(additionalHousingUnitsForNewHouseholds, additionalHousingUnitsForDeficitReduction)
 
     const vacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(
       scenario,
