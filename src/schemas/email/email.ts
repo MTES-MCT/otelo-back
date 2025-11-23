@@ -7,6 +7,14 @@ export const ZEmailDto = z.object({
   text: z.string().optional(),
   from: z.string().email().optional(),
   senderName: z.string().optional(),
+  attachments: z
+    .array(
+      z.object({
+        name: z.string(),
+        content: z.string(),
+      }),
+    )
+    .optional(),
 })
 
 export type TEmailDto = z.infer<typeof ZEmailDto>

@@ -46,6 +46,7 @@ export class EmailService implements IEmailService {
           email: options.from || this.defaultSender.email,
         },
         to: [{ email: options.to }],
+        attachment: options.attachments,
       }
 
       const headers = {

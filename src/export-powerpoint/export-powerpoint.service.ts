@@ -8,9 +8,9 @@ import { getOmphaleKey } from '~/export-excel/helpers/labels'
 import { PlaceholderGenerationService } from '~/export-powerpoint/placeholder-generation/placeholder-generation.service'
 import { ZipService } from '~/export-powerpoint/zip/zip.service'
 import { RpInseeService } from '~/rp-insee/rp-insee.service'
-import { TLayout, TPowerpointPlaceholders } from '~/schemas/export-powerpoint/export-powerpoint'
+import { TLayout, TPowerpointData, TPowerpointPlaceholders } from '~/schemas/export-powerpoint/export-powerpoint'
 import { TResults } from '~/schemas/results/results'
-import { TRequestPowerpoint, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 import { SimulationsService } from '~/simulations/simulations.service'
 
 interface CommonSlideData {
@@ -18,7 +18,7 @@ interface CommonSlideData {
   privilegedScenario: TSimulationWithEpciAndScenario
   results: Record<string, TResults>
   epcis: Array<{ code: string; name: string; region: string; bassinName: string | null }>
-  data: TRequestPowerpoint
+  data: TPowerpointData
   simulations: Array<TSimulationWithEpciAndScenario>
   mainEpci: { code: string; name: string }
 }
@@ -74,7 +74,7 @@ export class ExportPowerpointService {
     return 'Décélération'
   }
 
-  private async prepareCommonData(data: TRequestPowerpoint): Promise<CommonSlideData> {
+  private async prepareCommonData(data: TPowerpointData): Promise<CommonSlideData> {
     const simulations = await this.simulationService.getMany(data.selectedSimulations)
     const bassinEpcis = await this.epcisService.getBassinEpcisByEpciCode(data.epci.code)
     const epcis = bassinEpcis.map((epci) => ({
@@ -852,7 +852,7 @@ export class ExportPowerpointService {
     }
   }
 
-  private async generatePlaceholders(data: TRequestPowerpoint): Promise<TPowerpointPlaceholders> {
+  private async generatePlaceholders(data: TPowerpointData): Promise<TPowerpointPlaceholders> {
     const commonData = await this.prepareCommonData(data)
     const placeholders: Record<string, unknown> = {}
 
@@ -870,7 +870,7 @@ export class ExportPowerpointService {
     return placeholders as TPowerpointPlaceholders
   }
 
-  async generateFromTemplate(data: TRequestPowerpoint): Promise<Buffer> {
+  async generateFromTemplate(data: TPowerpointData): Promise<Buffer> {
     const zip = await this.zipService.unzipPptx()
     const slideFiles = Object.keys(zip.files).filter((name) => name.match(/^ppt\/slides\/slide\d+\.xml$/))
 

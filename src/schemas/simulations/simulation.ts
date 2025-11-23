@@ -48,24 +48,6 @@ export const ZSimulationWithResults = ZSimulationWithEpciAndScenario.extend({
 
 export type TSimulationWithResults = z.infer<typeof ZSimulationWithResults>
 
-export const ZRequestPowerpoint = z.object({
-  nextStep: z.string(),
-  resultDate: z.string(),
-  selectedSimulations: z.array(z.string()),
-  privilegedSimulation: z.string(),
-  documentType: z.string(),
-  periodStart: z.string(),
-  periodEnd: z.string(),
-  epci: z.object({
-    code: z.string(),
-    name: z.string(),
-  }),
-  epcis: z.array(ZEpci).optional(),
-  username: z.string().optional(),
-})
-
-export type TRequestPowerpoint = z.infer<typeof ZRequestPowerpoint>
-
 export const ZCloneSimulationDto = z.object({
   name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom ne doit pas dépasser 100 caractères'),
 })
