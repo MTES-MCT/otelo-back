@@ -105,7 +105,7 @@ export class DemographicEvolutionService {
           min: Math.min(acc.min, value),
           periodMax: Math.max(acc.periodMax, projection.year),
           periodMin: Math.min(acc.periodMin, projection.year),
-          yearlyData: [...acc.yearlyData, { value, year: projection.year }],
+          yearlyData: [...acc.yearlyData, { value, year: projection.year, yearValue: currentValue, previousYearValue: previousValue }],
         }
       },
       {
@@ -113,7 +113,7 @@ export class DemographicEvolutionService {
         min: Infinity,
         periodMax: -Infinity,
         periodMin: Infinity,
-        yearlyData: [] as { value: number; year: number }[],
+        yearlyData: [] as { value: number; year: number; yearValue: number; previousYearValue: number }[],
       },
     )
 

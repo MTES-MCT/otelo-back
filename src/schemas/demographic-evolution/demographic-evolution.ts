@@ -58,6 +58,8 @@ export const ZDemographicEvolution = z.object({
     z.object({
       value: z.number(),
       year: z.number(),
+      yearValue: z.number(),
+      previousYearValue: z.number(),
     }),
   ),
   metadata: z.object({
