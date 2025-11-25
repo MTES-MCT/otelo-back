@@ -188,7 +188,8 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
   }
 
   calculateLongTermVacantAccommodationVariationByYear(
-    vacantAccommodationVariation: Record<number, number>,
+    accommodationVariationEvolution: Record<number, number>,
+    vacantAccomodationEvolution: Record<number, number>,
     periodProjection: number,
     peakYear: number,
     additionalHousingUnitsForDeficitAndNewHouseholds: {
@@ -210,11 +211,13 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
           result[year] = 0
           continue
         }
+        const previousAccommodation =
+          accommodationVariationEvolution[year] * vacantAccomodationEvolution[year] -
+            accommodationVariationEvolution[year - 1] * vacantAccomodationEvolution[year - 1] || 0
 
-        const previousAccommodation = vacantAccommodationVariation[year] || 0
         let accommodation = 0
         if (previousAccommodation > 0) {
-          accommodation = previousAccommodation
+          accommodation = Math.round(previousAccommodation)
         } else {
           accommodation = Math.abs(previousAccommodation) > additionalHousing ? -additionalHousing : previousAccommodation
         }
@@ -416,6 +419,12 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
       peakYear,
       'short',
     )
+    const longTermVacantAccomodationEvolution = await this.renewalHousingStock.getVacantAccomodationEvolutionByEpciAndYear(
+      scenario,
+      epciCode,
+      peakYear,
+      'long',
+    )
     const secondaryResidenceAccomodationEvolution = await this.renewalHousingStock.getSecondaryResidenceAccomodationEvolutionByEpciAndYear(
       simulation,
       epciCode,
@@ -443,7 +452,8 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     )
 
     const longTermVacantAccomodationVariation = this.calculateLongTermVacantAccommodationVariationByYear(
-      vacantAccommodationVariation,
+      accommodationVariationEvolution,
+      longTermVacantAccomodationEvolution,
       simulation.scenario.projection,
       peakYear,
       additionalHousingUnitsForDeficitAndNewHouseholds,
@@ -493,6 +503,21 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
       .filter(([year]) => Number(year) <= peakYear && Number(year) > baseYear)
       .reduce((sum, [, value]) => sum + value, 0)
 
+    if (epciCode === '246800726') {
+      console.log(
+        'peak',
+        peakYear,
+        'longTermVacantAccomodationEvolution - L60',
+        longTermVacantAccomodationEvolution,
+        'accommodationVariationEvolution - L23',
+        accommodationVariationEvolution,
+        'additionalHousingUnitsForDeficitAndNewHouseholds - L56',
+        additionalHousingUnitsForDeficitAndNewHouseholds,
+        'vacantAccommodationVariation - L64',
+        vacantAccommodationVariation,
+      )
+      console.log('result', longTermVacantAccomodationVariation)
+    }
     return {
       code: epciCode,
       data: {
