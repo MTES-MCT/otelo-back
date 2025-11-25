@@ -502,21 +502,6 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
       .filter(([year]) => Number(year) <= peakYear && Number(year) > baseYear)
       .reduce((sum, [, value]) => sum + value, 0)
 
-    if (epciCode === '246800726') {
-      console.log(
-        'peak',
-        peakYear,
-        'longTermVacantAccomodationEvolution - L60',
-        longTermVacantAccomodationEvolution,
-        'accommodationVariationEvolution - L23',
-        accommodationVariationEvolution,
-        'additionalHousingUnitsForDeficitAndNewHouseholds - L56',
-        additionalHousingUnitsForDeficitAndNewHouseholds,
-        'vacantAccommodationVariation - L64',
-        vacantAccommodationVariation,
-      )
-      console.log('result', longTermVacantAccomodationVariation)
-    }
     return {
       code: epciCode,
       data: {
