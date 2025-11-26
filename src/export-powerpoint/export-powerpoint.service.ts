@@ -167,7 +167,7 @@ export class ExportPowerpointService {
       epciFlowRequirement.totals.vacantAccomodation
       percentMenages = ((epciFlowRequirement.totals.demographicEvolution / epcisTotals.totalFlux) * 100).toFixed(1)
       percentBadHousing = ((epcisTotals.totalStock / epcisTotals.total) * 100).toFixed(1)
-      percentFluidity = ((epciFlowRequirement.totals.vacantAccomodation / epcisTotals.totalFlux) * 100).toFixed(1)
+      percentFluidity = ((epciFlowRequirement.totals.shortTermVacantAccomodation / epcisTotals.totalFlux) * 100).toFixed(1)
     }
 
     return {
@@ -233,7 +233,7 @@ export class ExportPowerpointService {
         {
           data: chartData.data,
           metadata: chartData.metadata,
-          templateImageFileName: 'image10.png',
+          templateImageFileName: 'image9.png',
           width: 527,
           height: 322,
           type: 'projection-population-evolution',
@@ -298,7 +298,7 @@ export class ExportPowerpointService {
       charts: [
         {
           data: chartData,
-          templateImageFileName: 'image11.png',
+          templateImageFileName: 'image10.png',
           width: 527,
           height: 322,
           type: 'projection-menages-evolution',
@@ -316,7 +316,7 @@ export class ExportPowerpointService {
       charts: [
         {
           data: data[epciCode],
-          templateImageFileName: 'image12.png',
+          templateImageFileName: 'image11.png',
           width: 700,
           height: 372,
           type: 'bad-housing',
@@ -461,7 +461,7 @@ export class ExportPowerpointService {
       return sum
     }
 
-    const processSimulationData = (simulation: TSimulationWithEpciAndScenario | null, epciCode: string, isShortTerm = false) => {
+    const processSimulationData = (simulation: TSimulationWithEpciAndScenario | null, epciCode: string) => {
       if (!simulation)
         return {
           demographic: 0,
@@ -493,7 +493,7 @@ export class ExportPowerpointService {
       const fluidity = flowRequirement.totals.shortTermVacantAccomodation
       const secondary = flowRequirement.totals.secondaryResidenceAccomodationEvolution
       const housingNeedsValue = flowRequirement.totals.housingNeeds
-      const vacant = isShortTerm ? flowRequirement.totals.shortTermVacantAccomodation : flowRequirement.totals.longTermVacantAccomodation
+      const vacant = flowRequirement.totals.longTermVacantAccomodation
 
       // Calculate bad housing as sum of all housing inadequation types
       const hostedEpci = results[simulation.id].hosted.epcis.find((epci) => epci.epciCode === epciCode)
@@ -528,9 +528,9 @@ export class ExportPowerpointService {
     const othersSimulations = simulations.filter((sim) => sim.id !== privilegedScenario.id)
     const [firstSimulation, lastSimulation] = othersSimulations
 
-    const sim1Data = processSimulationData(firstSimulation, epciCode, true)
-    const sim2Data = processSimulationData(privilegedScenario, epciCode, false)
-    const sim3Data = processSimulationData(lastSimulation, epciCode, false)
+    const sim1Data = processSimulationData(firstSimulation, epciCode)
+    const sim2Data = processSimulationData(privilegedScenario, epciCode)
+    const sim3Data = processSimulationData(lastSimulation, epciCode)
 
     return {
       text: {
@@ -579,7 +579,7 @@ export class ExportPowerpointService {
       charts: [
         {
           data: results,
-          templateImageFileName: 'image13.png',
+          templateImageFileName: 'image12.png',
           width: 620,
           height: 350,
           type: 'annual-needs-comparison',
@@ -682,7 +682,7 @@ export class ExportPowerpointService {
       charts: [
         {
           data,
-          templateImageFileName: 'image14.png',
+          templateImageFileName: 'image13.png',
           width: 620,
           height: 350,
           type: 'annual-needs',
@@ -807,7 +807,7 @@ export class ExportPowerpointService {
       charts: [
         {
           data,
-          templateImageFileName: 'image15.png',
+          templateImageFileName: 'image14.png',
           width: 650,
           height: 325,
           type: 'vacant-accommodation',
@@ -886,8 +886,6 @@ export class ExportPowerpointService {
 
     this.logger.log(`Generating PowerPoint file`)
     const pptxBuffer = await this.zipService.generatePptx(zip)
-    // todo: mark simulations as exported
-    // await this.simulationsService.markAsExported(data.simulations)
     return pptxBuffer
   }
 }
