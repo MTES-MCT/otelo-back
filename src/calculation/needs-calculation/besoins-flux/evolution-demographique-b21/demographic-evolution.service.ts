@@ -83,7 +83,6 @@ export class DemographicEvolutionService {
   async calculateOmphaleProjectionsByYearAndEpci(
     menagesEvolution: TGetDemographicEvolution[],
     simulation: TSimulationWithEpciAndScenario,
-    epciCode: string,
     baseYear?: number,
   ): Promise<TDemographicEvolution> {
     const { baseYear: baseYearContext } = this.context

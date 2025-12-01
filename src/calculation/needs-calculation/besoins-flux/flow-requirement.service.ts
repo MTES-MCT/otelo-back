@@ -391,7 +391,6 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     const additionalHousingUnitsForNewHouseholds = await this.demographicEvolutionService.calculateOmphaleProjectionsByYearAndEpci(
       menagesEvolution,
       simulation,
-      epciCode,
       baseYear - 1,
     )
 
