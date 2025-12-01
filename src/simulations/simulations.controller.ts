@@ -6,7 +6,7 @@ import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { EmailService } from '~/email/email.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
-import { TCloneSimulationDto, TRequestPowerpoint } from '~/schemas/simulations/simulation'
+import { TCloneSimulationDto } from '~/schemas/simulations/simulation'
 import { TUser } from '~/schemas/users/user'
 import { SimulationsService } from '~/simulations/simulations.service'
 
@@ -94,47 +94,5 @@ export class SimulationsController {
   @HttpCode(HttpStatus.CREATED)
   async cloneSimulation(@Param('id') id: string, @Body() data: TCloneSimulationDto, @User() { id: userId }: TUser) {
     return this.simulationsService.clone(userId, id, data)
-  }
-
-  @AccessControl({
-    roles: [Role.USER, Role.ADMIN],
-  })
-  @Post('request-powerpoint')
-  @HttpCode(HttpStatus.OK)
-  async requestPowerpoint(@User() { email }: TUser, @Body() data: TRequestPowerpoint) {
-    const { nextStep, resultDate, selectedSimulations, privilegedSimulation } = data
-
-    const simulations = await this.simulationsService.getMany(selectedSimulations)
-    await this.simulationsService.markAsExported(selectedSimulations, privilegedSimulation)
-
-    // Prepare email content
-    const privilegedSim = privilegedSimulation ? simulations.find((sim) => sim.id === privilegedSimulation) : null
-
-    const htmlContent = `
-      <h1>Demande de PowerPoint</h1>
-      <p><strong>Email de l'utilisateur:</strong> ${email}</p>
-      <p><strong>Prochaine étape:</strong> ${nextStep}</p>
-      <p><strong>Date du résultat:</strong> ${resultDate}</p>
-      ${privilegedSim ? `<p><strong>Scénario privilégié:</strong> ${privilegedSim.name}</p>` : ''}
-      <p><strong>Simulations sélectionnées:</strong></p>
-      <ul>
-        ${simulations.map((sim) => `<li>${sim.name}</li>`).join('')}
-      </ul>
-    `
-
-    try {
-      // Send email
-      await this.emailService.sendEmail({
-        to: this.receiverEmail,
-        subject: 'Nouvelle demande de PowerPoint',
-        html: htmlContent,
-        text: `Demande de PowerPoint\n\nEmail de l'utilisateur: ${email}\nProchaine étape: ${nextStep}\nDate du résultat: ${resultDate}${privilegedSim ? `\nScénario privilégié: ${privilegedSim.name}` : ''}\nSimulations sélectionnées:\n${simulations.map((sim) => `- ${sim.name}`).join('\n')}`,
-      })
-
-      return { success: true, message: 'Email sent successfully' }
-    } catch (err) {
-      this.logger.error(err)
-      return { success: false, message: 'An error occurred while sending email.' }
-    }
   }
 }

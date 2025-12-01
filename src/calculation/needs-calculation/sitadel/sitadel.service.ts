@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
-import { TChartDataResult } from '~/schemas/calculator/calculation-result'
+import { TSitadelData, TSitadelDataResult } from '~/schemas/calculator/calculation-result'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class SitadelService extends BaseCalculator {
@@ -13,22 +14,22 @@ export class SitadelService extends BaseCalculator {
     super(context)
   }
 
-  async calculate(): Promise<TChartDataResult> {
-    const { simulation } = this.context
+  async calculate(simulation: TSimulationWithEpciAndScenario): Promise<TSitadelDataResult> {
     const { epcis } = simulation
-    const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(epci.code)))
+    const results = await Promise.all(epcis.map((epci) => this.calculateByEpci(simulation, epci.code)))
     return {
       epcis: results,
     }
   }
 
-  async calculateByEpci(epciCode: string) {
+  async calculateByEpci(_: TSimulationWithEpciAndScenario, epciCode: string): Promise<TSitadelData> {
     const sitadel = await this.prismaService.sitadel.findMany({
       orderBy: {
         year: 'asc',
       },
       select: {
-        value: true,
+        authorizedHousingCount: true,
+        startedHousingCount: true,
         year: true,
       },
       where: {

@@ -4,6 +4,8 @@ import { AuthService } from '~/auth/auth.service'
 import { User } from '~/common/decorators/authenticated-user'
 import { Public } from '~/common/decorators/public.decorator'
 import { RefreshTokenGuard } from '~/common/guards/refreshtoken.guard'
+import { TForgotPassword } from '~/schemas/auth/forgot-password'
+import { TResetPassword } from '~/schemas/auth/reset-password'
 import { TSignIn } from '~/schemas/auth/sign-in'
 import { TSignupCallback, ZSignupCallback } from '~/schemas/auth/sign-in-callback'
 import { TSignUp } from '~/schemas/auth/sign-up'
@@ -79,5 +81,26 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@User() { id: userId }: TUser) {
     return this.authService.logout(userId)
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: TForgotPassword) {
+    return this.authService.forgotPassword(forgotPasswordDto.email)
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: TResetPassword) {
+    return this.authService.resetPassword(resetPasswordDto)
+  }
+
+  @Public()
+  @Post('check-reset-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async checkResetToken(@Body() { token }: { token: string }) {
+    await this.authService.checkResetToken(token)
   }
 }

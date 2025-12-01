@@ -58,6 +58,8 @@ export const ZDemographicEvolution = z.object({
     z.object({
       value: z.number(),
       year: z.number(),
+      yearValue: z.number(),
+      previousYearValue: z.number(),
     }),
   ),
   metadata: z.object({
@@ -123,6 +125,22 @@ export const ZDemographicEvolutionPopulationByEpciAndYear = z.object({
 
 export type TDemographicEvolutionPopulationByEpciAndYear = z.infer<typeof ZDemographicEvolutionPopulationByEpciAndYear>
 
+export const ZDemographicEvolutionPopulationByEpciRecord = z.record(
+  z.object({
+    data: z.array(
+      z.object({
+        year: z.number(),
+        central: z.number(),
+        haute: z.number(),
+        basse: z.number(),
+      }),
+    ),
+    metadata: z.object({ max: z.number(), min: z.number() }),
+  }),
+)
+
+export type TDemographicEvolutionPopulationByEpciRecord = z.infer<typeof ZDemographicEvolutionPopulationByEpciRecord>
+
 export const ZDemographicPopulationMaxYearsByEpci = z.record(
   z.object({
     central: z.object({ value: z.number(), year: z.number() }),
@@ -172,3 +190,25 @@ export const ZDemographicEvolutionMenagesByEpciAndYear = z.object({
 })
 
 export type TDemographicEvolutionMenagesByEpciAndYear = z.infer<typeof ZDemographicEvolutionMenagesByEpciAndYear>
+
+export const ZDemographicEvolutionMenagesByEpciRecord = z.record(
+  z.object({
+    data: z.array(
+      z.object({
+        year: z.number(),
+        centralB: z.number(),
+        centralC: z.number(),
+        centralH: z.number(),
+        phB: z.number(),
+        phC: z.number(),
+        phH: z.number(),
+        pbB: z.number(),
+        pbC: z.number(),
+        pbH: z.number(),
+      }),
+    ),
+    metadata: z.object({ max: z.number(), min: z.number() }),
+  }),
+)
+
+export type TDemographicEvolutionMenagesByEpciRecord = z.infer<typeof ZDemographicEvolutionMenagesByEpciRecord>

@@ -8,6 +8,7 @@ import {
   TGetDemographicEvolutionByOmphaleQuery,
   TGetDemographicEvolutionByYearAndOmphaleQuery,
 } from '~/schemas/demographic-evolution/demographic-evolution'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 export const omphaleMap = {
   central_b: EOmphale.CENTRAL_B,
@@ -81,9 +82,10 @@ export class DemographicEvolutionService {
 
   async calculateOmphaleProjectionsByYearAndEpci(
     menagesEvolution: TGetDemographicEvolution[],
+    simulation: TSimulationWithEpciAndScenario,
     baseYear?: number,
   ): Promise<TDemographicEvolution> {
-    const { simulation, baseYear: baseYearContext } = this.context
+    const { baseYear: baseYearContext } = this.context
     const { scenario } = simulation
 
     const omphale = omphaleMap[scenario.b2_scenario.toLowerCase()]
@@ -102,7 +104,7 @@ export class DemographicEvolutionService {
           min: Math.min(acc.min, value),
           periodMax: Math.max(acc.periodMax, projection.year),
           periodMin: Math.min(acc.periodMin, projection.year),
-          yearlyData: [...acc.yearlyData, { value, year: projection.year }],
+          yearlyData: [...acc.yearlyData, { value, year: projection.year, yearValue: currentValue, previousYearValue: previousValue }],
         }
       },
       {
@@ -110,7 +112,7 @@ export class DemographicEvolutionService {
         min: Infinity,
         periodMax: -Infinity,
         periodMin: Infinity,
-        yearlyData: [] as { value: number; year: number }[],
+        yearlyData: [] as { value: number; year: number; yearValue: number; previousYearValue: number }[],
       },
     )
 

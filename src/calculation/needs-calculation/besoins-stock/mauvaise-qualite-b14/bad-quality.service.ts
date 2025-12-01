@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
 import { TCalculationResult } from '~/schemas/calculator/calculation-result'
+import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 @Injectable()
 export class BadQualityService extends BaseCalculator {
@@ -30,8 +31,7 @@ export class BadQualityService extends BaseCalculator {
     })
   }
 
-  async calculateByEpci(epciCode: string): Promise<number> {
-    const { simulation } = this.context
+  async calculateByEpci(simulation: TSimulationWithEpciAndScenario, epciCode: string): Promise<number> {
     const { scenario } = simulation
     const { b14_confort, b14_occupation, b14_qualite, b14_taux_reallocation, source_b14 } = scenario
     const sourceCalculators = {
@@ -111,14 +111,14 @@ export class BadQualityService extends BaseCalculator {
     return this.applyCoefficient(result * (1 - b14_taux_reallocation / 100.0))
   }
 
-  async calculate(): Promise<TCalculationResult> {
-    const { simulation, baseYear } = this.context
+  async calculate(simulation: TSimulationWithEpciAndScenario): Promise<TCalculationResult> {
+    const { baseYear } = this.context
     const { epcis, scenario } = simulation
     const { projection, b1_horizon_resorption: horizon } = scenario
 
     const results = await Promise.all(
       epcis.map(async (epci) => {
-        const value = await this.calculateByEpci(epci.code)
+        const value = await this.calculateByEpci(simulation, epci.code)
         const prorataValue = horizon > projection ? Math.round((value * (projection - baseYear)) / (horizon - baseYear)) : Math.round(value)
         return {
           epciCode: epci.code,

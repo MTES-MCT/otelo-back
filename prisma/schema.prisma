@@ -52,6 +52,7 @@ model User {
   epciGroups                        EpciGroup[]
   demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
   emailVerifications                EmailVerification[]
+  userAccountResetTokens            UserAccountResetToken[]
 
   @@map("users")
 }
@@ -118,6 +119,18 @@ model EmailVerification {
   userId String @map("user_id")
 
   @@map("email_verifications")
+}
+
+model UserAccountResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+
+  @@map("user_account_reset_tokens")
 }
 
 enum SourceB11 {
@@ -259,6 +272,7 @@ model Epci {
   vacancyAccommodation           VacancyAccommodation[]
   epciScenario                   EPCIScenario[]
   sitadel                        Sitadel[]
+  householdSizes                 HouseholdSizes[]
 
   Bassin     Bassin? @relation(fields: [bassinName], references: [name])
   bassinName String? @map("bassin_name")
@@ -660,7 +674,8 @@ model VacancyAccommodation {
 
 model Sitadel {
   year  Int
-  value Int
+  authorizedHousingCount Int @map("authorized_housing_count")
+  startedHousingCount Int @map("started_housing_count")
 
   epci     Epci   @relation(fields: [epciCode], references: [code])
   epciCode String @map("epci_code")
@@ -757,6 +772,29 @@ model SimulationResults {
   totalStock         Int @default(0)
   vacantAccomodation Int @default(0)
 
+  exported Boolean @default(false)
+
   @@unique([epciCode, simulationId])
   @@map("simulation_results")
+}
+
+
+model HouseholdSizes {
+year Int
+
+  centralB Float @map("central_b")
+  centralC Float @map("central_c")
+  centralH Float @map("central_h")
+  phB      Float @map("ph_b")
+  phC      Float @map("ph_c")
+  phH      Float @map("ph_h")
+  pbB      Float @map("pb_b")
+  pbC      Float @map("pb_c")
+  pbH      Float @map("pb_h")
+
+  epci     Epci   @relation(fields: [epciCode], references: [code])
+  epciCode String @map("epci_code")
+
+  @@id([epciCode, year])
+  @@map("household_sizes")
 }
