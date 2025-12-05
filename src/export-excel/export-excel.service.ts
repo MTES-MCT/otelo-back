@@ -425,14 +425,16 @@ export class ExportExcelService {
     const demographicEvolutionEpciData = demographicEvolution[epciScenario.epciCode]
     const populationKey = getPopulationKey(simulation.scenario.b2_scenario)
     const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
-    const projection = peakYear ?? simulation.scenario.projection
+    // If peakYear < projection, use peakYear and its associated values
+    // If peakYear > projection, use projection and its associated values
+    const targetYear = peakYear && peakYear < simulation.scenario.projection ? peakYear : simulation.scenario.projection
 
     const demographicConfig: SectionConfig = {
       data: [
         { cell: 'A9', value: 'Evolution démographique', style: 'sectionHeader' },
         { cell: 'B9', value: 'Modalités', style: 'standardBorder' },
         { cell: 'C9', value: 'Valeur 2021', style: 'standardBorder' },
-        { cell: 'D9', value: `Valeur ${peakYear}`, style: 'standardBorder' },
+        { cell: 'D9', value: `Valeur ${targetYear}`, style: 'standardBorder' },
         { cell: 'A10', value: 'Evolution de la population', style: 'standardBorder' },
         { cell: 'B10', value: getPopulationLabel(simulation.scenario.b2_scenario), style: 'standardBorder' },
         {
@@ -446,7 +448,7 @@ export class ExportExcelService {
         {
           cell: 'D10',
           value: (() => {
-            const found = demographicPopulationEvolutionEpciData.data.find((d) => d.year === projection)
+            const found = demographicPopulationEvolutionEpciData.data.find((d) => d.year === targetYear)
             return populationKey ? found?.[populationKey] : 0
           })(),
           style: 'standardBorder',
@@ -466,7 +468,7 @@ export class ExportExcelService {
           cell: 'D11',
           value: (() => {
             const key = getOmphaleKey(simulation.scenario.b2_scenario)
-            const found = demographicEvolutionEpciData.data.find((d) => d.year === projection)
+            const found = demographicEvolutionEpciData.data.find((d) => d.year === targetYear)
             return key ? found?.[key] : 0
           })(),
           style: 'standardBorder',
@@ -485,7 +487,9 @@ export class ExportExcelService {
   ): Promise<void> {
     const rates = await this.accommodationRatesService.getAccommodationRates(epciScenario.epciCode)
     const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
-    const projection = peakYear ?? simulation.scenario.projection
+    // If peakYear < projection, use peakYear and its associated values
+    // If peakYear > projection, use projection and its associated values
+    const targetYear = peakYear && peakYear < simulation.scenario.projection ? peakYear : simulation.scenario.projection
 
     const vacantHousingConfig: SectionConfig = {
       data: [
@@ -528,7 +532,7 @@ export class ExportExcelService {
 
     epciWorksheet.mergeCells('A19:A21')
     const situationHorizonCell = epciWorksheet.getCell('A19')
-    situationHorizonCell.value = `Situation à ${projection}`
+    situationHorizonCell.value = `Situation à ${targetYear}`
     situationHorizonCell.alignment = { horizontal: 'center', vertical: 'middle' }
     situationHorizonCell.fill = {
       type: 'pattern',
@@ -546,7 +550,9 @@ export class ExportExcelService {
   ): Promise<void> {
     const rates = await this.accommodationRatesService.getAccommodationRates(epciScenario.epciCode)
     const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
-    const projection = peakYear ?? simulation.scenario.projection
+    // If peakYear < projection, use peakYear and its associated values
+    // If peakYear > projection, use projection and its associated values
+    const targetYear = peakYear && peakYear < simulation.scenario.projection ? peakYear : simulation.scenario.projection
 
     const secondaryResidencesConfig: SectionConfig = {
       data: [
@@ -558,7 +564,7 @@ export class ExportExcelService {
         { cell: 'C24', value: this.toPercentage(rates[epciScenario.epciCode].txRs), style: 'standardBorder' },
         { cell: 'B25', value: 'Variation du taux', style: 'standardBorder' },
         { cell: 'C25', value: this.toPercentage(rates[epciScenario.epciCode].txRs - epciScenario.b2_tx_rs), style: 'standardBorder' },
-        { cell: 'B26', value: `Résidences secondaires en ${projection}`, style: 'standardBorder' },
+        { cell: 'B26', value: `Résidences secondaires en ${targetYear}`, style: 'standardBorder' },
         { cell: 'C26', value: this.toPercentage(epciScenario.b2_tx_rs), style: 'standardBorder' },
       ],
     }
