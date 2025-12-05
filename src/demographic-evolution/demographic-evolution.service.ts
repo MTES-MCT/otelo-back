@@ -230,7 +230,6 @@ export class DemographicEvolutionService {
 
       return acc
     }, {} as TDemographicEvolutionPopulationByEpciRecord)
-
     return groupedByEpci
   }
 
@@ -277,8 +276,8 @@ export class DemographicEvolutionService {
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolutionPopulationByEpci(epci.code)
         return {
-          data: data[epci.code].data,
-          metadata: data[epci.code].metadata,
+          data: data[epci.code]?.data || [],
+          metadata: data[epci.code]?.metadata || {},
           epci,
         }
       }),
@@ -290,8 +289,8 @@ export class DemographicEvolutionService {
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolutionPopulationByEpci(epci.code, [2021, 2030, 2040, 2050])
         return {
-          data: data[epci.code].data,
-          metadata: data[epci.code].metadata,
+          data: data[epci.code]?.data || [],
+          metadata: data[epci.code]?.metadata || {},
           epci,
         }
       }),
@@ -350,8 +349,8 @@ export class DemographicEvolutionService {
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolution(epci.code)
         return {
-          data: data[epci.code].data,
-          metadata: data[epci.code].metadata,
+          data: data[epci.code]?.data || [],
+          metadata: data[epci.code]?.metadata || {},
           epci,
         }
       }),
@@ -360,8 +359,8 @@ export class DemographicEvolutionService {
       epcis.map(async (epci) => {
         const data = await this.getDemographicEvolution(epci.code, [2021, 2030, 2040, 2050])
         return {
-          data: data[epci.code].data,
-          metadata: data[epci.code].metadata,
+          data: data[epci.code]?.data || [],
+          metadata: data[epci.code]?.metadata || {},
           epci,
         }
       }),
