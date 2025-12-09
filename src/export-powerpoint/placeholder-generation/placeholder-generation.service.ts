@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-// biome-ignore lint/correctness/noUnusedImports: type
 import * as JSZip from 'jszip'
 import { ChartGenerationService } from '~/export-powerpoint/chart-generation/chart-generation.service'
 import { ZipService } from '~/export-powerpoint/zip/zip.service'

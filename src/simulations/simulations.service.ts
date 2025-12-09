@@ -138,6 +138,7 @@ export class SimulationsService {
       where: { id: originalId, userId },
     })
 
+    // biome-ignore lint/correctness/noUnusedVariables: we dont want the id in the spreaded object
     const { userId: _, id, ...scenarioData } = originalSimulation.scenario
 
     const clonedScenario = await this.scenariosService.create(userId, {

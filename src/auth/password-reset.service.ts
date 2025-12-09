@@ -1,7 +1,7 @@
-import { randomUUID } from 'crypto'
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as argon2 from 'argon2'
+import { randomUUID } from 'crypto'
 import { PrismaService } from '~/db/prisma.service'
 import { EmailService } from '~/email/email.service'
 

@@ -1,4 +1,4 @@
-import { ExecutionContext, createParamDecorator } from '@nestjs/common'
+import { createParamDecorator, ExecutionContext } from '@nestjs/common'
 import { TUser } from '~/schemas/users/user'
 
 export const User = createParamDecorator((_: unknown, ctx: ExecutionContext): TUser => {
