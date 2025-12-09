@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Epci } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { Epci } from '~/generated/prisma/client'
 import { TEpci } from '~/schemas/epcis/epci'
 
 @Injectable()

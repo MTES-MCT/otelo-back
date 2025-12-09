@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
-import { Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { StatisticsService } from './statistics.service'
 
 @Controller('statistics')

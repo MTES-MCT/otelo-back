@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common'
-import { Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { TUpdateUserType } from '~/schemas/users/update-user'
 import { TUser } from '~/schemas/users/user'
 import { UsersService } from '~/users/users.service'

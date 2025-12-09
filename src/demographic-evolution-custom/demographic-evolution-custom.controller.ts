@@ -13,9 +13,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { ZCreateDemographicEvolutionCustomDto } from '~/schemas/demographic-evolution-custom/demographic-evolution-custom'
 import { TUser } from '~/schemas/users/user'
 import { DemographicEvolutionCustomService } from './demographic-evolution-custom.service'

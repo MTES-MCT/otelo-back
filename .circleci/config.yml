@@ -90,3 +90,5 @@ commands:
       - run:
           name: 'Prisma generate'
           command: pnpm prisma generate
+          environment:
+            DATABASE_URL: $DATABASE_URL

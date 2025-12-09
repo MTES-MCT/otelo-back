@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common'
-import { Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { DemographicEvolutionService } from '~/demographic-evolution/demographic-evolution.service'
+import { Role } from '~/generated/prisma/enums'
 import { TGetDemographicEvolutionByEpciQuery } from '~/schemas/demographic-evolution/demographic-evolution'
 
 @Controller('demographic-evolution')

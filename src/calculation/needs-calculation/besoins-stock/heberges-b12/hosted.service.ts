@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { HostedFilocom, HostedSne } from '@prisma/client'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { HostedFilocom, HostedSne } from '~/generated/prisma/client'
 import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 

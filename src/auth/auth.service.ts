@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma, Role } from '@prisma/client'
 import * as argon2 from 'argon2'
 import { Request } from 'express'
 import {
@@ -10,6 +9,8 @@ import {
 } from '~/common/exceptions/auth.exceptions'
 import { EmailVerificationService } from '~/common/exceptions/email-verification/email-verification.service'
 import { CronService } from '~/cron/cron.service'
+import { Prisma } from '~/generated/prisma/client'
+import { Role } from '~/generated/prisma/enums'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TResetPassword } from '~/schemas/auth/reset-password'
 import { TSignIn } from '~/schemas/auth/sign-in'

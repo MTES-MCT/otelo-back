@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { DemographicEvolutionOmphaleCustom, Prisma } from '@prisma/client'
 import * as Papa from 'papaparse'
 import { z } from 'zod'
 import { PrismaService } from '~/db/prisma.service'
+import { DemographicEvolutionOmphaleCustom, Prisma } from '~/generated/prisma/client'
 import {
   TCreateDemographicEvolutionCustomDto,
   TDemographicEvolutionOmphaleCustom,
