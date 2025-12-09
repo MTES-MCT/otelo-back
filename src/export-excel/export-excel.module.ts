@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common'
+import { forwardRef, Module } from '@nestjs/common'
 import { AccommodationRatesModule } from '~/accommodation-rates/accommodation-rates.module'
 import { PrismaModule } from '~/db/prisma.module'
 import { DemographicEvolutionModule } from '~/demographic-evolution/demographic-evolution.module'

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
-import { CoefficientCalculationService } from '~/calculation/coefficient-calculation/coefficient-calculation.service'
 import { coefficientConfig } from '~/calculation/coefficient-calculation/coefficient.config'
+import { CoefficientCalculationService } from '~/calculation/coefficient-calculation/coefficient-calculation.service'
 
 @Module({
   exports: [CoefficientCalculationService],

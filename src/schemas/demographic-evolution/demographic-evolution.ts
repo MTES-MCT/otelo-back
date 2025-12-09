@@ -126,6 +126,7 @@ export const ZDemographicEvolutionPopulationByEpciAndYear = z.object({
 export type TDemographicEvolutionPopulationByEpciAndYear = z.infer<typeof ZDemographicEvolutionPopulationByEpciAndYear>
 
 export const ZDemographicEvolutionPopulationByEpciRecord = z.record(
+  z.string(),
   z.object({
     data: z.array(
       z.object({
@@ -142,6 +143,7 @@ export const ZDemographicEvolutionPopulationByEpciRecord = z.record(
 export type TDemographicEvolutionPopulationByEpciRecord = z.infer<typeof ZDemographicEvolutionPopulationByEpciRecord>
 
 export const ZDemographicPopulationMaxYearsByEpci = z.record(
+  z.string(),
   z.object({
     central: z.object({ value: z.number(), year: z.number() }),
     haute: z.object({ value: z.number(), year: z.number() }),
@@ -152,6 +154,7 @@ export const ZDemographicPopulationMaxYearsByEpci = z.record(
 export type TDemographicPopulationMaxYearsByEpci = z.infer<typeof ZDemographicPopulationMaxYearsByEpci>
 
 export const ZDemographicMenagesMaxYearsByEpci = z.record(
+  z.string(),
   z.object({
     centralB: z.object({ value: z.number(), year: z.number() }),
     centralC: z.object({ value: z.number(), year: z.number() }),
@@ -192,6 +195,7 @@ export const ZDemographicEvolutionMenagesByEpciAndYear = z.object({
 export type TDemographicEvolutionMenagesByEpciAndYear = z.infer<typeof ZDemographicEvolutionMenagesByEpciAndYear>
 
 export const ZDemographicEvolutionMenagesByEpciRecord = z.record(
+  z.string(),
   z.object({
     data: z.array(
       z.object({

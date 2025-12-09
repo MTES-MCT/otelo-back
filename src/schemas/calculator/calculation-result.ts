@@ -30,9 +30,9 @@ export type TChartDataResult = z.infer<typeof ZChartDataResult>
 export const ZFlowRequirementChartData = z.object({
   code: z.string(),
   data: z.object({
-    parcEvolution: z.record(z.number()),
-    housingNeeds: z.record(z.number()),
-    surplusHousing: z.record(z.number()),
+    parcEvolution: z.record(z.string(), z.number()),
+    housingNeeds: z.record(z.string(), z.number()),
+    surplusHousing: z.record(z.string(), z.number()),
     peakYear: z.number(),
   }),
   totals: z.object({

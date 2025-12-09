@@ -18,7 +18,7 @@ import {
 import { ResultsService } from '~/results/results.service'
 import { TResults } from '~/schemas/results/results'
 import { TEpciScenario } from '~/schemas/scenarios/scenario'
-import { TSimulationWithEpciAndScenario, TSimulationsResults } from '~/schemas/simulations/simulation'
+import { TSimulationsResults, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
 type CellStyle = 'sectionHeader' | 'dataCell' | 'importantValue' | 'standardBorder' | 'resultHeader'
 
