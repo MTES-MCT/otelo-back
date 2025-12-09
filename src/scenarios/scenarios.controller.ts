@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param } from '@nestjs/common'
-import { Prisma, Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Prisma, Role } from '~/generated/prisma/client'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TUser } from '~/schemas/users/user'
 

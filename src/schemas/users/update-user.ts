@@ -1,5 +1,5 @@
-import { UserType } from '@prisma/client'
 import { z } from 'zod'
+import { UserType } from '~/generated/prisma/client'
 
 export const ZUpdateUserType = z.object({
   type: z.nativeEnum(UserType),

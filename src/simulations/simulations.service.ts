@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { Simulation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { EpciGroupsService } from '~/epci-groups/epci-groups.service'
+import { Simulation } from '~/generated/prisma/client'
 import { ScenariosService } from '~/scenarios/scenarios.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'

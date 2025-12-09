@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common'
-import { Prisma, Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Prisma, Role } from '~/generated/prisma/client'
 import { ResultsService } from '~/results/results.service'
 
 @Controller('simulations')
