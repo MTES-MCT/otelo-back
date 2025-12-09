@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { Role } from '@prisma/client'
 import { Request } from 'express'
 import { AuthService } from '~/auth/auth.service'
 import { ACCESS_CONTROL_KEY, TModelAccess } from '~/common/decorators/control-access.decorator'
 import { IS_PUBLIC_KEY } from '~/common/decorators/public.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { TUser } from '~/schemas/users/user'
 
 @Injectable()

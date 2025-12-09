@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { DemographicEvolutionOmphaleCustom, Prisma } from '@prisma/client'
 import * as Papa from 'papaparse'
 import { z } from 'zod'
 import { PrismaService } from '~/db/prisma.service'
+import { DemographicEvolutionOmphaleCustom, Prisma } from '~/generated/prisma/client'
 import {
   TCreateDemographicEvolutionCustomDto,
   TDemographicEvolutionOmphaleCustom,
@@ -130,8 +130,7 @@ export class DemographicEvolutionCustomService {
       throw new BadRequestException(`CSV parsing errors: ${parseResult.errors.map((e) => e.message).join(', ')}`)
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    const data = parseResult.data as Record<string, any>[]
+    const data = parseResult.data as Record<string, unknown>[]
 
     // Validate CSV structure using Zod
     try {
@@ -139,7 +138,7 @@ export class DemographicEvolutionCustomService {
       ZDemographicEvolutionCustomFile.parse(data)
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errorMessage = error.errors.map((err) => err.message).join(', ')
+        const errorMessage = error.issues.map((err) => err.message).join(', ')
         throw new BadRequestException(`Invalid CSV format: ${errorMessage}`)
       }
       throw error

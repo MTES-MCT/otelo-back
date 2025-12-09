@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
-import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
 import { ratioConfig } from '~/calculation/ratio-calculation/ratio.config'
+import { RatioCalculationService } from '~/calculation/ratio-calculation/ratio-calculation.service'
 
 @Module({
   exports: [RatioCalculationService],

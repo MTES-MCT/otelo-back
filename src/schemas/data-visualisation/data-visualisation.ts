@@ -35,9 +35,11 @@ export const ZRPDataResults = z.object({
 export type TRPDataResults = z.infer<typeof ZRPDataResults>
 
 export const ZRPDataTable = z.record(
+  z.string(),
   z.object({
     annualEvolution: z
       .record(
+        z.string(),
         z.object({
           percent: z.string(),
           value: z.number(),
@@ -83,6 +85,7 @@ const ZDemographicProjectionDataTableRow = z.object({
     haute: z.number(),
   }),
   annualEvolution: z.record(
+    z.string(),
     z.object({
       basse: z.object({
         percent: z.string(),
@@ -103,7 +106,7 @@ const ZDemographicProjectionDataTableRow = z.object({
 
 export type TDemographicProjectionDataTableRow = z.infer<typeof ZDemographicProjectionDataTableRow>
 
-export const ZDemographicProjectionDataTable = z.record(ZDemographicProjectionDataTableRow)
+export const ZDemographicProjectionDataTable = z.record(z.string(), ZDemographicProjectionDataTableRow)
 
 export type TDemographicProjectionDataTable = z.infer<typeof ZDemographicProjectionDataTable>
 
@@ -119,6 +122,7 @@ export type TDataVisualisationQuery = z.infer<typeof ZDataVisualisationQuery>
 export const ZVacancyAccommodationDataTable = z.object({
   annualEvolution: z
     .record(
+      z.string(),
       z.object({
         percent: z.string(),
         value: z.number(),
@@ -154,6 +158,7 @@ export const ZVacancyAccommodationEvolution = z.object({
 export type TVacancyAccommodationEvolution = z.infer<typeof ZVacancyAccommodationEvolution>
 
 export const ZInadequateHousing = z.record(
+  z.string(),
   z.object({
     hosted: z.object({
       filocom: z.number(),
@@ -184,6 +189,7 @@ const ZSitadelDataItem = z.object({
 })
 
 export const ZSitadel = z.record(
+  z.string(),
   z.object({
     name: z.string(),
     data: z.array(ZSitadelDataItem),

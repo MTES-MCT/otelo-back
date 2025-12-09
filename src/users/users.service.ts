@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { Prisma } from '~/generated/prisma/client'
 import { TCreateUser } from '~/schemas/users/create-user'
 import { TUpdateUserType } from '~/schemas/users/update-user'
 import { TUser, TUserList } from '~/schemas/users/user'

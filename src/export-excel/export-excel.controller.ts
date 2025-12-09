@@ -1,8 +1,8 @@
 import { Controller, Get, HttpCode, HttpStatus, Param, Res } from '@nestjs/common'
-import { Prisma, Role } from '@prisma/client'
 import { Response } from 'express'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { ExportExcelService } from '~/export-excel/export-excel.service'
+import { Prisma, Role } from '~/generated/prisma/client'
 
 @Controller('export-excel')
 export class ExportExcelController {

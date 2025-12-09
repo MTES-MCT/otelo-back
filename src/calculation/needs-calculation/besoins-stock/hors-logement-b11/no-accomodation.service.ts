@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { Homeless, HostedFiness, Hotel, MakeShiftHousing_RP, MakeShiftHousing_SNE } from '@prisma/client'
 import { BaseCalculator, CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { Homeless, HostedFiness, Hotel, MakeShiftHousing_RP, MakeShiftHousing_SNE } from '~/generated/prisma/client'
 import { TCalculationResult } from '~/schemas/calculator/calculation-result'
 import { ESourceB11 } from '~/schemas/scenarios/scenario'
 import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'

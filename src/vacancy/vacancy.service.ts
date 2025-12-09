@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { VacancyAccommodation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { VacancyAccommodation } from '~/generated/prisma/client'
 import { TVacancyAccommodationDataTable, TVacancyAccommodationEvolution } from '~/schemas/data-visualisation/data-visualisation'
 import { TEpci } from '~/schemas/epcis/epci'
 

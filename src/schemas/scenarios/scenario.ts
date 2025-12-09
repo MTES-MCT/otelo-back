@@ -1,5 +1,5 @@
-import { B11Etablissement, B15Surocc } from '@prisma/client'
 import { z } from 'zod'
+import { B11Etablissement, B15Surocc } from '~/generated/prisma/client'
 import { ZCommonDateFields } from '~/schemas/common-date-fields'
 import { ZDemographicEvolutionOmphaleCustom } from '~/schemas/demographic-evolution-custom/demographic-evolution-custom'
 
