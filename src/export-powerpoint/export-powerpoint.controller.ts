@@ -32,7 +32,7 @@ export class ExportPowerpointController {
   @Post()
   @HttpCode(HttpStatus.OK)
   async requestPowerpoint(@User() user: TUser, @Body() data: TRequestPowerpoint) {
-    const { nextStep, resultDate, selectedSimulations, privilegedSimulation, epcis, epci } = data
+    const { nextStep, resultDate, selectedSimulations, privilegedSimulation, epcis, epci, documentType, periodStart, periodEnd } = data
 
     const selectedEpci = !!epcis && epcis.length > 0 ? epcis[0] : epci
 
@@ -73,8 +73,10 @@ export class ExportPowerpointController {
     const htmlContent = `
       <h1>Demande de PowerPoint</h1>
       <p><strong>Email de l'utilisateur:</strong> ${user.email}</p>
+      <p><strong>Type de document:</strong> ${documentType}</p>
+      <p><strong>Année de début et fin de document:</strong> ${periodStart} - ${periodEnd}</p> 
       <p><strong>Prochaine étape:</strong> ${nextStep}</p>
-      <p><strong>Date du résultat:</strong> ${resultDate}</p>
+      <p><strong>Date du résultat:</strong> ${new Date(resultDate).toLocaleDateString('fr-FR')}</p>
       ${privilegedSim ? `<p><strong>Scénario privilégié:</strong> ${privilegedSim.name}</p>` : ''}
       <p><strong>Simulations sélectionnées:</strong></p>
       <ul>
@@ -97,7 +99,7 @@ export class ExportPowerpointController {
         to: this.receiverEmail,
         subject: 'Nouvelle demande de PowerPoint',
         html: htmlContent,
-        text: `Demande de PowerPoint\n\nEmail de l'utilisateur: ${user.email}\nProchaine étape: ${nextStep}\nDate du résultat: ${resultDate}${privilegedSim ? `\nScénario privilégié: ${privilegedSim.name}` : ''}\nSimulations sélectionnées:\n${simulations.map((sim) => `- ${sim.name}`).join('\n')}\nEPCI(s) demandé(s):\n${!!epcis && epcis.length > 0 ? epcis.map((epciItem) => `- ${epciItem.name} - ${epciItem.code}`).join('\n') : epci ? `- ${epci.name} - ${epci.code}` : ''}`,
+        text: `Demande de PowerPoint\n\nEmail de l'utilisateur: ${user.email}\nType de document: ${documentType}\nPériode d'étude: ${periodStart} - ${periodEnd}\nProchaine étape: ${nextStep}\nDate du résultat: ${new Date(resultDate).toLocaleDateString('fr-FR')}${privilegedSim ? `\nScénario privilégié: ${privilegedSim.name}` : ''}\nSimulations sélectionnées:\n${simulations.map((sim) => `- ${sim.name}`).join('\n')}\nEPCI(s) demandé(s):\n${!!epcis && epcis.length > 0 ? epcis.map((epciItem) => `- ${epciItem.name} - ${epciItem.code}`).join('\n') : epci ? `- ${epci.name} - ${epci.code}` : ''}`,
         attachments,
       })
 
