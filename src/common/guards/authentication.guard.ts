@@ -18,12 +18,12 @@ export class AuthenticationGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()])) {
-      return true
+      return Promise.resolve(true)
     }
     const request = context.switchToHttp().getRequest()
     const token = this.extractTokenFromHeader(request)
     if (!token) {
-      return false
+      return Promise.resolve(false)
     }
 
     const session = await this.sessionsService.isValidToken(token)
@@ -31,10 +31,10 @@ export class AuthenticationGuard implements CanActivate {
       const authenticatedUser = await this.usersService.getByToken(session.accessToken)
 
       request['user'] = authenticatedUser as TUser
-      return true
+      return Promise.resolve(true)
     }
 
-    return false
+    return Promise.resolve(false)
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

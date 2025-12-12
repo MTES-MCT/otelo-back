@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const ZSignupCallback = z.object({
-  email: z.string().email(),
+  email: z.email(),
   firstname: z.string(),
   lastname: z.string(),
   sub: z.string().nullish(),

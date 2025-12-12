@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
 export const ZEmailDto = z.object({
-  to: z.string().email(),
+  to: z.email(),
   subject: z.string(),
   html: z.string(),
   text: z.string().optional(),
-  from: z.string().email().optional(),
+  from: z.email().optional(),
   senderName: z.string().optional(),
   attachments: z
     .array(
@@ -22,7 +22,7 @@ export type TEmailDto = z.infer<typeof ZEmailDto>
 export const ZContactDto = z.object({
   firstname: z.string().min(1),
   lastname: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   subject: z.string().min(1),
   message: z.string().min(1),
 })

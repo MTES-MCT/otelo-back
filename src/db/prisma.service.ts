@@ -5,9 +5,12 @@ import { PrismaClient } from '../generated/prisma/client'
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL,
-    })
+    const adapter = new PrismaPg(
+      {
+        connectionString: process.env.DATABASE_URL,
+      },
+      { schema: 'otelo' },
+    )
     super({ adapter })
   }
   async onModuleInit() {
