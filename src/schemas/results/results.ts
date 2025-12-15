@@ -13,7 +13,15 @@ export type TStockRequirementsResults = z.infer<typeof ZStockRequirementsResults
 
 export const ZResults = ZStockRequirementsResults.extend({
   epcisTotals: z.array(
-    z.object({ epciCode: z.string(), total: z.number(), totalFlux: z.number(), totalStock: z.number(), vacantAccomodation: z.number() }),
+    z.object({
+      epciCode: z.string(),
+      total: z.number(),
+      totalFlux: z.number(),
+      totalStock: z.number(),
+      vacantAccomodation: z.number(),
+      prepeakTotalStock: z.number(),
+      postpeakTotalStock: z.number(),
+    }),
   ),
   flowRequirement: ZFlowRequirementChartDataResult,
   sitadel: ZSitadelDataResult,

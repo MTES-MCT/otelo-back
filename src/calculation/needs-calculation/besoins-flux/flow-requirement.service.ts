@@ -94,28 +94,6 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
     return Math.round(totalParc * (epciScenario!.b2_tx_disparition - epciScenario!.b2_tx_restructuration))
   }
 
-  calculateHousingNeeds(additionalHousingForReplacements: Record<number, number>, newHousingUnitsToConstruct: Record<number, number>) {
-    const { baseYear } = this.context
-    const result: Record<number, number> = {}
-    Object.keys(additionalHousingForReplacements).forEach((year) => {
-      const value = additionalHousingForReplacements[year] + newHousingUnitsToConstruct[year]
-      result[year] = value > 0 ? Math.round(value) : 0
-    })
-    result[baseYear] = 0
-    return result
-  }
-
-  calculateSurplusHousing(additionalHousingForReplacements: Record<number, number>, newHousingUnitsToConstruct: Record<number, number>) {
-    const { baseYear } = this.context
-    const result: Record<number, number> = {}
-    Object.keys(additionalHousingForReplacements).forEach((year) => {
-      const value = additionalHousingForReplacements[year] + newHousingUnitsToConstruct[year]
-      result[year] = value < 0 ? Math.abs(value) : 0
-    })
-    result[baseYear] = 0
-    return result
-  }
-
   calculateAccommodationVariationByYear(
     menagesEvolution: TGetDemographicEvolution[],
     omphale: EOmphale,
@@ -292,14 +270,14 @@ export class FlowRequirementService extends BaseCalculator<[TStockRequirementsRe
           (additionalHousingUnitsForDeficitAndNewHouseholds.find(({ year: y }) => y === year)?.value || 0)
       }
       if (totalValue > 0) {
-        housingNeeds[year] = Math.round(totalValue)
-        surplusHousing[year] = 0
+        housingNeeds[year - 1] = Math.round(totalValue)
+        surplusHousing[year - 1] = 0
       } else {
-        housingNeeds[year] = 0
-        surplusHousing[year] = Math.abs(Math.round(totalValue))
+        housingNeeds[year - 1] = 0
+        surplusHousing[year - 1] = Math.abs(Math.round(totalValue))
       }
 
-      const netChange = housingNeeds[year] - surplusHousing[year]
+      const netChange = housingNeeds[year - 1] - surplusHousing[year - 1]
       parcEvolution[year] = Math.max(0, previousParc + netChange)
     }
 
