@@ -124,8 +124,9 @@ export class SimulationsService {
   }
 
   async delete(userId: string, id: string): Promise<Simulation> {
-    return this.prismaService.simulation.delete({
+    return this.prismaService.simulation.update({
       where: { id, userId },
+      data: { deleted: new Date() },
     })
   }
 

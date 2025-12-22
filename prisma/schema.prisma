@@ -222,6 +222,8 @@ model Simulation {
   user              User                @relation(fields: [userId], references: [id])
   epcis             Epci[]              @relation("EpciToSimulation")
 
+  deleted           DateTime?
+
   @@map("simulations")
 }
 
