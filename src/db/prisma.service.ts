@@ -9,7 +9,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       {
         connectionString: process.env.DATABASE_URL,
       },
-      { schema: 'otelo' },
+      { schema: process.env.DATABASE_SCHEMA },
     )
     super({ adapter })
   }
