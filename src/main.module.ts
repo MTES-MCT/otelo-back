@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { APP_GUARD } from '@nestjs/core'
 import { BassinModule } from '~/bassin/bassin.module'
+import { AuthenticationGuard } from '~/common/guards/authentication.guard'
+import { AuthorizationGuard } from '~/common/guards/authorization.guard'
 import envRessources from '~/config/environment'
 import { CronModule } from '~/cron/cron.module'
 import { ExportExcelModule } from '~/export-excel/export-excel.module'
@@ -33,9 +36,6 @@ import { SitadelModule } from './sitadel/sitadel.module'
 import { StatisticsModule } from './statistics/statistics.module'
 import { UsersModule } from './users/users.module'
 import { VacancyModule } from './vacancy/vacancy.module'
-import { AuthenticationGuard } from '~/common/guards/authentication.guard'
-import { AuthorizationGuard } from '~/common/guards/authorization.guard'
-import { APP_GUARD } from '@nestjs/core'
 
 @Module({
   controllers: [HealthController],
