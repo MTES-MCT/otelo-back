@@ -21,6 +21,7 @@ import { TUser } from '~/schemas/users/user'
 import { SessionsService } from '~/sessions/sessions.service'
 import { SimulationsService } from '~/simulations/simulations.service'
 import { UsersService } from '~/users/users.service'
+import { ImpersonationService } from './impersonation.service'
 import { PasswordResetService } from './password-reset.service'
 
 @Injectable()
@@ -33,6 +34,7 @@ export class AuthService {
     private readonly cronService: CronService,
     private readonly emailVerificationService: EmailVerificationService,
     private readonly passwordResetService: PasswordResetService,
+    private readonly impersonationService: ImpersonationService,
   ) {}
   private readonly logger = new Logger(AuthService.name)
 
@@ -177,6 +179,20 @@ export class AuthService {
   }
 
   async logout(userId: string) {
+    const user = await this.usersService.findById(userId)
+
+    if (user?.role === Role.ADMIN) {
+      try {
+        const impersonationStatus = await this.impersonationService.getImpersonationStatus(userId)
+        if (impersonationStatus.isImpersonating) {
+          await this.impersonationService.stopImpersonation(userId)
+          this.logger.log(`[AUDIT] Admin ${user.email} (${user.id}) impersonation stopped during logout`)
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to stop impersonation during logout for user ${userId}: ${error}`)
+      }
+    }
+
     return this.sessionsService.deleteUserSessions(userId)
   }
 

@@ -1,9 +1,13 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common'
 import { Request } from 'express'
 import { AuthService } from '~/auth/auth.service'
+import { ImpersonationService } from '~/auth/impersonation.service'
 import { User } from '~/common/decorators/authenticated-user'
+import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { Public } from '~/common/decorators/public.decorator'
+import { UsurpationUser } from '~/common/decorators/usurpation-user'
 import { RefreshTokenGuard } from '~/common/guards/refreshtoken.guard'
+import { Role } from '~/generated/prisma/enums'
 import { TForgotPassword } from '~/schemas/auth/forgot-password'
 import { TResetPassword } from '~/schemas/auth/reset-password'
 import { TSignIn } from '~/schemas/auth/sign-in'
@@ -13,7 +17,10 @@ import { TUser } from '~/schemas/users/user'
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly impersonationService: ImpersonationService,
+  ) {}
 
   @Public()
   @Post('callback')
@@ -76,10 +83,10 @@ export class AuthController {
     return refreshedUserSession
   }
 
-  @Public()
   @Get('logout')
+  @AccessControl({ roles: [Role.ADMIN, Role.USER] })
   @HttpCode(HttpStatus.OK)
-  async logout(@User() { id: userId }: TUser) {
+  async logout(@UsurpationUser() { id: userId }: TUser) {
     return this.authService.logout(userId)
   }
 
@@ -102,5 +109,26 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async checkResetToken(@Body() { token }: { token: string }) {
     await this.authService.checkResetToken(token)
+  }
+
+  @Post('impersonate/:userId')
+  @HttpCode(HttpStatus.OK)
+  @AccessControl({ roles: [Role.ADMIN] })
+  async startImpersonation(@User() admin: TUser, @Param('userId') targetUserId: string) {
+    await this.impersonationService.startImpersonation(admin.id, targetUserId)
+  }
+
+  @Delete('impersonate')
+  @HttpCode(HttpStatus.OK)
+  @AccessControl({ roles: [Role.ADMIN] })
+  async stopImpersonation(@UsurpationUser() admin: TUser) {
+    await this.impersonationService.stopImpersonation(admin.id)
+  }
+
+  @Get('impersonation-status')
+  @HttpCode(HttpStatus.OK)
+  @AccessControl({ roles: [Role.ADMIN] })
+  async getImpersonationStatus(@UsurpationUser() admin: TUser) {
+    return this.impersonationService.getImpersonationStatus(admin.id)
   }
 }

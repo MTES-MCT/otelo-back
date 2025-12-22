@@ -39,7 +39,7 @@ export class UsersService {
     return !!whitelistEntry
   }
 
-  async getMe(id: string): Promise<TUser | null> {
+  async findById(id: string): Promise<TUser | null> {
     return this.prisma.user.findUnique({
       where: { id },
       select: fieldsWithoutPassword,
@@ -133,7 +133,7 @@ export class UsersService {
   }
 
   async delete(id: string): Promise<void> {
-    this.prisma.user.delete({ where: { id } })
+    await this.prisma.user.delete({ where: { id } })
   }
 
   async updateType(id: string, { type }: TUpdateUserType): Promise<TUser> {

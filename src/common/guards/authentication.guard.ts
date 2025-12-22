@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
 import { IS_PUBLIC_KEY } from '~/common/decorators/public.decorator'
@@ -8,8 +8,6 @@ import { UsersService } from '~/users/users.service'
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
-  private readonly logger = new Logger(AuthenticationGuard.name)
-
   constructor(
     private readonly sessionsService: SessionsService,
     private readonly usersService: UsersService,
@@ -29,6 +27,27 @@ export class AuthenticationGuard implements CanActivate {
     const session = await this.sessionsService.isValidToken(token)
     if (session) {
       const authenticatedUser = await this.usersService.getByToken(session.accessToken)
+
+      if (session.impersonatedUserId) {
+        // Vérifier que l'impersonation est encore active et valide
+        const isValidImpersonation = await this.sessionsService.validateActiveImpersonation(
+          authenticatedUser.id,
+          session.impersonatedUserId,
+        )
+
+        if (isValidImpersonation) {
+          const impersonatedUser = await this.usersService.findById(session.impersonatedUserId)
+          if (impersonatedUser) {
+            request['user'] = impersonatedUser as TUser
+            request['impersonator'] = authenticatedUser as TUser
+            return Promise.resolve(true)
+          }
+        } else {
+          // Si l'impersonation n'est plus valide, nettoyer la session
+          await this.sessionsService.cleanInvalidImpersonationSession(session.id)
+          return Promise.resolve(false)
+        }
+      }
 
       request['user'] = authenticatedUser as TUser
       return Promise.resolve(true)

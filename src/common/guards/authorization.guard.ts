@@ -7,6 +7,11 @@ import { IS_PUBLIC_KEY } from '~/common/decorators/public.decorator'
 import { Role } from '~/generated/prisma/enums'
 import { TUser } from '~/schemas/users/user'
 
+interface RequestWithImpersonation extends Request {
+  user: TUser
+  impersonator?: TUser
+}
+
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
@@ -18,10 +23,13 @@ export class AuthorizationGuard implements CanActivate {
     if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()])) {
       return Promise.resolve(true)
     }
-    const request = context.switchToHttp().getRequest<Request & { user: TUser }>()
+    const request = context.switchToHttp().getRequest<RequestWithImpersonation>()
     const user = request.user
+    const impersonator = request.impersonator
 
-    if (request.user.role === Role.ADMIN) {
+    // usurpation mode, we need to rely on the impersonator (which is ADMIN)
+    const effectiveUser = impersonator || user
+    if (effectiveUser.role === Role.ADMIN) {
       return Promise.resolve(true)
     }
 
@@ -35,7 +43,7 @@ export class AuthorizationGuard implements CanActivate {
       return Promise.resolve(false)
     }
 
-    if (!this.authService.hasRole(user, modelAccess.roles)) {
+    if (!this.authService.hasRole(effectiveUser, modelAccess.roles)) {
       return Promise.resolve(false)
     }
 

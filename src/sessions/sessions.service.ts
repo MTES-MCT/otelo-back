@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from '~/db/prisma.service'
+import { Role } from '~/generated/prisma/enums'
 import { TSession } from '~/schemas/sessions/session'
 import { TUser } from '~/schemas/users/user'
 import { UsersService } from '~/users/users.service'
@@ -193,6 +194,46 @@ export class SessionsService {
   async deleteUserSessions(userId: string): Promise<void> {
     await this.prisma.session.deleteMany({
       where: { userId },
+    })
+  }
+
+  async validateActiveImpersonation(adminUserId: string, targetUserId: string): Promise<boolean> {
+    // Vérifier que l'admin existe et est toujours admin
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminUserId },
+      select: { id: true, role: true },
+    })
+
+    if (!admin || admin.role !== Role.ADMIN) {
+      return false
+    }
+
+    // Vérifier que l'utilisateur cible existe et n'est pas admin
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, role: true },
+    })
+
+    if (!targetUser || targetUser.role === Role.ADMIN) {
+      return false
+    }
+
+    // Vérifier qu'il existe une session d'impersonation active
+    const activeImpersonation = await this.prisma.impersonationSession.findFirst({
+      where: {
+        adminUserId,
+        targetUserId,
+        isActive: true,
+      },
+    })
+
+    return !!activeImpersonation
+  }
+
+  async cleanInvalidImpersonationSession(sessionId: string): Promise<void> {
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { impersonatedUserId: null },
     })
   }
 }

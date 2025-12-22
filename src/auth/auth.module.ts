@@ -9,6 +9,7 @@ import { SimulationsModule } from '~/simulations/simulations.module'
 import { UsersModule } from '~/users/users.module'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
+import { ImpersonationService } from './impersonation.service'
 import { PasswordResetService } from './password-reset.service'
 
 @Module({
@@ -24,6 +25,6 @@ import { PasswordResetService } from './password-reset.service'
     CronModule,
     PrismaModule,
   ],
-  providers: [AuthService, PasswordResetService],
+  providers: [AuthService, PasswordResetService, ImpersonationService],
 })
 export class AuthModule {}
