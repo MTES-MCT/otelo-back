@@ -1,9 +1,9 @@
-import { Role } from '@prisma/client'
 import { z } from 'zod'
+import { Role } from '~/generated/prisma/enums'
 import { ZCommonDateFields } from '~/schemas/common-date-fields'
 
 export const ZUser = ZCommonDateFields.extend({
-  email: z.string().email(),
+  email: z.email(),
   firstname: z.string(),
   id: z.string(),
   lastLoginAt: z.date(),

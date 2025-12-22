@@ -46,12 +46,12 @@ export const ZData = z.object({
   }),
   b13: z.object({
     inad_financ: z.object({
-      cnaf: z.record(z.number()),
+      cnaf: z.record(z.string(), z.number()),
     }),
   }),
   b14: z.object({
     mv_quali: z.object({
-      ff: z.record(z.number()),
+      ff: z.record(z.string(), z.number()),
       filocom: z.object({
         pppi_lp: z.number(),
         pppi_po: z.number(),
@@ -93,7 +93,7 @@ export const ZData = z.object({
   }),
   b21: z.object({
     evol_demo: z.object({
-      omphale: z.record(z.number()),
+      omphale: z.record(z.string(), z.number()),
     }),
   }),
   b22: z.object({

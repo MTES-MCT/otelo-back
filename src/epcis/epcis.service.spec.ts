@@ -1,7 +1,7 @@
 import { createMock } from '@golevelup/ts-jest'
 import { Test, TestingModule } from '@nestjs/testing'
-import { Epci } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { Epci } from '~/generated/prisma/client'
 import { EpcisService } from './epcis.service'
 
 describe('EpcisService', () => {

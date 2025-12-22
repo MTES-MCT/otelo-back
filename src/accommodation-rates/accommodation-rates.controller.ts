@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common'
-import { Role } from '@prisma/client'
 import { AccommodationRatesService } from '~/accommodation-rates/accommodation-rates.service'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { TEpcisAccommodationRates } from '~/schemas/rates/accommodations-rates'
 
 @Controller('accommodation-rates')

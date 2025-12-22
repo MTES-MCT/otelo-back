@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { B11Etablissement } from '@prisma/client'
 import * as ExcelJS from 'exceljs'
 import { AccommodationRatesService } from '~/accommodation-rates/accommodation-rates.service'
 import { PrismaService } from '~/db/prisma.service'
@@ -15,6 +14,7 @@ import {
   getSource,
   getSurroccLabel,
 } from '~/export-excel/helpers/labels'
+import { B11Etablissement } from '~/generated/prisma/client'
 import { ResultsService } from '~/results/results.service'
 import { TResults } from '~/schemas/results/results'
 import { TEpciScenario } from '~/schemas/scenarios/scenario'

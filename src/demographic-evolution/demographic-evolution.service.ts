@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
+import { Prisma } from '~/generated/prisma/client'
 import { TDemographicProjectionDataTable } from '~/schemas/data-visualisation/data-visualisation'
 import {
   TDemographicEvolutionByEpci,

@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common'
-import { Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { TEpciGroupWithEpcis } from '~/schemas/epci-group'
 import { TUser } from '~/schemas/users/user'
 import { EpciGroupsService } from './epci-groups.service'

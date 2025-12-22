@@ -5,4 +5,6 @@ type TLiteral = z.infer<typeof ZLiteralSchema>
 
 type TJson = TLiteral | { [key: string]: TJson } | TJson[]
 
-export const ZJsonSchema: z.ZodType<TJson> = z.lazy(() => z.union([ZLiteralSchema, z.array(ZJsonSchema), z.record(ZJsonSchema)]))
+export const ZJsonSchema: z.ZodType<TJson> = z.lazy(() =>
+  z.union([ZLiteralSchema, z.array(ZJsonSchema), z.record(z.string(), ZJsonSchema)]),
+)

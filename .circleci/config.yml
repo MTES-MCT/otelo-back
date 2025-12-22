@@ -6,7 +6,7 @@ orbs:
 executors:
   node:
     docker:
-      - image: cimg/node:22.10.0
+      - image: cimg/node:24.11.1
 
 parameters:
   lockfile:
@@ -90,3 +90,5 @@ commands:
       - run:
           name: 'Prisma generate'
           command: pnpm prisma generate
+          environment:
+            DATABASE_URL: $DATABASE_URL

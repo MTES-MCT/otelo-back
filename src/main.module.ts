@@ -9,15 +9,14 @@ import { CronModule } from '~/cron/cron.module'
 import { ExportExcelModule } from '~/export-excel/export-excel.module'
 import { ResultsModule } from '~/results/results.module'
 import { AccommodationRatesModule } from './accommodation-rates/accommodation-rates.module'
-import { AdminController } from './admin/admin.controller'
 import { AdminModule } from './admin/admin.module'
 import { AuthModule } from './auth/auth.module'
 import { BadQualityModule } from './bad-quality/bad-quality.module'
 import { CalculationModule } from './calculation/calculation.module'
 import { EmailVerificationModule } from './common/exceptions/email-verification/email-verification.module'
 import { DataVisualisationModule } from './data-visualisation/data-visualisation.module'
-import { DemographicEvolutionCustomModule } from './demographic-evolution-custom/demographic-evolution-custom.module'
 import { DemographicEvolutionModule } from './demographic-evolution/demographic-evolution.module'
+import { DemographicEvolutionCustomModule } from './demographic-evolution-custom/demographic-evolution-custom.module'
 import { EmailModule } from './email/email.module'
 import { EpciGroupsModule } from './epci-groups/epci-groups.module'
 import { EpcisModule } from './epcis/epcis.module'
@@ -39,7 +38,7 @@ import { UsersModule } from './users/users.module'
 import { VacancyModule } from './vacancy/vacancy.module'
 
 @Module({
-  controllers: [HealthController, AdminController],
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

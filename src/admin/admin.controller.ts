@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Param, Patch } from '@nestjs/common'
-import { Role } from '@prisma/client'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
+import { Role } from '~/generated/prisma/enums'
 import { UsersService } from '~/users/users.service'
 
 @Controller('admin')

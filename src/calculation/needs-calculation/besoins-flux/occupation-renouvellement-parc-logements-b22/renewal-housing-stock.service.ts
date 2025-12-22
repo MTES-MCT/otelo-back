@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { FilocomFlux } from '@prisma/client'
 import { AccommodationRatesService } from '~/accommodation-rates/accommodation-rates.service'
 import { CalculationContext } from '~/calculation/needs-calculation/base-calculator'
 import { PrismaService } from '~/db/prisma.service'
+import { FilocomFlux } from '~/generated/prisma/client'
 import { TScenario } from '~/schemas/scenarios/scenario'
 import { TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
 
