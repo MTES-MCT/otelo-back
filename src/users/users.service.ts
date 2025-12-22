@@ -133,7 +133,7 @@ export class UsersService {
   }
 
   async delete(id: string): Promise<void> {
-    await Promise.all([this.prisma.session.deleteMany({ where: { userId: id } }), this.prisma.user.delete({ where: { id } })])
+    this.prisma.user.delete({ where: { id } })
   }
 
   async updateType(id: string, { type }: TUpdateUserType): Promise<TUser> {

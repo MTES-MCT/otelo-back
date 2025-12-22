@@ -66,7 +66,7 @@ model Session {
   expiresAt    DateTime @map("expires_at")
   createdAt    DateTime @default(now()) @map("created_at")
   userId       String   @map("user_id")
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
@@ -139,7 +139,7 @@ model Scenario {
   b15_surocc                        B15Surocc                           @default(Acc)
   demographicEvolutionOmphaleCustom DemographicEvolutionOmphaleCustom[]
   epciScenarios                     EPCIScenario[]
-  user                              User                                @relation(fields: [userId], references: [id])
+  user                              User                                @relation(fields: [userId], references: [id], onDelete: Cascade)
   simulations                       Simulation[]
 
   @@map("scenarios")
@@ -219,7 +219,7 @@ model Simulation {
   SimulationResults SimulationResults[]
   epciGroup         EpciGroup?          @relation(fields: [epciGroupId], references: [id])
   scenario          Scenario            @relation(fields: [scenarioId], references: [id])
-  user              User                @relation(fields: [userId], references: [id])
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   epcis             Epci[]              @relation("EpciToSimulation")
 
   deleted           DateTime?
@@ -593,7 +593,7 @@ model EpciGroup {
   updatedAt      DateTime         @updatedAt @map("updated_at")
   userId         String           @map("user_id")
   epciGroupEpcis EpciGroupEpcis[]
-  user           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   simulations    Simulation[]
 
   @@map("epci_groups")
@@ -620,7 +620,7 @@ model DemographicEvolutionOmphaleCustom {
   updatedAt  DateTime  @updatedAt @map("updated_at")
   epci       Epci      @relation(fields: [epciCode], references: [code])
   scenario   Scenario? @relation(fields: [scenarioId], references: [id])
-  user       User      @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([epciCode, scenarioId])
   @@map("demographic_evolution_omphale_custom")
