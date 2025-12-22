@@ -1,9 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Put } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common'
 import { Prisma, Role } from '@prisma/client'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
-import { EmailService } from '~/email/email.service'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
 import { TCloneSimulationDto } from '~/schemas/simulations/simulation'
@@ -12,16 +10,7 @@ import { SimulationsService } from '~/simulations/simulations.service'
 
 @Controller('simulations')
 export class SimulationsController {
-  private readonly logger = new Logger(SimulationsController.name)
-  private readonly receiverEmail: string
-
-  constructor(
-    private configService: ConfigService,
-    private readonly simulationsService: SimulationsService,
-    private readonly emailService: EmailService,
-  ) {
-    this.receiverEmail = this.configService.getOrThrow<string>('EMAIL_RECEIVER_EMAIL')
-  }
+  constructor(private readonly simulationsService: SimulationsService) {}
 
   @AccessControl({
     roles: [Role.ADMIN, Role.USER],

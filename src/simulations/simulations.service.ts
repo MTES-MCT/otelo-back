@@ -3,6 +3,7 @@ import { Simulation } from '@prisma/client'
 import { PrismaService } from '~/db/prisma.service'
 import { EpciGroupsService } from '~/epci-groups/epci-groups.service'
 import { ScenariosService } from '~/scenarios/scenarios.service'
+import { TEpci } from '~/schemas/epcis/epci'
 import { TUpdateSimulationDto } from '~/schemas/scenarios/scenario'
 import { TInitSimulation } from '~/schemas/simulations/create-simulation'
 import { TCloneSimulationDto, TSimulationWithEpci, TSimulationWithEpciAndScenario } from '~/schemas/simulations/simulation'
@@ -179,6 +180,7 @@ export class SimulationsService {
       id: string
       name: string
       simulations: TSimulationWithEpci[]
+      epcis: Omit<TEpci, 'region'>[]
     }> = []
 
     // First, group by epciGroup ID or 'autres' for ungrouped
@@ -192,11 +194,16 @@ export class SimulationsService {
 
     // Convert to array format with proper structure
     Object.entries(simulationsByGroupId).forEach(([groupId, sims]) => {
+      // Collect all EPCI codes from all simulations in this group and deduplicate
+      const allEpcis = sims.flatMap((sim) => sim.epcis)
+      const uniqueEpcis = Array.from(new Map(allEpcis.map((epci) => [epci.code, epci])).values())
+
       if (groupId === 'autres') {
         groupedSimulations.push({
           id: 'autres',
           name: 'Autres',
           simulations: sims,
+          epcis: uniqueEpcis,
         })
       } else {
         // Get the group name from any simulation in this group
@@ -205,6 +212,7 @@ export class SimulationsService {
           id: groupId,
           name: groupName,
           simulations: sims,
+          epcis: uniqueEpcis,
         })
       }
     })
