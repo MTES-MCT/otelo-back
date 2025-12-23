@@ -71,8 +71,8 @@ model Session {
   createdAt          DateTime @default(now()) @map("created_at")
   userId             String   @map("user_id")
   impersonatedUserId String?  @map("impersonated_user_id")
-  user               User     @relation(fields: [userId], references: [id])
-  impersonatedUser   User?    @relation("ImpersonatedSessions", fields: [impersonatedUserId], references: [id])
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedUser   User?    @relation("ImpersonatedSessions", fields: [impersonatedUserId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
@@ -169,7 +169,7 @@ model EPCIScenario {
   b2_tx_vacance_courte  Float    @default(0.0)
   b2_tx_vacance_longue  Float    @default(0.0)
   epci                  Epci     @relation(fields: [epciCode], references: [code])
-  scenario              Scenario @relation(fields: [scenarioId], references: [id])
+  scenario              Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 
   @@id([epciCode, scenarioId])
   @@map("epci_scenarios")
@@ -639,8 +639,8 @@ model ImpersonationSession {
   createdAt     DateTime @default(now()) @map("created_at")
   endedAt       DateTime? @map("ended_at")
   isActive      Boolean  @default(true) @map("is_active")
-  adminUser     User     @relation("AdminImpersonations", fields: [adminUserId], references: [id])
-  targetUser    User     @relation("TargetImpersonations", fields: [targetUserId], references: [id])
+  adminUser     User     @relation("AdminImpersonations", fields: [adminUserId], references: [id], onDelete: Cascade)
+  targetUser    User     @relation("TargetImpersonations", fields: [targetUserId], references: [id], onDelete: Cascade)
 
   @@map("impersonation_sessions")
 }
