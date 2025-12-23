@@ -8,6 +8,7 @@ import {
   UserNotFoundException,
 } from '~/common/exceptions/auth.exceptions'
 import { EmailVerificationService } from '~/common/exceptions/email-verification/email-verification.service'
+import { anonymizeEmail } from '~/common/utils/email-anonymizer'
 import { CronService } from '~/cron/cron.service'
 import { Prisma } from '~/generated/prisma/client'
 import { Role } from '~/generated/prisma/enums'
@@ -186,7 +187,7 @@ export class AuthService {
         const impersonationStatus = await this.impersonationService.getImpersonationStatus(userId)
         if (impersonationStatus.isImpersonating) {
           await this.impersonationService.stopImpersonation(userId)
-          this.logger.log(`[AUDIT] Admin ${user.email} (${user.id}) impersonation stopped during logout`)
+          this.logger.log(`[AUDIT] Admin ${anonymizeEmail(user.email)} (${user.id}) impersonation stopped during logout`)
         }
       } catch (error) {
         this.logger.warn(`Failed to stop impersonation during logout for user ${userId}: ${error}`)

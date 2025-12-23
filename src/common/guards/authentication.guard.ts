@@ -29,7 +29,6 @@ export class AuthenticationGuard implements CanActivate {
       const authenticatedUser = await this.usersService.getByToken(session.accessToken)
 
       if (session.impersonatedUserId) {
-        // Vérifier que l'impersonation est encore active et valide
         const isValidImpersonation = await this.sessionsService.validateActiveImpersonation(
           authenticatedUser.id,
           session.impersonatedUserId,
@@ -43,7 +42,6 @@ export class AuthenticationGuard implements CanActivate {
             return Promise.resolve(true)
           }
         } else {
-          // Si l'impersonation n'est plus valide, nettoyer la session
           await this.sessionsService.cleanInvalidImpersonationSession(session.id)
           return Promise.resolve(false)
         }

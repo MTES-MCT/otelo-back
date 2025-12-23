@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { firstValueFrom } from 'rxjs'
 import { z } from 'zod'
+import { anonymizeEmail } from '~/common/utils/email-anonymizer'
 import { PrismaService } from '~/db/prisma.service'
 import { DossierNode, GraphQLResponse } from './interfaces/demarches-simplifiees.interface'
 
@@ -69,27 +70,6 @@ export class CronService {
       .parse(this.configService.get<string>('DEMARCHES_SIMPLIFIEES_DEMARCHE_ID'))
   }
 
-  private anonymizeEmail(email: string): string {
-    const [localPart, domain] = email.split('@')
-    if (!domain) {
-      return email
-    }
-
-    // If local part is too short, just show first and last character
-    if (localPart.length <= 4) {
-      if (localPart.length <= 2) {
-        return `${localPart}@${domain}`
-      }
-      return `${localPart[0]}***${localPart[localPart.length - 1]}@${domain}`
-    }
-
-    const firstThree = localPart.substring(0, 2)
-    const lastThree = localPart.substring(localPart.length - 2)
-    const asterisks = '*'.repeat(localPart.length - 4)
-
-    return `${firstThree}${asterisks}${lastThree}@${domain}`
-  }
-
   @Cron(CronExpression.EVERY_12_HOURS)
   async handleUserAccessUpdate() {
     this.logger.log('Starting user access update CRON job')
@@ -129,7 +109,7 @@ export class CronService {
         const emails = this.extractEmailsFromDossier(dossier)
         emails.forEach((email) => {
           acceptedEmails.add(email.toLowerCase())
-          this.logger.debug(`Found accepted dossier for email: ${this.anonymizeEmail(email)}`)
+          this.logger.debug(`Found accepted dossier for email: ${anonymizeEmail(email)}`)
         })
       }
     }

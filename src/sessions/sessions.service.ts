@@ -198,7 +198,6 @@ export class SessionsService {
   }
 
   async validateActiveImpersonation(adminUserId: string, targetUserId: string): Promise<boolean> {
-    // Vérifier que l'admin existe et est toujours admin
     const admin = await this.prisma.user.findUnique({
       where: { id: adminUserId },
       select: { id: true, role: true },
@@ -208,7 +207,6 @@ export class SessionsService {
       return false
     }
 
-    // Vérifier que l'utilisateur cible existe et n'est pas admin
     const targetUser = await this.prisma.user.findUnique({
       where: { id: targetUserId },
       select: { id: true, role: true },
@@ -218,7 +216,6 @@ export class SessionsService {
       return false
     }
 
-    // Vérifier qu'il existe une session d'impersonation active
     const activeImpersonation = await this.prisma.impersonationSession.findFirst({
       where: {
         adminUserId,

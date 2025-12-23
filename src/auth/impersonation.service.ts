@@ -1,4 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { anonymizeEmail } from '~/common/utils/email-anonymizer'
 import { PrismaService } from '~/db/prisma.service'
 import { Role } from '~/generated/prisma/enums'
 import { TUser } from '~/schemas/users/user'
@@ -58,7 +59,9 @@ export class ImpersonationService {
       data: { impersonatedUserId: targetUserId },
     })
 
-    this.logger.log(`[AUDIT] Admin ${admin.email} (${admin.id}) started impersonating user ${targetUser.email} (${targetUser.id})`)
+    this.logger.log(
+      `[AUDIT] Admin ${anonymizeEmail(admin.email)} (${admin.id}) started impersonating user ${anonymizeEmail(targetUser.email)} (${targetUser.id})`,
+    )
   }
 
   async stopImpersonation(adminUserId: string): Promise<void> {
@@ -95,7 +98,7 @@ export class ImpersonationService {
       })
 
       this.logger.log(
-        `[AUDIT] Admin ${admin.email} (${admin.id}) stopped impersonating user ${impersonationSession.targetUser.email} (${impersonationSession.targetUser.id})`,
+        `[AUDIT] Admin ${anonymizeEmail(admin.email)} (${admin.id}) stopped impersonating user ${anonymizeEmail(impersonationSession.targetUser.email)} (${impersonationSession.targetUser.id})`,
       )
     }
   }
@@ -137,16 +140,5 @@ export class ImpersonationService {
       isImpersonating: true,
       impersonatedUser: impersonationSession.targetUser,
     }
-  }
-
-  async getCurrentImpersonation(adminUserId: string): Promise<string | null> {
-    const impersonationSession = await this.prisma.impersonationSession.findFirst({
-      where: {
-        adminUserId,
-        isActive: true,
-      },
-    })
-
-    return impersonationSession?.targetUserId || null
   }
 }
