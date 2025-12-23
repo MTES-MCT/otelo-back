@@ -9,5 +9,6 @@ export const ZSession = ZCommonDateFields.omit({
   id: z.string(),
   refreshToken: z.string().min(1),
   userId: z.string().min(1),
+  impersonatedUserId: z.string().nullable().optional(),
 })
 export type TSession = z.infer<typeof ZSession>

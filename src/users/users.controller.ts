@@ -25,7 +25,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Get('/me')
   async getConnectedUser(@User() user: TUser) {
-    return this.usersService.getMe(user.id)
+    return this.usersService.findById(user.id)
   }
 
   @AccessControl({

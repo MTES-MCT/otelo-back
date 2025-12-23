@@ -35,6 +35,9 @@ model User {
   epciGroups                        EpciGroup[]
   scenarios                         Scenario[]
   sessions                          Session[]
+  impersonatedSessions              Session[]                           @relation("ImpersonatedSessions")
+  adminImpersonations               ImpersonationSession[]              @relation("AdminImpersonations")
+  targetImpersonations              ImpersonationSession[]              @relation("TargetImpersonations")
   simulations                       Simulation[]
   userAccountResetTokens            UserAccountResetToken[]
 
@@ -61,13 +64,15 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(uuid())
-  accessToken  String
-  refreshToken String
-  expiresAt    DateTime @map("expires_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  userId       String   @map("user_id")
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(uuid())
+  accessToken        String
+  refreshToken       String
+  expiresAt          DateTime @map("expires_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  userId             String   @map("user_id")
+  impersonatedUserId String?  @map("impersonated_user_id")
+  user               User     @relation(fields: [userId], references: [id])
+  impersonatedUser   User?    @relation("ImpersonatedSessions", fields: [impersonatedUserId], references: [id])
 
   @@map("sessions")
 }
@@ -625,6 +630,19 @@ model DemographicEvolutionOmphaleCustom {
 
   @@unique([epciCode, scenarioId])
   @@map("demographic_evolution_omphale_custom")
+}
+
+model ImpersonationSession {
+  id            String   @id @default(uuid())
+  adminUserId   String   @map("admin_user_id")
+  targetUserId  String   @map("target_user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  endedAt       DateTime? @map("ended_at")
+  isActive      Boolean  @default(true) @map("is_active")
+  adminUser     User     @relation("AdminImpersonations", fields: [adminUserId], references: [id])
+  targetUser    User     @relation("TargetImpersonations", fields: [targetUserId], references: [id])
+
+  @@map("impersonation_sessions")
 }
 
 model SimulationResults {
