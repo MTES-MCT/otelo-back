@@ -32,7 +32,7 @@ export class SimulationsService {
         updatedAt: true,
         epciGroup: { select: { id: true, name: true } },
       },
-      where: { userId },
+      where: { userId, deleted: null },
       orderBy: { updatedAt: 'desc' },
     })
 
@@ -48,7 +48,7 @@ export class SimulationsService {
         epcis: { select: { code: true, name: true, bassinName: true } },
         scenario: { include: { demographicEvolutionOmphaleCustom: true } },
       },
-      where: { id },
+      where: { id, deleted: null },
     })
     const scenario = await this.scenariosService.get(simulation.scenario.id)
 
@@ -77,7 +77,7 @@ export class SimulationsService {
         epcis: { select: { code: true, name: true, bassinName: true } },
         scenario: { include: { epciScenarios: true, demographicEvolutionOmphaleCustom: true } },
       },
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, deleted: null },
     })
 
     return simulations as TSimulationWithEpciAndScenario[]
@@ -86,7 +86,7 @@ export class SimulationsService {
   async getScenario(id: string) {
     const simulation = await this.prismaService.simulation.findUniqueOrThrow({
       include: { scenario: { select: { id: true } } },
-      where: { id },
+      where: { id, deleted: null },
     })
     const scenario = await this.scenariosService.get(simulation.scenario.id)
     return { id, scenario }
