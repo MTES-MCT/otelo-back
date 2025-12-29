@@ -34,6 +34,7 @@
     "@prisma/client": "^6.19.0",
     "@types/papaparse": "^5.5.1",
     "argon2": "^0.44.0",
+    "dayjs": "^1.11.19",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
