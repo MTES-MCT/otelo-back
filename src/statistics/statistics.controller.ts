@@ -1,4 +1,7 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Header, Res } from '@nestjs/common'
+import * as dayjs from 'dayjs'
+import { Response } from 'express'
+import * as Papa from 'papaparse'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
 import { Role } from '~/generated/prisma/enums'
 import { StatisticsService } from './statistics.service'
@@ -27,5 +30,43 @@ export class StatisticsController {
       totalVacantSum: exportedStats.totalVacantSum,
       usersWithExportedScenarios,
     }
+  }
+
+  @AccessControl({ roles: [Role.ADMIN] })
+  @Get('/users')
+  @Header('Content-Type', 'text/csv')
+  async getUserStats(@Res() res: Response) {
+    const data = await this.statisticsService.getUserStats()
+
+    const dateStr = dayjs().format('DD-MM-YYYY')
+    const filename = `export-utilisateur-${dateStr}.csv`
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+
+    const csvData = Papa.unparse(data, {
+      header: true,
+      delimiter: ';',
+    })
+
+    res.send(csvData)
+  }
+
+  @AccessControl({ roles: [Role.ADMIN] })
+  @Get('/simulations')
+  @Header('Content-Type', 'text/csv')
+  async getSimulationsStats(@Res() res: Response) {
+    const data = await this.statisticsService.getSimulationsStats()
+
+    const dateStr = dayjs().format('DD-MM-YYYY')
+    const filename = `export-scenarios-${dateStr}.csv`
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+
+    const csvData = Papa.unparse(data, {
+      header: true,
+      delimiter: ';',
+    })
+
+    res.send(csvData)
   }
 }
