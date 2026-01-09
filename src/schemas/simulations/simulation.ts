@@ -53,3 +53,9 @@ export const ZCloneSimulationDto = z.object({
 })
 
 export type TCloneSimulationDto = z.infer<typeof ZCloneSimulationDto>
+
+export const ZGroupedSimulationWithResults = z.object({
+  name: z.string(),
+  simulations: z.record(z.string(), ZSimulationWithResults),
+})
+export type TGroupedSimulationWithResults = z.infer<typeof ZGroupedSimulationWithResults>

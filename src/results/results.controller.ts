@@ -14,6 +14,6 @@ export class ResultsController {
   })
   @Get(':simulationId/results')
   async getResults(@Param('simulationId') simulationId: string) {
-    return this.resultsService.getResults(simulationId)
+    return this.resultsService.getGroupedResults(simulationId)
   }
 }

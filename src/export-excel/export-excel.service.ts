@@ -227,10 +227,12 @@ export class ExportExcelService {
     let totalStockSum = 0
     let totalVacantSum = 0
     let shouldSetLegend = false
+
     for (const epciScenario of simulation.scenario.epciScenarios) {
-      const simulationResults = await this.prismaService.simulationResults.findUniqueOrThrow({
-        where: { epciCode_simulationId: { epciCode: epciScenario.epciCode, simulationId: simulation.id } },
-      })
+      const epciTotals = results.epcisTotals.find((epci) => epci.epciCode === epciScenario.epciCode)
+      if (!epciTotals) {
+        continue
+      }
 
       const peakYear = results.flowRequirement.epcis.find((epci) => epci.code === epciScenario.epciCode)?.data.peakYear
       const peakYearDisplay = peakYear && simulation.scenario.projection <= peakYear ? '*' : peakYear
@@ -240,10 +242,10 @@ export class ExportExcelService {
       dataRow.values = [
         epciScenario.epciCode,
         simulation.epcis.find((epci) => epci.code === epciScenario.epciCode)?.name,
-        simulationResults.totalFlux, // Besoin démographique
-        simulationResults.totalStock, // Besoin mal-logement
-        simulationResults.totalFlux + simulationResults.totalStock, // Total constructions neuves
-        simulationResults.vacantAccomodation, // Total remobilisation
+        epciTotals.totalFlux, // Besoin démographique
+        epciTotals.totalStock, // Besoin mal-logement
+        epciTotals.totalFlux + epciTotals.totalStock, // Total constructions neuves
+        epciTotals.vacantAccomodation, // Total remobilisation
         peakYearDisplay, // Année du peak ou '*'
       ]
 
@@ -279,9 +281,9 @@ export class ExportExcelService {
       }
       epciCodeCell.font = { bold: true }
 
-      totalFluxSum += simulationResults.totalFlux
-      totalStockSum += simulationResults.totalStock
-      totalVacantSum += simulationResults.vacantAccomodation
+      totalFluxSum += epciTotals.totalFlux
+      totalStockSum += epciTotals.totalStock
+      totalVacantSum += epciTotals.vacantAccomodation
 
       currentRow++
     }
