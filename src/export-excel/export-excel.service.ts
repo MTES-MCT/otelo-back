@@ -243,8 +243,8 @@ export class ExportExcelService {
         epciScenario.epciCode,
         simulation.epcis.find((epci) => epci.code === epciScenario.epciCode)?.name,
         epciTotals.totalFlux, // Besoin démographique
-        epciTotals.totalStock, // Besoin mal-logement
-        epciTotals.totalFlux + epciTotals.totalStock, // Total constructions neuves
+        peakYear && peakYear > 2021 ? epciTotals.prepeakTotalStock : epciTotals.totalStock, // Besoin mal-logement
+        epciTotals.totalFlux + (peakYear && peakYear > 2021 ? epciTotals.prepeakTotalStock : epciTotals.totalStock), // Total constructions neuves
         epciTotals.vacantAccomodation, // Total remobilisation
         peakYearDisplay, // Année du peak ou '*'
       ]
