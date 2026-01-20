@@ -10,7 +10,6 @@ export class ScenariosController {
   constructor(private readonly scenariosService: ScenariosService) {}
 
   @AccessControl({
-    entity: Prisma.ModelName.Scenario,
     roles: [Role.USER, Role.ADMIN],
   })
   @HttpCode(HttpStatus.OK)

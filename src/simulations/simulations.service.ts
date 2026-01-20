@@ -21,6 +21,13 @@ export class SimulationsService {
     }))
   }
 
+  async hasUserAccessToAll(ids: string[], userId: string): Promise<boolean> {
+    const count = await this.prismaService.simulation.count({
+      where: { id: { in: ids }, userId },
+    })
+    return count === ids.length
+  }
+
   async list(userId: string): Promise<TSimulationWithEpci[]> {
     const simulations = await this.prismaService.simulation.findMany({
       select: {

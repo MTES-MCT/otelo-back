@@ -9,7 +9,7 @@ export class ResultsController {
 
   @AccessControl({
     entity: Prisma.ModelName.Simulation,
-    paramName: 'id',
+    paramName: 'simulationId',
     roles: [Role.USER, Role.ADMIN],
   })
   @Get(':simulationId/results')

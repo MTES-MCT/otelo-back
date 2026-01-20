@@ -38,7 +38,6 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     const modelAccess = this.reflector.getAllAndOverride<TModelAccess>(ACCESS_CONTROL_KEY, [context.getHandler(), context.getClass()])
-
     if (!modelAccess) {
       return Promise.resolve(false)
     }

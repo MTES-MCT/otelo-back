@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common'
+import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { User } from '~/common/decorators/authenticated-user'
 import { AccessControl } from '~/common/decorators/control-access.decorator'
@@ -33,6 +33,11 @@ export class ExportPowerpointController {
   @HttpCode(HttpStatus.OK)
   async requestPowerpoint(@User() user: TUser, @Body() data: TRequestPowerpoint) {
     const { nextStep, resultDate, selectedSimulations, privilegedSimulation, epcis, epci, documentType, periodStart, periodEnd } = data
+
+    const hasAccess = await this.simulationsService.hasUserAccessToAll(selectedSimulations, user.id)
+    if (!hasAccess) {
+      throw new ForbiddenException('You do not have access to one or more selected simulations')
+    }
 
     const selectedEpci = !!epcis && epcis.length > 0 ? epcis[0] : epci
 
