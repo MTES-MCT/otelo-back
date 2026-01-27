@@ -181,6 +181,61 @@ export class DemographicEvolutionService {
       return acc
     }, {} as TDemographicEvolutionMenagesByEpciRecord)
 
+    // Compute 'all' key: sum values across all EPCIs for each year
+    const allYearsMap = new Map<
+      number,
+      { centralB: number; centralC: number; centralH: number; phB: number; phC: number; phH: number; pbB: number; pbC: number; pbH: number }
+    >()
+
+    Object.values(groupedByEpci).forEach(({ data }) => {
+      data.forEach((item) => {
+        const existing = allYearsMap.get(item.year)
+        if (existing) {
+          existing.centralB += item.centralB
+          existing.centralC += item.centralC
+          existing.centralH += item.centralH
+          existing.phB += item.phB
+          existing.phC += item.phC
+          existing.phH += item.phH
+          existing.pbB += item.pbB
+          existing.pbC += item.pbC
+          existing.pbH += item.pbH
+        } else {
+          allYearsMap.set(item.year, {
+            centralB: item.centralB,
+            centralC: item.centralC,
+            centralH: item.centralH,
+            phB: item.phB,
+            phC: item.phC,
+            phH: item.phH,
+            pbB: item.pbB,
+            pbC: item.pbC,
+            pbH: item.pbH,
+          })
+        }
+      })
+    })
+
+    const allData = Array.from(allYearsMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([year, values]) => ({ year, ...values }))
+
+    let allMin = Infinity
+    let allMax = -Infinity
+    allData.forEach((item) => {
+      Object.entries(item).forEach(([key, value]) => {
+        if (key !== 'year') {
+          allMin = Math.min(allMin, value)
+          allMax = Math.max(allMax, value)
+        }
+      })
+    })
+
+    groupedByEpci['all'] = {
+      data: allData,
+      metadata: { max: allMax, min: allMin },
+    }
+
     return groupedByEpci
   }
 
@@ -230,6 +285,47 @@ export class DemographicEvolutionService {
 
       return acc
     }, {} as TDemographicEvolutionPopulationByEpciRecord)
+
+    // Compute 'all' key: sum values across all EPCIs for each year
+    const allYearsMap = new Map<number, { central: number; haute: number; basse: number }>()
+
+    Object.values(groupedByEpci).forEach(({ data }) => {
+      data.forEach((item) => {
+        const existing = allYearsMap.get(item.year)
+        if (existing) {
+          existing.central += item.central
+          existing.haute += item.haute
+          existing.basse += item.basse
+        } else {
+          allYearsMap.set(item.year, {
+            central: item.central,
+            haute: item.haute,
+            basse: item.basse,
+          })
+        }
+      })
+    })
+
+    const allData = Array.from(allYearsMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([year, values]) => ({ year, ...values }))
+
+    let allMin = Infinity
+    let allMax = -Infinity
+    allData.forEach((item) => {
+      Object.entries(item).forEach(([key, value]) => {
+        if (key !== 'year') {
+          allMin = Math.min(allMin, value as number)
+          allMax = Math.max(allMax, value as number)
+        }
+      })
+    })
+
+    groupedByEpci['all'] = {
+      data: allData,
+      metadata: { max: allMax, min: allMin },
+    }
+
     return groupedByEpci
   }
 
