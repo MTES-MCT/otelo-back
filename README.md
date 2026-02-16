@@ -1,3 +1,5 @@
+Projet migré vers : https://github.com/MTES-MCT/otelo
+
 # Description
 
 This project is a backend for the Otelo startup. It's a platform that helps to calculate the needs of housing for a given region.
